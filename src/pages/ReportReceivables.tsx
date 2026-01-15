@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { useFinancialStore } from '@/store/financialStore';
@@ -6,22 +6,57 @@ import { PrintableReport } from '@/components/reports/PrintableReport';
 import { ReportFilters } from '@/components/reports/ReportFilters';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileText, CheckCircle } from 'lucide-react';
+import { exportToPdf } from '@/lib/exportPdf';
+import { isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 
 const ReportReceivables = () => {
   const accounts = useFinancialStore((state) => state.accounts);
   const [sortBy, setSortBy] = useState<'dueDate' | 'name' | 'description' | 'amount'>('dueDate');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [activeTab, setActiveTab] = useState('pending');
+  const [startDate, setStartDate] = useState<Date | undefined>();
+  const [endDate, setEndDate] = useState<Date | undefined>();
   
   const pendingReportRef = useRef<HTMLDivElement>(null);
   const receivedReportRef = useRef<HTMLDivElement>(null);
 
-  const pendingReceivables = accounts.filter(
-    (a) => a.type === 'receivable' && (a.status === 'pending' || a.status === 'overdue')
+  const filterByDate = (accountList: typeof accounts) => {
+    if (!startDate && !endDate) return accountList;
+    
+    return accountList.filter((a) => {
+      const dueDate = new Date(a.dueDate);
+      
+      if (startDate && endDate) {
+        return isWithinInterval(dueDate, { 
+          start: startOfDay(startDate), 
+          end: endOfDay(endDate) 
+        });
+      }
+      
+      if (startDate) {
+        return dueDate >= startOfDay(startDate);
+      }
+      
+      if (endDate) {
+        return dueDate <= endOfDay(endDate);
+      }
+      
+      return true;
+    });
+  };
+
+  const pendingReceivables = useMemo(() => 
+    filterByDate(accounts.filter(
+      (a) => a.type === 'receivable' && (a.status === 'pending' || a.status === 'overdue')
+    )),
+    [accounts, startDate, endDate]
   );
   
-  const receivedReceivables = accounts.filter(
-    (a) => a.type === 'receivable' && a.status === 'paid'
+  const receivedReceivables = useMemo(() => 
+    filterByDate(accounts.filter(
+      (a) => a.type === 'receivable' && a.status === 'paid'
+    )),
+    [accounts, startDate, endDate]
   );
 
   const handlePrintPending = useReactToPrint({
@@ -34,6 +69,30 @@ const ReportReceivables = () => {
     documentTitle: 'Relatorio_Contas_Recebidas',
   });
 
+  const handleExportPendingPdf = () => {
+    exportToPdf({
+      title: 'Relatório de Contas a Receber',
+      accounts: pendingReceivables,
+      sortBy,
+      sortOrder,
+      startDate,
+      endDate,
+      filename: 'Relatorio_Contas_A_Receber',
+    });
+  };
+
+  const handleExportReceivedPdf = () => {
+    exportToPdf({
+      title: 'Relatório de Contas Recebidas',
+      accounts: receivedReceivables,
+      sortBy,
+      sortOrder,
+      startDate,
+      endDate,
+      filename: 'Relatorio_Contas_Recebidas',
+    });
+  };
+
   return (
     <MainLayout>
       <div className="space-y-6 animate-fade-in">
@@ -43,7 +102,7 @@ const ReportReceivables = () => {
             Relatórios de Contas a Receber
           </h1>
           <p className="text-muted-foreground mt-1">
-            Visualize e imprima relatórios detalhados
+            Visualize, filtre e exporte relatórios detalhados
           </p>
         </div>
 
@@ -64,9 +123,14 @@ const ReportReceivables = () => {
               <ReportFilters
                 sortBy={sortBy}
                 sortOrder={sortOrder}
+                startDate={startDate}
+                endDate={endDate}
                 onSortByChange={setSortBy}
                 onSortOrderChange={setSortOrder}
+                onStartDateChange={setStartDate}
+                onEndDateChange={setEndDate}
                 onPrint={() => handlePrintPending()}
+                onExportPdf={handleExportPendingPdf}
               />
             </div>
             
@@ -77,6 +141,8 @@ const ReportReceivables = () => {
                 accounts={pendingReceivables}
                 sortBy={sortBy}
                 sortOrder={sortOrder}
+                startDate={startDate}
+                endDate={endDate}
               />
             </div>
           </TabsContent>
@@ -86,9 +152,14 @@ const ReportReceivables = () => {
               <ReportFilters
                 sortBy={sortBy}
                 sortOrder={sortOrder}
+                startDate={startDate}
+                endDate={endDate}
                 onSortByChange={setSortBy}
                 onSortOrderChange={setSortOrder}
+                onStartDateChange={setStartDate}
+                onEndDateChange={setEndDate}
                 onPrint={() => handlePrintReceived()}
+                onExportPdf={handleExportReceivedPdf}
               />
             </div>
             
@@ -99,6 +170,8 @@ const ReportReceivables = () => {
                 accounts={receivedReceivables}
                 sortBy={sortBy}
                 sortOrder={sortOrder}
+                startDate={startDate}
+                endDate={endDate}
               />
             </div>
           </TabsContent>
