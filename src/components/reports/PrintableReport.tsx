@@ -2,16 +2,19 @@ import React, { forwardRef } from 'react';
 import { Account } from '@/types/financial';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { format } from 'date-fns';
 
 interface PrintableReportProps {
   title: string;
   accounts: Account[];
   sortBy: 'dueDate' | 'name' | 'description' | 'amount';
   sortOrder: 'asc' | 'desc';
+  startDate?: Date;
+  endDate?: Date;
 }
 
 export const PrintableReport = forwardRef<HTMLDivElement, PrintableReportProps>(
-  ({ title, accounts, sortBy, sortOrder }, ref) => {
+  ({ title, accounts, sortBy, sortOrder, startDate, endDate }, ref) => {
     const sortedAccounts = [...accounts].sort((a, b) => {
       let comparison = 0;
       switch (sortBy) {
@@ -32,6 +35,14 @@ export const PrintableReport = forwardRef<HTMLDivElement, PrintableReportProps>(
     });
 
     const total = accounts.reduce((sum, a) => sum + a.amount, 0);
+    
+    const periodText = startDate && endDate 
+      ? `Período: ${format(startDate, 'dd/MM/yyyy')} até ${format(endDate, 'dd/MM/yyyy')}`
+      : startDate 
+        ? `A partir de: ${format(startDate, 'dd/MM/yyyy')}`
+        : endDate 
+          ? `Até: ${format(endDate, 'dd/MM/yyyy')}`
+          : 'Período: Todos os registros';
 
     return (
       <div ref={ref} className="print-report bg-white text-black p-8 min-h-[297mm] w-[210mm] mx-auto">
@@ -71,6 +82,9 @@ export const PrintableReport = forwardRef<HTMLDivElement, PrintableReportProps>(
           <p className="text-sm text-center text-gray-600 mt-1">
             Gerado em: {formatDate(new Date())}
           </p>
+          <p className="text-sm text-center text-gray-600 mt-1 font-medium">
+            {periodText}
+          </p>
         </div>
 
         {/* Summary */}
@@ -86,7 +100,7 @@ export const PrintableReport = forwardRef<HTMLDivElement, PrintableReportProps>(
         {/* Table */}
         {accounts.length === 0 ? (
           <div className="text-center py-12 text-gray-500">
-            Nenhum registro encontrado
+            Nenhum registro encontrado no período selecionado
           </div>
         ) : (
           <Table className="border border-gray-300">
