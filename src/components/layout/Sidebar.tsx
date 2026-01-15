@@ -23,6 +23,7 @@ const mainNavigation = [
 
 const reportsNavigation = [
   { name: 'Visão Geral', href: '/reports', icon: BarChart3 },
+  { name: 'Consolidado Mensal', href: '/reports/consolidated', icon: BarChart3 },
   { name: 'Rel. Contas a Pagar', href: '/reports/payables', icon: FileSpreadsheet },
   { name: 'Rel. Contas a Receber', href: '/reports/receivables', icon: FileSpreadsheet },
 ];

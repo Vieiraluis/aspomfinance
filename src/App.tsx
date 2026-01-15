@@ -11,6 +11,7 @@ import Payments from "./pages/Payments";
 import Reports from "./pages/Reports";
 import ReportPayables from "./pages/ReportPayables";
 import ReportReceivables from "./pages/ReportReceivables";
+import ReportConsolidated from "./pages/ReportConsolidated";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
           <Route path="/reports" element={<Reports />} />
           <Route path="/reports/payables" element={<ReportPayables />} />
           <Route path="/reports/receivables" element={<ReportReceivables />} />
+          <Route path="/reports/consolidated" element={<ReportConsolidated />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
