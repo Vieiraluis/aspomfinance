@@ -32,9 +32,10 @@ import { cn } from '@/lib/utils';
 import { Search, CreditCard, CheckCircle, TrendingDown, TrendingUp } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { AttachmentButtons } from '@/components/attachments/AttachmentButtons';
 
 const Payments = () => {
-  const { accounts, processPayment } = useFinancialStore();
+  const { accounts, processPayment, updateAccount } = useFinancialStore();
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
@@ -180,6 +181,7 @@ const Payments = () => {
                   <TableHead>Vencimento</TableHead>
                   <TableHead>Valor</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Anexos</TableHead>
                   <TableHead className="text-right">Ação</TableHead>
                 </TableRow>
               </TableHeader>
@@ -224,6 +226,15 @@ const Payments = () => {
                       >
                         {account.status === 'overdue' ? 'Vencido' : 'Pendente'}
                       </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <AttachmentButtons
+                        billingSlipUrl={account.billingSlipUrl}
+                        paymentReceiptUrl={account.paymentReceiptUrl}
+                        onBillingSlipChange={(url) => updateAccount(account.id, { billingSlipUrl: url })}
+                        onPaymentReceiptChange={(url) => updateAccount(account.id, { paymentReceiptUrl: url })}
+                        compact
+                      />
                     </TableCell>
                     <TableCell className="text-right">
                       <Button
