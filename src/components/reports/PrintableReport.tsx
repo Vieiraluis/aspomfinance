@@ -11,15 +11,24 @@ interface PrintableReportProps {
   sortOrder: 'asc' | 'desc';
   startDate?: Date;
   endDate?: Date;
+  dateField?: 'dueDate' | 'paidAt';
+  dateColumnLabel?: string;
 }
 
 export const PrintableReport = forwardRef<HTMLDivElement, PrintableReportProps>(
-  ({ title, accounts, sortBy, sortOrder, startDate, endDate }, ref) => {
+  ({ title, accounts, sortBy, sortOrder, startDate, endDate, dateField = 'dueDate', dateColumnLabel = 'Data Venc.' }, ref) => {
+    const getDateValue = (account: Account) => {
+      if (dateField === 'paidAt' && account.paidAt) {
+        return new Date(account.paidAt);
+      }
+      return new Date(account.dueDate);
+    };
+
     const sortedAccounts = [...accounts].sort((a, b) => {
       let comparison = 0;
       switch (sortBy) {
         case 'dueDate':
-          comparison = new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+          comparison = getDateValue(a).getTime() - getDateValue(b).getTime();
           break;
         case 'name':
           comparison = (a.supplierName || '').localeCompare(b.supplierName || '');
@@ -107,7 +116,7 @@ export const PrintableReport = forwardRef<HTMLDivElement, PrintableReportProps>(
             <TableHeader>
               <TableRow className="bg-gray-100">
                 <TableHead className="text-black font-bold border border-gray-300 w-12">#</TableHead>
-                <TableHead className="text-black font-bold border border-gray-300">Data Venc.</TableHead>
+                <TableHead className="text-black font-bold border border-gray-300">{dateColumnLabel}</TableHead>
                 <TableHead className="text-black font-bold border border-gray-300">Nome</TableHead>
                 <TableHead className="text-black font-bold border border-gray-300">Descrição</TableHead>
                 <TableHead className="text-black font-bold border border-gray-300 text-right">Valor</TableHead>
@@ -117,7 +126,9 @@ export const PrintableReport = forwardRef<HTMLDivElement, PrintableReportProps>(
               {sortedAccounts.map((account, index) => (
                 <TableRow key={account.id} className="hover:bg-gray-50">
                   <TableCell className="border border-gray-300 text-center">{index + 1}</TableCell>
-                  <TableCell className="border border-gray-300">{formatDate(account.dueDate)}</TableCell>
+                  <TableCell className="border border-gray-300">
+                    {formatDate(dateField === 'paidAt' && account.paidAt ? account.paidAt : account.dueDate)}
+                  </TableCell>
                   <TableCell className="border border-gray-300">{account.supplierName || '-'}</TableCell>
                   <TableCell className="border border-gray-300">{account.description}</TableCell>
                   <TableCell className="border border-gray-300 text-right font-mono">
