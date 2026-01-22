@@ -33,6 +33,7 @@ import { cn } from '@/lib/utils';
 import { Plus, Search, TrendingUp, Trash2, Split } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { AttachmentButtons } from '@/components/attachments/AttachmentButtons';
 
 const statusLabels = {
   pending: 'Pendente',
@@ -49,7 +50,7 @@ const statusStyles = {
 };
 
 const Receivables = () => {
-  const { accounts, addAccount, deleteAccount, generateInstallments } = useFinancialStore();
+  const { accounts, addAccount, deleteAccount, generateInstallments, updateAccount } = useFinancialStore();
   const [isOpen, setIsOpen] = useState(false);
   const [isInstallmentOpen, setIsInstallmentOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -361,6 +362,7 @@ const Receivables = () => {
                   <TableHead>Vencimento</TableHead>
                   <TableHead>Valor</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Anexos</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -384,6 +386,15 @@ const Receivables = () => {
                       <Badge variant="outline" className={cn(statusStyles[account.status])}>
                         {statusLabels[account.status]}
                       </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <AttachmentButtons
+                        billingSlipUrl={account.billingSlipUrl}
+                        paymentReceiptUrl={account.paymentReceiptUrl}
+                        onBillingSlipChange={(url) => updateAccount(account.id, { billingSlipUrl: url })}
+                        onPaymentReceiptChange={(url) => updateAccount(account.id, { paymentReceiptUrl: url })}
+                        compact
+                      />
                     </TableCell>
                     <TableCell className="text-right">
                       <Button

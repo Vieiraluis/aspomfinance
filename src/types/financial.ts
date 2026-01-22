@@ -24,6 +24,8 @@ export interface Account {
   paidAt?: Date;
   createdAt: Date;
   notes?: string;
+  billingSlipUrl?: string; // Boleta de cobrança
+  paymentReceiptUrl?: string; // Comprovante de pagamento
 }
 
 export interface Payment {
