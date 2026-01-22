@@ -19,6 +19,7 @@ interface ReportFiltersProps {
   onEndDateChange: (date: Date | undefined) => void;
   onPrint: () => void;
   onExportPdf: () => void;
+  dateLabel?: string;
 }
 
 export const ReportFilters = ({
@@ -32,13 +33,14 @@ export const ReportFilters = ({
   onEndDateChange,
   onPrint,
   onExportPdf,
+  dateLabel = 'Período:',
 }: ReportFiltersProps) => {
   return (
     <div className="space-y-4 no-print">
       {/* Date Filters */}
       <div className="flex flex-wrap items-center gap-4">
         <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">Período:</span>
+          <span className="text-sm text-muted-foreground">{dateLabel}</span>
           
           {/* Start Date */}
           <Popover>

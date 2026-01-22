@@ -12,6 +12,8 @@ interface ExportPdfOptions {
   startDate?: Date;
   endDate?: Date;
   filename: string;
+  dateField?: 'dueDate' | 'paidAt';
+  dateColumnLabel?: string;
 }
 
 export const exportToPdf = ({
@@ -22,15 +24,24 @@ export const exportToPdf = ({
   startDate,
   endDate,
   filename,
+  dateField = 'dueDate',
+  dateColumnLabel = 'Data Venc.',
 }: ExportPdfOptions) => {
   const doc = new jsPDF('portrait', 'mm', 'a4');
   
+  const getDateValue = (account: Account) => {
+    if (dateField === 'paidAt' && account.paidAt) {
+      return new Date(account.paidAt);
+    }
+    return new Date(account.dueDate);
+  };
+
   // Sort accounts
   const sortedAccounts = [...accounts].sort((a, b) => {
     let comparison = 0;
     switch (sortBy) {
       case 'dueDate':
-        comparison = new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+        comparison = getDateValue(a).getTime() - getDateValue(b).getTime();
         break;
       case 'name':
         comparison = (a.supplierName || '').localeCompare(b.supplierName || '');
@@ -77,7 +88,7 @@ export const exportToPdf = ({
   // Table
   const tableData = sortedAccounts.map((account, index) => [
     (index + 1).toString(),
-    formatDate(account.dueDate),
+    formatDate(dateField === 'paidAt' && account.paidAt ? account.paidAt : account.dueDate),
     account.supplierName || '-',
     account.description.length > 40 ? account.description.substring(0, 40) + '...' : account.description,
     formatCurrency(account.amount),
@@ -85,7 +96,7 @@ export const exportToPdf = ({
 
   autoTable(doc, {
     startY: 50,
-    head: [['#', 'Data Venc.', 'Nome', 'Descrição', 'Valor']],
+    head: [['#', dateColumnLabel, 'Nome', 'Descrição', 'Valor']],
     body: tableData,
     styles: {
       fontSize: 9,
