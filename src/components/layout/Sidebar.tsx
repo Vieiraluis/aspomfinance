@@ -9,9 +9,11 @@ import {
   CreditCard,
   FileSpreadsheet,
   ChevronDown,
+  ListChecks,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { DueDateNotifications } from '@/components/notifications/DueDateNotifications';
 
 const mainNavigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
@@ -19,6 +21,7 @@ const mainNavigation = [
   { name: 'Contas a Pagar', href: '/payables', icon: TrendingDown },
   { name: 'Contas a Receber', href: '/receivables', icon: TrendingUp },
   { name: 'Baixa de Pagamentos', href: '/payments', icon: CreditCard },
+  { name: 'Todos os Registros', href: '/all-records', icon: ListChecks },
 ];
 
 const reportsNavigation = [
@@ -36,7 +39,7 @@ export function Sidebar() {
 
   return (
     <aside className="fixed inset-y-0 left-0 w-64 bg-sidebar border-r border-sidebar-border flex flex-col">
-      <div className="h-16 flex items-center px-6 border-b border-sidebar-border">
+      <div className="h-16 flex items-center justify-between px-6 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow-primary">
             <CreditCard className="w-5 h-5 text-primary-foreground" />
@@ -46,6 +49,7 @@ export function Sidebar() {
             <p className="text-xs text-muted-foreground">Gestão Financeira</p>
           </div>
         </div>
+        <DueDateNotifications />
       </div>
       
       <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
