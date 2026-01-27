@@ -8,6 +8,8 @@ import Suppliers from "./pages/Suppliers";
 import Payables from "./pages/Payables";
 import Receivables from "./pages/Receivables";
 import Payments from "./pages/Payments";
+import BankAccounts from "./pages/BankAccounts";
+import CashFlow from "./pages/CashFlow";
 import Reports from "./pages/Reports";
 import ReportPayables from "./pages/ReportPayables";
 import ReportReceivables from "./pages/ReportReceivables";
@@ -31,6 +33,8 @@ const App = () => (
           <Route path="/payables" element={<Payables />} />
           <Route path="/receivables" element={<Receivables />} />
           <Route path="/payments" element={<Payments />} />
+          <Route path="/bank-accounts" element={<BankAccounts />} />
+          <Route path="/cash-flow" element={<CashFlow />} />
           <Route path="/all-records" element={<AllRecords />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/reports/payables" element={<ReportPayables />} />

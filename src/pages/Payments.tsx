@@ -29,22 +29,25 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { cn } from '@/lib/utils';
-import { Search, CreditCard, CheckCircle, TrendingDown, TrendingUp } from 'lucide-react';
+import { Search, CreditCard, CheckCircle, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { AttachmentButtons } from '@/components/attachments/AttachmentButtons';
 
 const Payments = () => {
-  const { accounts, processPayment, updateAccount } = useFinancialStore();
+  const { accounts, processPayment, updateAccount, bankAccounts } = useFinancialStore();
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   
+  const activeBankAccounts = bankAccounts.filter(ba => ba.isActive);
+  
   const [paymentData, setPaymentData] = useState({
     amount: '',
     paymentMethod: 'pix' as Payment['paymentMethod'],
     paidAt: format(new Date(), 'yyyy-MM-dd'),
+    bankAccountId: '',
     notes: '',
   });
   
@@ -64,6 +67,7 @@ const Payments = () => {
       amount: account.amount.toString(),
       paymentMethod: 'pix',
       paidAt: format(new Date(), 'yyyy-MM-dd'),
+      bankAccountId: activeBankAccounts[0]?.id || '',
       notes: '',
     });
     setIsPaymentOpen(true);
@@ -74,16 +78,28 @@ const Payments = () => {
     
     if (!selectedAccount) return;
     
+    if (!paymentData.bankAccountId) {
+      toast({
+        title: 'Selecione uma conta',
+        description: 'É necessário selecionar uma conta bancária para a baixa.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
     processPayment(selectedAccount.id, {
       amount: parseFloat(paymentData.amount),
       paymentMethod: paymentData.paymentMethod,
       paidAt: new Date(paymentData.paidAt),
+      bankAccountId: paymentData.bankAccountId,
       notes: paymentData.notes || undefined,
     });
     
+    const bankAccount = bankAccounts.find(ba => ba.id === paymentData.bankAccountId);
+    
     toast({
       title: selectedAccount.type === 'payable' ? 'Pagamento registrado!' : 'Recebimento registrado!',
-      description: `${selectedAccount.description} - ${formatCurrency(parseFloat(paymentData.amount))}`,
+      description: `${selectedAccount.description} - ${formatCurrency(parseFloat(paymentData.amount))} via ${bankAccount?.name}`,
     });
     
     setIsPaymentOpen(false);
@@ -296,6 +312,33 @@ const Payments = () => {
                       required
                     />
                   </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="bankAccountId">Conta para Baixa</Label>
+                  <Select
+                    value={paymentData.bankAccountId}
+                    onValueChange={(value) => setPaymentData({ ...paymentData, bankAccountId: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a conta" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {activeBankAccounts.map((ba) => (
+                        <SelectItem key={ba.id} value={ba.id}>
+                          <span className="flex items-center gap-2">
+                            <Wallet className="w-4 h-4" />
+                            {ba.name} ({formatCurrency(ba.currentBalance)})
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {activeBankAccounts.length === 0 && (
+                    <p className="text-xs text-destructive">
+                      Nenhuma conta bancária ativa. Cadastre uma conta primeiro.
+                    </p>
+                  )}
                 </div>
                 
                 <div className="space-y-2">

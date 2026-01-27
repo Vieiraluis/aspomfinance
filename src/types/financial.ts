@@ -8,6 +8,28 @@ export interface Supplier {
   createdAt: Date;
 }
 
+export interface BankAccount {
+  id: string;
+  name: string;
+  type: 'checking' | 'savings' | 'cash' | 'investment';
+  bankName?: string;
+  agency?: string;
+  accountNumber?: string;
+  initialBalance: number;
+  currentBalance: number;
+  isActive: boolean;
+  createdAt: Date;
+}
+
+export type BankAccountType = BankAccount['type'];
+
+export const bankAccountTypeLabels: Record<BankAccountType, string> = {
+  checking: 'Conta Corrente',
+  savings: 'Poupança',
+  cash: 'Caixa',
+  investment: 'Investimento',
+};
+
 export interface Account {
   id: string;
   type: 'payable' | 'receivable';
@@ -22,6 +44,7 @@ export interface Account {
   totalInstallments?: number;
   parentId?: string; // For installments, reference to parent account
   paidAt?: Date;
+  bankAccountId?: string; // Conta usada para baixa
   createdAt: Date;
   notes?: string;
   billingSlipUrl?: string; // Boleta de cobrança
@@ -34,6 +57,7 @@ export interface Payment {
   amount: number;
   paidAt: Date;
   paymentMethod: 'cash' | 'transfer' | 'pix' | 'credit_card' | 'debit_card' | 'boleto';
+  bankAccountId?: string;
   notes?: string;
 }
 
