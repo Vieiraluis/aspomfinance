@@ -1,12 +1,13 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Account, Supplier, Payment, FinancialSummary } from '@/types/financial';
+import { Account, Supplier, Payment, FinancialSummary, BankAccount } from '@/types/financial';
 import { addMonths, isBefore, startOfDay, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 
 interface FinancialStore {
   suppliers: Supplier[];
   accounts: Account[];
   payments: Payment[];
+  bankAccounts: BankAccount[];
   
   // Supplier actions
   addSupplier: (supplier: Omit<Supplier, 'id' | 'createdAt'>) => void;
@@ -27,6 +28,11 @@ interface FinancialStore {
     numberOfInstallments: number
   ) => void;
   
+  // Bank Account actions
+  addBankAccount: (bankAccount: Omit<BankAccount, 'id' | 'createdAt' | 'currentBalance'>) => void;
+  updateBankAccount: (id: string, bankAccount: Partial<BankAccount>) => void;
+  deleteBankAccount: (id: string) => void;
+  
   // Summary
   getSummary: () => FinancialSummary;
   
@@ -42,6 +48,7 @@ export const useFinancialStore = create<FinancialStore>()(
       suppliers: [],
       accounts: [],
       payments: [],
+      bankAccounts: [],
       
       addSupplier: (supplier) => {
         const newSupplier: Supplier = {
@@ -96,14 +103,33 @@ export const useFinancialStore = create<FinancialStore>()(
           accountId,
         };
         
-        set((state) => ({
-          payments: [...state.payments, newPayment],
-          accounts: state.accounts.map((a) =>
-            a.id === accountId
-              ? { ...a, status: 'paid', paidAt: payment.paidAt }
-              : a
-          ),
-        }));
+        const account = get().accounts.find(a => a.id === accountId);
+        
+        set((state) => {
+          // Atualiza saldo da conta bancária
+          let updatedBankAccounts = state.bankAccounts;
+          if (payment.bankAccountId) {
+            updatedBankAccounts = state.bankAccounts.map((ba) => {
+              if (ba.id === payment.bankAccountId) {
+                const balanceChange = account?.type === 'receivable' 
+                  ? payment.amount 
+                  : -payment.amount;
+                return { ...ba, currentBalance: ba.currentBalance + balanceChange };
+              }
+              return ba;
+            });
+          }
+          
+          return {
+            payments: [...state.payments, newPayment],
+            accounts: state.accounts.map((a) =>
+              a.id === accountId
+                ? { ...a, status: 'paid', paidAt: payment.paidAt, bankAccountId: payment.bankAccountId }
+                : a
+            ),
+            bankAccounts: updatedBankAccounts,
+          };
+        });
       },
       
       generateInstallments: (baseAccount, numberOfInstallments) => {
@@ -123,6 +149,30 @@ export const useFinancialStore = create<FinancialStore>()(
         }));
         
         set((state) => ({ accounts: [...state.accounts, ...installments] }));
+      },
+      
+      addBankAccount: (bankAccount) => {
+        const newBankAccount: BankAccount = {
+          ...bankAccount,
+          id: generateId(),
+          currentBalance: bankAccount.initialBalance,
+          createdAt: new Date(),
+        };
+        set((state) => ({ bankAccounts: [...state.bankAccounts, newBankAccount] }));
+      },
+      
+      updateBankAccount: (id, bankAccount) => {
+        set((state) => ({
+          bankAccounts: state.bankAccounts.map((ba) =>
+            ba.id === id ? { ...ba, ...bankAccount } : ba
+          ),
+        }));
+      },
+      
+      deleteBankAccount: (id) => {
+        set((state) => ({
+          bankAccounts: state.bankAccounts.filter((ba) => ba.id !== id),
+        }));
       },
       
       getSummary: () => {
@@ -198,6 +248,7 @@ export const useFinancialStore = create<FinancialStore>()(
         suppliers: state.suppliers,
         accounts: state.accounts,
         payments: state.payments,
+        bankAccounts: state.bankAccounts,
       }),
     }
   )
