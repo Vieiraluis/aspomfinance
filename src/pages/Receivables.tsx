@@ -34,6 +34,8 @@ import { Plus, Search, TrendingUp, Trash2, Split } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { AttachmentButtons } from '@/components/attachments/AttachmentButtons';
+import { DoubleClickInput } from '@/components/ui/double-click-input';
+import { QuickSupplierDialog } from '@/components/suppliers/QuickSupplierDialog';
 
 const statusLabels = {
   pending: 'Pendente',
@@ -50,9 +52,11 @@ const statusStyles = {
 };
 
 const Receivables = () => {
-  const { accounts, addAccount, deleteAccount, generateInstallments, updateAccount } = useFinancialStore();
+  const { accounts, addAccount, deleteAccount, generateInstallments, updateAccount, suppliers } = useFinancialStore();
   const [isOpen, setIsOpen] = useState(false);
   const [isInstallmentOpen, setIsInstallmentOpen] = useState(false);
+  const [isQuickReceiverOpen, setIsQuickReceiverOpen] = useState(false);
+  const [quickReceiverContext, setQuickReceiverContext] = useState<'main' | 'installment'>('main');
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   
@@ -165,11 +169,16 @@ const Receivables = () => {
                 <form onSubmit={handleInstallmentSubmit} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="inst-description">Descrição</Label>
-                    <Input
+                    <DoubleClickInput
                       id="inst-description"
                       value={installmentData.description}
                       onChange={(e) => setInstallmentData({ ...installmentData, description: e.target.value })}
-                      placeholder="Ex: Venda parcelada"
+                      placeholder="Ex: Venda parcelada (duplo clique = novo recebedor)"
+                      tooltipText="Duplo clique para cadastrar recebedor"
+                      onDoubleClickAction={() => {
+                        setQuickReceiverContext('installment');
+                        setIsQuickReceiverOpen(true);
+                      }}
                       required
                     />
                   </div>
@@ -262,11 +271,16 @@ const Receivables = () => {
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="description">Descrição</Label>
-                    <Input
+                    <DoubleClickInput
                       id="description"
                       value={formData.description}
                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      placeholder="Ex: Venda de produtos"
+                      placeholder="Ex: Venda de produtos (duplo clique = novo recebedor)"
+                      tooltipText="Duplo clique para cadastrar recebedor"
+                      onDoubleClickAction={() => {
+                        setQuickReceiverContext('main');
+                        setIsQuickReceiverOpen(true);
+                      }}
                       required
                     />
                   </div>
@@ -414,6 +428,23 @@ const Receivables = () => {
             </Table>
           )}
         </div>
+        
+        {/* Quick Receiver Dialog */}
+        <QuickSupplierDialog
+          open={isQuickReceiverOpen}
+          onOpenChange={setIsQuickReceiverOpen}
+          type="receiver"
+          onSupplierCreated={(supplierId) => {
+            // Atualiza o formulário correto baseado no contexto
+            const newSupplier = suppliers[suppliers.length - 1];
+            if (newSupplier) {
+              toast({
+                title: 'Recebedor vinculado!',
+                description: `${newSupplier.name} foi cadastrado e está disponível.`
+              });
+            }
+          }}
+        />
       </div>
     </MainLayout>
   );
