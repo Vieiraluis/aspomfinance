@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import {
   Select,
@@ -33,8 +34,7 @@ import { cn } from '@/lib/utils';
 import { Plus, Search, TrendingDown, Trash2, Split } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import { DoubleClickInput } from '@/components/ui/double-click-input';
-import { QuickSupplierDialog } from '@/components/suppliers/QuickSupplierDialog';
+import { SupplierSelect } from '@/components/suppliers/SupplierSelect';
 
 const statusLabels = {
   pending: 'Pendente',
@@ -54,8 +54,6 @@ const Payables = () => {
   const { accounts, suppliers, addAccount, deleteAccount, generateInstallments } = useFinancialStore();
   const [isOpen, setIsOpen] = useState(false);
   const [isInstallmentOpen, setIsInstallmentOpen] = useState(false);
-  const [isQuickSupplierOpen, setIsQuickSupplierOpen] = useState(false);
-  const [quickSupplierContext, setQuickSupplierContext] = useState<'main' | 'installment'>('main');
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   
@@ -177,21 +175,26 @@ const Payables = () => {
               <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
                   <DialogTitle className="font-display">Gerar Parcelas</DialogTitle>
+                  <DialogDescription>Divida uma conta em parcelas mensais</DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleInstallmentSubmit} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="inst-description">Descrição</Label>
-                    <DoubleClickInput
+                    <Input
                       id="inst-description"
                       value={installmentData.description}
                       onChange={(e) => setInstallmentData({ ...installmentData, description: e.target.value })}
-                      placeholder="Ex: Compra de equipamentos (duplo clique = novo fornecedor)"
-                      tooltipText="Duplo clique para cadastrar fornecedor"
-                      onDoubleClickAction={() => {
-                        setQuickSupplierContext('installment');
-                        setIsQuickSupplierOpen(true);
-                      }}
+                      placeholder="Ex: Compra de equipamentos"
                       required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Fornecedor</Label>
+                    <SupplierSelect
+                      value={installmentData.supplierId}
+                      onValueChange={(value) => setInstallmentData({ ...installmentData, supplierId: value })}
+                      type="supplier"
+                      placeholder="Selecione o fornecedor..."
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
@@ -279,21 +282,26 @@ const Payables = () => {
               <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
                   <DialogTitle className="font-display">Nova Conta a Pagar</DialogTitle>
+                  <DialogDescription>Registre uma nova despesa ou conta a pagar</DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="description">Descrição</Label>
-                    <DoubleClickInput
+                    <Input
                       id="description"
                       value={formData.description}
                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      placeholder="Ex: Conta de luz (duplo clique = novo fornecedor)"
-                      tooltipText="Duplo clique para cadastrar fornecedor"
-                      onDoubleClickAction={() => {
-                        setQuickSupplierContext('main');
-                        setIsQuickSupplierOpen(true);
-                      }}
+                      placeholder="Ex: Conta de luz"
                       required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Fornecedor</Label>
+                    <SupplierSelect
+                      value={formData.supplierId}
+                      onValueChange={(value) => setFormData({ ...formData, supplierId: value })}
+                      type="supplier"
+                      placeholder="Selecione o fornecedor..."
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
@@ -320,39 +328,21 @@ const Payables = () => {
                       />
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="category">Categoria</Label>
-                      <Select
-                        value={formData.category}
-                        onValueChange={(value) => setFormData({ ...formData, category: value as AccountCategory })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.entries(categoryLabels).map(([key, label]) => (
-                            <SelectItem key={key} value={key}>{label}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="supplier">Fornecedor</Label>
-                      <Select
-                        value={formData.supplierId}
-                        onValueChange={(value) => setFormData({ ...formData, supplierId: value })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {suppliers.map((s) => (
-                            <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="category">Categoria</Label>
+                    <Select
+                      value={formData.category}
+                      onValueChange={(value) => setFormData({ ...formData, category: value as AccountCategory })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(categoryLabels).map(([key, label]) => (
+                          <SelectItem key={key} value={key}>{label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="flex justify-end gap-3 pt-4">
                     <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
@@ -450,22 +440,6 @@ const Payables = () => {
             </Table>
           )}
         </div>
-        
-        {/* Quick Supplier Dialog */}
-        <QuickSupplierDialog
-          open={isQuickSupplierOpen}
-          onOpenChange={setIsQuickSupplierOpen}
-          type="supplier"
-          onSupplierCreated={(supplierId) => {
-            // Atualiza o formulário correto baseado no contexto
-            const newSupplier = suppliers[suppliers.length - 1];
-            if (quickSupplierContext === 'main' && newSupplier) {
-              setFormData(prev => ({ ...prev, supplierId: newSupplier.id }));
-            } else if (quickSupplierContext === 'installment' && newSupplier) {
-              setInstallmentData(prev => ({ ...prev, supplierId: newSupplier.id }));
-            }
-          }}
-        />
       </div>
     </MainLayout>
   );
