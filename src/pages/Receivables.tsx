@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import {
   Select,
@@ -34,8 +35,7 @@ import { Plus, Search, TrendingUp, Trash2, Split } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { AttachmentButtons } from '@/components/attachments/AttachmentButtons';
-import { DoubleClickInput } from '@/components/ui/double-click-input';
-import { QuickSupplierDialog } from '@/components/suppliers/QuickSupplierDialog';
+import { SupplierSelect } from '@/components/suppliers/SupplierSelect';
 
 const statusLabels = {
   pending: 'Pendente',
@@ -52,11 +52,9 @@ const statusStyles = {
 };
 
 const Receivables = () => {
-  const { accounts, addAccount, deleteAccount, generateInstallments, updateAccount, suppliers } = useFinancialStore();
+  const { accounts, suppliers, addAccount, deleteAccount, generateInstallments, updateAccount } = useFinancialStore();
   const [isOpen, setIsOpen] = useState(false);
   const [isInstallmentOpen, setIsInstallmentOpen] = useState(false);
-  const [isQuickReceiverOpen, setIsQuickReceiverOpen] = useState(false);
-  const [quickReceiverContext, setQuickReceiverContext] = useState<'main' | 'installment'>('main');
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   
@@ -65,6 +63,7 @@ const Receivables = () => {
     amount: '',
     dueDate: format(new Date(), 'yyyy-MM-dd'),
     category: 'sales' as AccountCategory,
+    supplierId: '',
     notes: '',
   });
   
@@ -76,7 +75,9 @@ const Receivables = () => {
   const receivables = accounts.filter((a) => a.type === 'receivable');
   
   const filteredReceivables = receivables.filter((a) => {
-    const matchesSearch = a.description.toLowerCase().includes(search.toLowerCase());
+    const matchesSearch = 
+      a.description.toLowerCase().includes(search.toLowerCase()) ||
+      (a.supplierName && a.supplierName.toLowerCase().includes(search.toLowerCase()));
     const matchesStatus = statusFilter === 'all' || a.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -87,12 +88,15 @@ const Receivables = () => {
       amount: '',
       dueDate: format(new Date(), 'yyyy-MM-dd'),
       category: 'sales',
+      supplierId: '',
       notes: '',
     });
   };
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    const receiver = suppliers.find((s) => s.id === formData.supplierId);
     
     addAccount({
       type: 'receivable',
@@ -101,6 +105,8 @@ const Receivables = () => {
       dueDate: new Date(formData.dueDate),
       status: 'pending',
       category: formData.category,
+      supplierId: formData.supplierId || undefined,
+      supplierName: receiver?.name,
       notes: formData.notes || undefined,
     });
     
@@ -112,6 +118,8 @@ const Receivables = () => {
   const handleInstallmentSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    const receiver = suppliers.find((s) => s.id === installmentData.supplierId);
+    
     generateInstallments(
       {
         type: 'receivable',
@@ -120,6 +128,8 @@ const Receivables = () => {
         dueDate: new Date(installmentData.dueDate),
         status: 'pending',
         category: installmentData.category as AccountCategory,
+        supplierId: installmentData.supplierId || undefined,
+        supplierName: receiver?.name,
         notes: installmentData.notes || undefined,
       },
       parseInt(installmentData.numberOfInstallments)
@@ -135,6 +145,7 @@ const Receivables = () => {
       amount: '',
       dueDate: format(new Date(), 'yyyy-MM-dd'),
       category: 'sales',
+      supplierId: '',
       notes: '',
       numberOfInstallments: '2',
     });
@@ -165,21 +176,26 @@ const Receivables = () => {
               <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
                   <DialogTitle className="font-display">Gerar Parcelas de Recebimento</DialogTitle>
+                  <DialogDescription>Divida uma conta a receber em parcelas mensais</DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleInstallmentSubmit} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="inst-description">Descrição</Label>
-                    <DoubleClickInput
+                    <Input
                       id="inst-description"
                       value={installmentData.description}
                       onChange={(e) => setInstallmentData({ ...installmentData, description: e.target.value })}
-                      placeholder="Ex: Venda parcelada (duplo clique = novo recebedor)"
-                      tooltipText="Duplo clique para cadastrar recebedor"
-                      onDoubleClickAction={() => {
-                        setQuickReceiverContext('installment');
-                        setIsQuickReceiverOpen(true);
-                      }}
+                      placeholder="Ex: Venda parcelada"
                       required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Recebedor</Label>
+                    <SupplierSelect
+                      value={installmentData.supplierId}
+                      onValueChange={(value) => setInstallmentData({ ...installmentData, supplierId: value })}
+                      type="receiver"
+                      placeholder="Selecione o recebedor..."
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
@@ -267,21 +283,26 @@ const Receivables = () => {
               <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
                   <DialogTitle className="font-display">Nova Conta a Receber</DialogTitle>
+                  <DialogDescription>Registre uma nova receita ou conta a receber</DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="description">Descrição</Label>
-                    <DoubleClickInput
+                    <Input
                       id="description"
                       value={formData.description}
                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      placeholder="Ex: Venda de produtos (duplo clique = novo recebedor)"
-                      tooltipText="Duplo clique para cadastrar recebedor"
-                      onDoubleClickAction={() => {
-                        setQuickReceiverContext('main');
-                        setIsQuickReceiverOpen(true);
-                      }}
+                      placeholder="Ex: Venda de produtos"
                       required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Recebedor (Cliente)</Label>
+                    <SupplierSelect
+                      value={formData.supplierId}
+                      onValueChange={(value) => setFormData({ ...formData, supplierId: value })}
+                      type="receiver"
+                      placeholder="Selecione o recebedor..."
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
@@ -428,23 +449,6 @@ const Receivables = () => {
             </Table>
           )}
         </div>
-        
-        {/* Quick Receiver Dialog */}
-        <QuickSupplierDialog
-          open={isQuickReceiverOpen}
-          onOpenChange={setIsQuickReceiverOpen}
-          type="receiver"
-          onSupplierCreated={(supplierId) => {
-            // Atualiza o formulário correto baseado no contexto
-            const newSupplier = suppliers[suppliers.length - 1];
-            if (newSupplier) {
-              toast({
-                title: 'Recebedor vinculado!',
-                description: `${newSupplier.name} foi cadastrado e está disponível.`
-              });
-            }
-          }}
-        />
       </div>
     </MainLayout>
   );
