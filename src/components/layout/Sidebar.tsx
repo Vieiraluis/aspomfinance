@@ -12,10 +12,13 @@ import {
   ListChecks,
   Wallet,
   ArrowLeftRight,
+  LogOut,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { DueDateNotifications } from '@/components/notifications/DueDateNotifications';
+import { useAuthContext } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
 
 const mainNavigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
@@ -40,6 +43,11 @@ const reportsNavigation = [
 export function Sidebar() {
   const location = useLocation();
   const [reportsOpen, setReportsOpen] = useState(location.pathname.startsWith('/reports'));
+  const { signOut, user } = useAuthContext();
+
+  const handleLogout = async () => {
+    await signOut();
+  };
 
   return (
     <aside className="fixed inset-y-0 left-0 w-64 bg-sidebar border-r border-sidebar-border flex flex-col">
@@ -117,13 +125,20 @@ export function Sidebar() {
         </Collapsible>
       </nav>
       
-      <div className="p-4 border-t border-sidebar-border">
-        <div className="glass-card p-4">
-          <p className="text-xs text-muted-foreground mb-2">Versão 1.0</p>
-          <p className="text-xs text-muted-foreground">
-            Sistema de Gestão de Contas
-          </p>
-        </div>
+      <div className="p-4 border-t border-sidebar-border space-y-3">
+        {user && (
+          <div className="px-2 py-1">
+            <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+          </div>
+        )}
+        <Button
+          variant="ghost"
+          className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
+          onClick={handleLogout}
+        >
+          <LogOut className="w-4 h-4 mr-2" />
+          Sair
+        </Button>
       </div>
     </aside>
   );

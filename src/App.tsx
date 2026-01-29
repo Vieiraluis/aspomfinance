@@ -2,7 +2,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuthContext } from "@/contexts/AuthContext";
 import Dashboard from "./pages/Dashboard";
 import Suppliers from "./pages/Suppliers";
 import Payables from "./pages/Payables";
@@ -17,9 +18,70 @@ import ReportConsolidated from "./pages/ReportConsolidated";
 import ReportPaidPayables from "./pages/ReportPaidPayables";
 import ReportReceivedPayments from "./pages/ReportReceivedPayments";
 import AllRecords from "./pages/AllRecords";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
+
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuthContext();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+function PublicRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuthContext();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (user) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+function AppRoutes() {
+  return (
+    <Routes>
+      <Route path="/auth" element={<PublicRoute><Auth /></PublicRoute>} />
+      <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+      <Route path="/suppliers" element={<ProtectedRoute><Suppliers /></ProtectedRoute>} />
+      <Route path="/payables" element={<ProtectedRoute><Payables /></ProtectedRoute>} />
+      <Route path="/receivables" element={<ProtectedRoute><Receivables /></ProtectedRoute>} />
+      <Route path="/payments" element={<ProtectedRoute><Payments /></ProtectedRoute>} />
+      <Route path="/bank-accounts" element={<ProtectedRoute><BankAccounts /></ProtectedRoute>} />
+      <Route path="/cash-flow" element={<ProtectedRoute><CashFlow /></ProtectedRoute>} />
+      <Route path="/all-records" element={<ProtectedRoute><AllRecords /></ProtectedRoute>} />
+      <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+      <Route path="/reports/payables" element={<ProtectedRoute><ReportPayables /></ProtectedRoute>} />
+      <Route path="/reports/receivables" element={<ProtectedRoute><ReportReceivables /></ProtectedRoute>} />
+      <Route path="/reports/consolidated" element={<ProtectedRoute><ReportConsolidated /></ProtectedRoute>} />
+      <Route path="/reports/paid-payables" element={<ProtectedRoute><ReportPaidPayables /></ProtectedRoute>} />
+      <Route path="/reports/received-payments" element={<ProtectedRoute><ReportReceivedPayments /></ProtectedRoute>} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -27,23 +89,9 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/suppliers" element={<Suppliers />} />
-          <Route path="/payables" element={<Payables />} />
-          <Route path="/receivables" element={<Receivables />} />
-          <Route path="/payments" element={<Payments />} />
-          <Route path="/bank-accounts" element={<BankAccounts />} />
-          <Route path="/cash-flow" element={<CashFlow />} />
-          <Route path="/all-records" element={<AllRecords />} />
-          <Route path="/reports" element={<Reports />} />
-          <Route path="/reports/payables" element={<ReportPayables />} />
-          <Route path="/reports/receivables" element={<ReportReceivables />} />
-          <Route path="/reports/consolidated" element={<ReportConsolidated />} />
-          <Route path="/reports/paid-payables" element={<ReportPaidPayables />} />
-          <Route path="/reports/received-payments" element={<ReportReceivedPayments />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <AppRoutes />
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
