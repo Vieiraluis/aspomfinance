@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import { Sidebar } from './Sidebar';
+import { MobileNav } from './MobileNav';
 import { useOverdueSync } from '@/hooks/useOverdueSync';
 
 interface MainLayoutProps {
@@ -12,9 +13,17 @@ export function MainLayout({ children }: MainLayoutProps) {
   
   return (
     <div className="min-h-screen bg-background">
-      <Sidebar />
-      <main className="ml-64 min-h-screen">
-        <div className="p-8">
+      {/* Desktop Sidebar */}
+      <div className="hidden md:block">
+        <Sidebar />
+      </div>
+      
+      {/* Mobile Navigation */}
+      <MobileNav />
+      
+      {/* Main content */}
+      <main className="md:ml-64 min-h-screen pt-14 md:pt-0">
+        <div className="p-4 md:p-8">
           {children}
         </div>
       </main>
