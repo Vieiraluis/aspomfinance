@@ -222,6 +222,89 @@ export type Database = {
         }
         Relationships: []
       }
+      receipt_numbers: {
+        Row: {
+          created_at: string
+          id: string
+          last_number: number
+          updated_at: string
+          user_id: string
+          year_month: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_number?: number
+          updated_at?: string
+          user_id: string
+          year_month: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_number?: number
+          updated_at?: string
+          user_id?: string
+          year_month?: string
+        }
+        Relationships: []
+      }
+      receipts: {
+        Row: {
+          account_id: string | null
+          amount: number
+          amount_written: string
+          created_at: string
+          id: string
+          issue_date: string
+          receipt_number: string
+          receiver_document: string | null
+          receiver_name: string
+          reference: string
+          sequence_number: number
+          user_id: string
+          year_month: string
+        }
+        Insert: {
+          account_id?: string | null
+          amount: number
+          amount_written: string
+          created_at?: string
+          id?: string
+          issue_date?: string
+          receipt_number: string
+          receiver_document?: string | null
+          receiver_name: string
+          reference: string
+          sequence_number: number
+          user_id: string
+          year_month: string
+        }
+        Update: {
+          account_id?: string | null
+          amount?: number
+          amount_written?: string
+          created_at?: string
+          id?: string
+          issue_date?: string
+          receipt_number?: string
+          receiver_document?: string | null
+          receiver_name?: string
+          reference?: string
+          sequence_number?: number
+          user_id?: string
+          year_month?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "receipts_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       suppliers: {
         Row: {
           address: string | null
