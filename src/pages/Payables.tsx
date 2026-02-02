@@ -5,6 +5,7 @@ import { Account, categoryLabels, AccountCategory } from '@/types/financial';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -31,10 +32,11 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { cn } from '@/lib/utils';
-import { Plus, Search, TrendingDown, Trash2, Split } from 'lucide-react';
+import { Plus, Search, TrendingDown, Trash2, Split, Receipt } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { SupplierSelect } from '@/components/suppliers/SupplierSelect';
+import { ReceiptDialog } from '@/components/receipts/ReceiptDialog';
 
 const statusLabels = {
   pending: 'Pendente',
@@ -56,6 +58,9 @@ const Payables = () => {
   const [isInstallmentOpen, setIsInstallmentOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
+  const [isReceiptDialogOpen, setIsReceiptDialogOpen] = useState(false);
+  const [receiptMode, setReceiptMode] = useState<'single' | 'batch'>('single');
   
   const [formData, setFormData] = useState({
     description: '',
@@ -80,6 +85,43 @@ const Payables = () => {
     const matchesStatus = statusFilter === 'all' || a.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  const paidPayables = filteredPayables.filter(a => a.status === 'paid');
+  
+  const toggleAccountSelection = (accountId: string) => {
+    setSelectedAccounts(prev => 
+      prev.includes(accountId) 
+        ? prev.filter(id => id !== accountId)
+        : [...prev, accountId]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedAccounts.length === paidPayables.length) {
+      setSelectedAccounts([]);
+    } else {
+      setSelectedAccounts(paidPayables.map(a => a.id));
+    }
+  };
+
+  const openBatchReceipts = () => {
+    if (selectedAccounts.length === 0) {
+      toast({ 
+        title: 'Selecione contas', 
+        description: 'Selecione pelo menos uma conta paga para gerar recibos.',
+        variant: 'destructive'
+      });
+      return;
+    }
+    setReceiptMode('batch');
+    setIsReceiptDialogOpen(true);
+  };
+
+  const openSingleReceipt = (account: Account) => {
+    setSelectedAccounts([account.id]);
+    setReceiptMode('single');
+    setIsReceiptDialogOpen(true);
+  };
   
   const resetForm = () => {
     setFormData({
@@ -357,7 +399,7 @@ const Payables = () => {
         </div>
         
         {/* Filters */}
-        <div className="flex gap-4">
+        <div className="flex flex-wrap gap-4 items-center">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
@@ -378,6 +420,17 @@ const Payables = () => {
               <SelectItem value="overdue">Vencidos</SelectItem>
             </SelectContent>
           </Select>
+          
+          {paidPayables.length > 0 && (
+            <Button 
+              variant="outline" 
+              className="gap-2"
+              onClick={openBatchReceipts}
+            >
+              <Receipt className="w-4 h-4" />
+              Recibos em Lote ({selectedAccounts.length})
+            </Button>
+          )}
         </div>
         
         {/* Table */}
@@ -391,6 +444,14 @@ const Payables = () => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  {paidPayables.length > 0 && (
+                    <TableHead className="w-10">
+                      <Checkbox 
+                        checked={selectedAccounts.length === paidPayables.length && paidPayables.length > 0}
+                        onCheckedChange={toggleSelectAll}
+                      />
+                    </TableHead>
+                  )}
                   <TableHead>Descrição</TableHead>
                   <TableHead>Fornecedor</TableHead>
                   <TableHead>Categoria</TableHead>
@@ -403,6 +464,16 @@ const Payables = () => {
               <TableBody>
                 {filteredPayables.map((account) => (
                   <TableRow key={account.id}>
+                    {paidPayables.length > 0 && (
+                      <TableCell>
+                        {account.status === 'paid' && (
+                          <Checkbox 
+                            checked={selectedAccounts.includes(account.id)}
+                            onCheckedChange={() => toggleAccountSelection(account.id)}
+                          />
+                        )}
+                      </TableCell>
+                    )}
                     <TableCell className="font-medium">
                       {account.description}
                       {account.installmentNumber && (
@@ -423,16 +494,28 @@ const Payables = () => {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => {
-                          deleteAccount(account.id);
-                          toast({ title: 'Conta excluída!' });
-                        }}
-                      >
-                        <Trash2 className="w-4 h-4 text-destructive" />
-                      </Button>
+                      <div className="flex items-center justify-end gap-1">
+                        {account.status === 'paid' && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => openSingleReceipt(account)}
+                            title="Gerar Recibo"
+                          >
+                            <Receipt className="w-4 h-4 text-primary" />
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            deleteAccount(account.id);
+                            toast({ title: 'Conta excluída!' });
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4 text-destructive" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -440,6 +523,17 @@ const Payables = () => {
             </Table>
           )}
         </div>
+        
+        {/* Receipt Dialog */}
+        <ReceiptDialog
+          open={isReceiptDialogOpen}
+          onOpenChange={(open) => {
+            setIsReceiptDialogOpen(open);
+            if (!open) setSelectedAccounts([]);
+          }}
+          accounts={accounts.filter(a => selectedAccounts.includes(a.id))}
+          mode={receiptMode}
+        />
       </div>
     </MainLayout>
   );
