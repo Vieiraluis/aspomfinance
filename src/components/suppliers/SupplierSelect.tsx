@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useFinancialStore } from '@/store/financialStore';
+import { useSuppliers, useAddSupplier } from '@/hooks/useSupabaseData';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -8,7 +8,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-import { Check, ChevronsUpDown, UserPlus, Search } from 'lucide-react';
+import { Check, ChevronsUpDown, UserPlus, Search, Loader2 } from 'lucide-react';
 import { QuickSupplierDialog } from './QuickSupplierDialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -27,7 +27,7 @@ export const SupplierSelect = ({
   placeholder = 'Selecione...',
   disabled = false,
 }: SupplierSelectProps) => {
-  const { suppliers } = useFinancialStore();
+  const { data: suppliers = [], isLoading } = useSuppliers();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [isQuickDialogOpen, setIsQuickDialogOpen] = useState(false);
@@ -48,24 +48,9 @@ export const SupplierSelect = ({
   const label = type === 'supplier' ? 'Fornecedor' : 'Recebedor';
 
   const handleSupplierCreated = (supplierId: string) => {
-    // Buscar o supplier recém-criado pelo ID ou pelo último adicionado
-    const latestSupplier = suppliers[suppliers.length - 1];
-    if (latestSupplier) {
-      onValueChange(latestSupplier.id);
-    }
+    onValueChange(supplierId);
     setOpen(false);
   };
-
-  // Sincronizar quando o supplier é adicionado externamente
-  useEffect(() => {
-    if (isQuickDialogOpen === false && suppliers.length > 0) {
-      const latestSupplier = suppliers[suppliers.length - 1];
-      // Se o valor atual é o que acabou de ser adicionado, não fazer nada
-      if (value && latestSupplier && value !== latestSupplier.id) {
-        // O valor já está setado
-      }
-    }
-  }, [suppliers, isQuickDialogOpen, value]);
 
   return (
     <>
@@ -75,13 +60,17 @@ export const SupplierSelect = ({
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            disabled={disabled}
+            disabled={disabled || isLoading}
             className={cn(
               'w-full justify-between',
               !value && 'text-muted-foreground'
             )}
           >
-            {selectedSupplier?.name || placeholder}
+            {isLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              selectedSupplier?.name || placeholder
+            )}
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>

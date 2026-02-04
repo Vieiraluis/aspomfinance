@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useFinancialStore } from '@/store/financialStore';
+import { useAddSupplier } from '@/hooks/useSupabaseData';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,7 +11,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
-import { UserPlus } from 'lucide-react';
+import { UserPlus, Loader2 } from 'lucide-react';
 
 interface QuickSupplierDialogProps {
   open: boolean;
@@ -28,7 +28,7 @@ export const QuickSupplierDialog = ({
   type,
   initialName = '',
 }: QuickSupplierDialogProps) => {
-  const { addSupplier } = useFinancialStore();
+  const addSupplierMutation = useAddSupplier();
   
   const [formData, setFormData] = useState({
     name: initialName,
@@ -48,35 +48,34 @@ export const QuickSupplierDialog = ({
     });
   };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const newId = Math.random().toString(36).substring(2, 15);
-    
-    addSupplier({
-      name: formData.name,
-      document: formData.document,
-      email: formData.email,
-      phone: formData.phone,
-      address: formData.address || undefined,
-    });
-    
-    toast({ 
-      title: type === 'supplier' ? 'Fornecedor cadastrado!' : 'Recebedor cadastrado!',
-      description: `${formData.name} foi adicionado com sucesso.`
-    });
-    
-    onSupplierCreated?.(newId);
-    onOpenChange(false);
-    resetForm();
-  };
-  
-  // Update form when initial name changes
-  useState(() => {
-    if (initialName) {
-      setFormData(prev => ({ ...prev, name: initialName }));
+    try {
+      const newSupplier = await addSupplierMutation.mutateAsync({
+        name: formData.name,
+        document: formData.document,
+        email: formData.email,
+        phone: formData.phone,
+        address: formData.address || undefined,
+      });
+      
+      toast({ 
+        title: type === 'supplier' ? 'Fornecedor cadastrado!' : 'Recebedor cadastrado!',
+        description: `${formData.name} foi adicionado com sucesso.`
+      });
+      
+      onSupplierCreated?.(newSupplier.id);
+      onOpenChange(false);
+      resetForm();
+    } catch (error: any) {
+      toast({
+        title: 'Erro',
+        description: error.message || 'Ocorreu um erro ao cadastrar.',
+        variant: 'destructive'
+      });
     }
-  });
+  };
   
   const title = type === 'supplier' ? 'Cadastrar Fornecedor' : 'Cadastrar Recebedor';
   const subtitle = type === 'supplier' 
@@ -109,35 +108,32 @@ export const QuickSupplierDialog = ({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="quick-document">CPF / CNPJ *</Label>
+            <Label htmlFor="quick-document">CPF / CNPJ</Label>
             <Input
               id="quick-document"
               value={formData.document}
               onChange={(e) => setFormData({ ...formData, document: e.target.value })}
               placeholder="000.000.000-00 ou 00.000.000/0000-00"
-              required
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="quick-email">E-mail *</Label>
+              <Label htmlFor="quick-email">E-mail</Label>
               <Input
                 id="quick-email"
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 placeholder="email@exemplo.com"
-                required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="quick-phone">Telefone *</Label>
+              <Label htmlFor="quick-phone">Telefone</Label>
               <Input
                 id="quick-phone"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 placeholder="(00) 00000-0000"
-                required
               />
             </div>
           </div>
@@ -154,8 +150,12 @@ export const QuickSupplierDialog = ({
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
-            <Button type="submit" className="gap-2">
-              <UserPlus className="w-4 h-4" />
+            <Button type="submit" className="gap-2" disabled={addSupplierMutation.isPending}>
+              {addSupplierMutation.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <UserPlus className="w-4 h-4" />
+              )}
               Cadastrar
             </Button>
           </div>

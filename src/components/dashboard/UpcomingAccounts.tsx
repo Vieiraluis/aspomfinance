@@ -1,12 +1,12 @@
-import { useFinancialStore } from '@/store/financialStore';
+import { useAccounts } from '@/hooks/useSupabaseData';
 import { format, isBefore, startOfDay, isToday, addDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { formatCurrency } from '@/lib/format';
 import { cn } from '@/lib/utils';
-import { AlertCircle, Clock, CheckCircle2 } from 'lucide-react';
+import { AlertCircle, Clock, CheckCircle2, Loader2 } from 'lucide-react';
 
 export function UpcomingAccounts() {
-  const accounts = useFinancialStore((state) => state.accounts);
+  const { data: accounts = [], isLoading } = useAccounts();
   const today = startOfDay(new Date());
   const nextWeek = addDays(today, 7);
   
@@ -15,6 +15,17 @@ export function UpcomingAccounts() {
     .filter((a) => isBefore(new Date(a.dueDate), nextWeek))
     .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
     .slice(0, 6);
+  
+  if (isLoading) {
+    return (
+      <div className="glass-card p-6 h-full">
+        <h3 className="font-display font-semibold text-lg mb-4">Próximos Vencimentos</h3>
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="w-6 h-6 animate-spin text-primary" />
+        </div>
+      </div>
+    );
+  }
   
   if (upcoming.length === 0) {
     return (

@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
-import { useFinancialStore } from '@/store/financialStore';
+import { useAccounts, useUpdateAccount } from '@/hooks/useSupabaseData';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import {
@@ -32,7 +32,7 @@ import {
   CheckCircle2,
   Calendar,
   FileText,
-  Download
+  Loader2
 } from 'lucide-react';
 import { 
   isBefore, 
@@ -41,12 +41,11 @@ import {
   addDays, 
   isToday,
   differenceInDays,
-  format 
 } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Account } from '@/types/financial';
+import { toast } from '@/hooks/use-toast';
 
 const statusLabels: Record<string, string> = {
   pending: 'Pendente',
@@ -72,7 +71,8 @@ const dueDateFilterOptions = [
 ];
 
 const AllRecords = () => {
-  const { accounts, updateAccount } = useFinancialStore();
+  const { data: accounts = [], isLoading } = useAccounts();
+  const updateAccountMutation = useUpdateAccount();
   
   // Filters state
   const [search, setSearch] = useState('');
@@ -499,8 +499,8 @@ const AllRecords = () => {
                         <AttachmentButtons
                           billingSlipUrl={account.billingSlipUrl}
                           paymentReceiptUrl={account.paymentReceiptUrl}
-                          onBillingSlipChange={(url) => updateAccount(account.id, { billingSlipUrl: url })}
-                          onPaymentReceiptChange={(url) => updateAccount(account.id, { paymentReceiptUrl: url })}
+                          onBillingSlipChange={(url) => updateAccountMutation.mutate({ id: account.id, billingSlipUrl: url })}
+                          onPaymentReceiptChange={(url) => updateAccountMutation.mutate({ id: account.id, paymentReceiptUrl: url })}
                           compact
                         />
                       </TableCell>

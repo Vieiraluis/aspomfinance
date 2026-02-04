@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
-import { useFinancialStore } from '@/store/financialStore';
+import { useBankAccounts, useAddBankAccount, useUpdateBankAccount, useDeleteBankAccount } from '@/hooks/useSupabaseData';
 import { BankAccountType, bankAccountTypeLabels } from '@/types/financial';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,12 +30,16 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency } from '@/lib/format';
 import { cn } from '@/lib/utils';
-import { Plus, Wallet, Trash2, Edit, Building2, Banknote } from 'lucide-react';
+import { Plus, Wallet, Trash2, Edit, Building2, Banknote, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
 
 const BankAccounts = () => {
-  const { bankAccounts, addBankAccount, updateBankAccount, deleteBankAccount } = useFinancialStore();
+  const { data: bankAccounts = [], isLoading } = useBankAccounts();
+  const addBankAccountMutation = useAddBankAccount();
+  const updateBankAccountMutation = useUpdateBankAccount();
+  const deleteBankAccountMutation = useDeleteBankAccount();
+  
   const [isOpen, setIsOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<string | null>(null);
   
@@ -62,34 +66,43 @@ const BankAccounts = () => {
     setEditingAccount(null);
   };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (editingAccount) {
-      updateBankAccount(editingAccount, {
-        name: formData.name,
-        type: formData.type,
-        bankName: formData.bankName || undefined,
-        agency: formData.agency || undefined,
-        accountNumber: formData.accountNumber || undefined,
-        isActive: formData.isActive,
+    try {
+      if (editingAccount) {
+        await updateBankAccountMutation.mutateAsync({
+          id: editingAccount,
+          name: formData.name,
+          type: formData.type,
+          bankName: formData.bankName || undefined,
+          agency: formData.agency || undefined,
+          accountNumber: formData.accountNumber || undefined,
+          isActive: formData.isActive,
+        });
+        toast({ title: 'Conta atualizada com sucesso!' });
+      } else {
+        await addBankAccountMutation.mutateAsync({
+          name: formData.name,
+          type: formData.type,
+          bankName: formData.bankName || undefined,
+          agency: formData.agency || undefined,
+          accountNumber: formData.accountNumber || undefined,
+          initialBalance: parseFloat(formData.initialBalance) || 0,
+          isActive: formData.isActive,
+        });
+        toast({ title: 'Conta bancária cadastrada com sucesso!' });
+      }
+      
+      setIsOpen(false);
+      resetForm();
+    } catch (error: any) {
+      toast({ 
+        title: 'Erro', 
+        description: error.message || 'Ocorreu um erro ao salvar.',
+        variant: 'destructive' 
       });
-      toast({ title: 'Conta atualizada com sucesso!' });
-    } else {
-      addBankAccount({
-        name: formData.name,
-        type: formData.type,
-        bankName: formData.bankName || undefined,
-        agency: formData.agency || undefined,
-        accountNumber: formData.accountNumber || undefined,
-        initialBalance: parseFloat(formData.initialBalance) || 0,
-        isActive: formData.isActive,
-      });
-      toast({ title: 'Conta bancária cadastrada com sucesso!' });
     }
-    
-    setIsOpen(false);
-    resetForm();
   };
   
   const handleEdit = (id: string) => {
@@ -109,6 +122,19 @@ const BankAccounts = () => {
     }
   };
   
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteBankAccountMutation.mutateAsync(id);
+      toast({ title: 'Conta excluída!' });
+    } catch (error: any) {
+      toast({ 
+        title: 'Erro', 
+        description: error.message || 'Ocorreu um erro ao excluir.',
+        variant: 'destructive' 
+      });
+    }
+  };
+  
   const totalBalance = bankAccounts
     .filter(a => a.isActive)
     .reduce((sum, a) => sum + a.currentBalance, 0);
@@ -124,6 +150,16 @@ const BankAccounts = () => {
         return <Wallet className="w-5 h-5" />;
     }
   };
+  
+  if (isLoading) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </MainLayout>
+    );
+  }
   
   return (
     <MainLayout>
@@ -248,7 +284,15 @@ const BankAccounts = () => {
                   <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
                     Cancelar
                   </Button>
-                  <Button type="submit">{editingAccount ? 'Atualizar' : 'Cadastrar'}</Button>
+                  <Button 
+                    type="submit"
+                    disabled={addBankAccountMutation.isPending || updateBankAccountMutation.isPending}
+                  >
+                    {(addBankAccountMutation.isPending || updateBankAccountMutation.isPending) && (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    )}
+                    {editingAccount ? 'Atualizar' : 'Cadastrar'}
+                  </Button>
                 </div>
               </form>
             </DialogContent>
@@ -374,10 +418,8 @@ const BankAccounts = () => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => {
-                            deleteBankAccount(account.id);
-                            toast({ title: 'Conta excluída!' });
-                          }}
+                          onClick={() => handleDelete(account.id)}
+                          disabled={deleteBankAccountMutation.isPending}
                         >
                           <Trash2 className="w-4 h-4 text-destructive" />
                         </Button>

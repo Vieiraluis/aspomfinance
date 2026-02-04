@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
-import { useFinancialStore } from '@/store/financialStore';
+import { useAccounts, useBankAccounts } from '@/hooks/useSupabaseData';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { 
@@ -9,7 +9,8 @@ import {
   Wallet,
   ArrowUpCircle,
   ArrowDownCircle,
-  Filter
+  Filter,
+  Loader2
 } from 'lucide-react';
 import {
   Select,
@@ -27,8 +28,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { format, startOfMonth, endOfMonth, isWithinInterval, subMonths } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { format, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 
@@ -44,7 +44,9 @@ interface CashFlowEntry {
 }
 
 const CashFlow = () => {
-  const { accounts, bankAccounts } = useFinancialStore();
+  const { data: accounts = [], isLoading: accountsLoading } = useAccounts();
+  const { data: bankAccounts = [], isLoading: bankAccountsLoading } = useBankAccounts();
+  
   const [selectedBankAccount, setSelectedBankAccount] = useState<string>('all');
   const [startDate, setStartDate] = useState(format(startOfMonth(new Date()), 'yyyy-MM-dd'));
   const [endDate, setEndDate] = useState(format(endOfMonth(new Date()), 'yyyy-MM-dd'));
@@ -128,6 +130,18 @@ const CashFlow = () => {
   const totalOutflows = cashFlowData.entries
     .filter(e => e.type === 'outflow')
     .reduce((sum, e) => sum + e.amount, 0);
+
+  const isLoading = accountsLoading || bankAccountsLoading;
+
+  if (isLoading) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </MainLayout>
+    );
+  }
   
   return (
     <MainLayout>

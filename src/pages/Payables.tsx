@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
-import { useFinancialStore } from '@/store/financialStore';
+import { useAccounts, useSuppliers, useAddAccount, useDeleteAccount, useGenerateInstallments } from '@/hooks/useSupabaseData';
 import { Account, categoryLabels, AccountCategory } from '@/types/financial';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,7 +32,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { cn } from '@/lib/utils';
-import { Plus, Search, TrendingDown, Trash2, Split, Receipt } from 'lucide-react';
+import { Plus, Search, TrendingDown, Trash2, Split, Receipt, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { SupplierSelect } from '@/components/suppliers/SupplierSelect';
@@ -53,7 +53,12 @@ const statusStyles = {
 };
 
 const Payables = () => {
-  const { accounts, suppliers, addAccount, deleteAccount, generateInstallments } = useFinancialStore();
+  const { data: accounts = [], isLoading } = useAccounts();
+  const { data: suppliers = [] } = useSuppliers();
+  const addAccountMutation = useAddAccount();
+  const deleteAccountMutation = useDeleteAccount();
+  const generateInstallmentsMutation = useGenerateInstallments();
+  
   const [isOpen, setIsOpen] = useState(false);
   const [isInstallmentOpen, setIsInstallmentOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -134,63 +139,102 @@ const Payables = () => {
     });
   };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const supplier = suppliers.find((s) => s.id === formData.supplierId);
-    
-    addAccount({
-      type: 'payable',
-      description: formData.description,
-      amount: parseFloat(formData.amount),
-      dueDate: new Date(formData.dueDate),
-      status: 'pending',
-      supplierId: formData.supplierId || undefined,
-      supplierName: supplier?.name,
-      category: formData.category,
-      notes: formData.notes || undefined,
-    });
-    
-    toast({ title: 'Conta a pagar registrada com sucesso!' });
-    setIsOpen(false);
-    resetForm();
+    try {
+      const supplier = suppliers.find((s) => s.id === formData.supplierId);
+      
+      await addAccountMutation.mutateAsync({
+        type: 'payable',
+        description: formData.description,
+        amount: parseFloat(formData.amount),
+        dueDate: new Date(formData.dueDate),
+        status: 'pending',
+        supplierId: formData.supplierId || undefined,
+        supplierName: supplier?.name,
+        category: formData.category,
+        notes: formData.notes || undefined,
+      });
+      
+      toast({ title: 'Conta a pagar registrada com sucesso!' });
+      setIsOpen(false);
+      resetForm();
+    } catch (error: any) {
+      toast({ 
+        title: 'Erro', 
+        description: error.message || 'Ocorreu um erro ao salvar.',
+        variant: 'destructive' 
+      });
+    }
   };
   
-  const handleInstallmentSubmit = (e: React.FormEvent) => {
+  const handleInstallmentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const supplier = suppliers.find((s) => s.id === installmentData.supplierId);
-    
-    generateInstallments(
-      {
-        type: 'payable',
-        description: installmentData.description,
-        amount: parseFloat(installmentData.amount),
-        dueDate: new Date(installmentData.dueDate),
-        status: 'pending',
-        supplierId: installmentData.supplierId || undefined,
-        supplierName: supplier?.name,
-        category: installmentData.category as AccountCategory,
-        notes: installmentData.notes || undefined,
-      },
-      parseInt(installmentData.numberOfInstallments)
-    );
-    
-    toast({ 
-      title: 'Parcelas geradas com sucesso!',
-      description: `${installmentData.numberOfInstallments} parcelas criadas.`
-    });
-    setIsInstallmentOpen(false);
-    setInstallmentData({
-      description: '',
-      amount: '',
-      dueDate: format(new Date(), 'yyyy-MM-dd'),
-      supplierId: '',
-      category: 'other',
-      notes: '',
-      numberOfInstallments: '2',
-    });
+    try {
+      const supplier = suppliers.find((s) => s.id === installmentData.supplierId);
+      
+      await generateInstallmentsMutation.mutateAsync({
+        baseAccount: {
+          type: 'payable',
+          description: installmentData.description,
+          amount: parseFloat(installmentData.amount),
+          dueDate: new Date(installmentData.dueDate),
+          status: 'pending',
+          supplierId: installmentData.supplierId || undefined,
+          supplierName: supplier?.name,
+          category: installmentData.category as AccountCategory,
+          notes: installmentData.notes || undefined,
+        },
+        numberOfInstallments: parseInt(installmentData.numberOfInstallments),
+      });
+      
+      toast({ 
+        title: 'Parcelas geradas com sucesso!',
+        description: `${installmentData.numberOfInstallments} parcelas criadas.`
+      });
+      setIsInstallmentOpen(false);
+      setInstallmentData({
+        description: '',
+        amount: '',
+        dueDate: format(new Date(), 'yyyy-MM-dd'),
+        supplierId: '',
+        category: 'other',
+        notes: '',
+        numberOfInstallments: '2',
+      });
+    } catch (error: any) {
+      toast({ 
+        title: 'Erro', 
+        description: error.message || 'Ocorreu um erro ao gerar parcelas.',
+        variant: 'destructive' 
+      });
+    }
   };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteAccountMutation.mutateAsync(id);
+      toast({ title: 'Conta excluída!' });
+    } catch (error: any) {
+      toast({ 
+        title: 'Erro', 
+        description: error.message || 'Ocorreu um erro ao excluir.',
+        variant: 'destructive' 
+      });
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </MainLayout>
+    );
+  }
   
   return (
     <MainLayout>
@@ -305,7 +349,10 @@ const Payables = () => {
                     <Button type="button" variant="outline" onClick={() => setIsInstallmentOpen(false)}>
                       Cancelar
                     </Button>
-                    <Button type="submit">Gerar Parcelas</Button>
+                    <Button type="submit" disabled={generateInstallmentsMutation.isPending}>
+                      {generateInstallmentsMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                      Gerar Parcelas
+                    </Button>
                   </div>
                 </form>
               </DialogContent>
@@ -390,7 +437,10 @@ const Payables = () => {
                     <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
                       Cancelar
                     </Button>
-                    <Button type="submit">Registrar</Button>
+                    <Button type="submit" disabled={addAccountMutation.isPending}>
+                      {addAccountMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                      Registrar
+                    </Button>
                   </div>
                 </form>
               </DialogContent>
@@ -508,10 +558,8 @@ const Payables = () => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => {
-                            deleteAccount(account.id);
-                            toast({ title: 'Conta excluída!' });
-                          }}
+                          onClick={() => handleDelete(account.id)}
+                          disabled={deleteAccountMutation.isPending}
                         >
                           <Trash2 className="w-4 h-4 text-destructive" />
                         </Button>

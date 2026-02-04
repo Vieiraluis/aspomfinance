@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
-import { useFinancialStore } from '@/store/financialStore';
+import { useAccounts, useSuppliers, useAddAccount, useDeleteAccount, useGenerateInstallments, useUpdateAccount } from '@/hooks/useSupabaseData';
 import { AccountCategory, categoryLabels, Account } from '@/types/financial';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,7 +32,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { cn } from '@/lib/utils';
-import { Plus, Search, TrendingUp, Trash2, Split, Receipt } from 'lucide-react';
+import { Plus, Search, TrendingUp, Trash2, Split, Receipt, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { AttachmentButtons } from '@/components/attachments/AttachmentButtons';
@@ -54,7 +54,13 @@ const statusStyles = {
 };
 
 const Receivables = () => {
-  const { accounts, suppliers, addAccount, deleteAccount, generateInstallments, updateAccount } = useFinancialStore();
+  const { data: accounts = [], isLoading } = useAccounts();
+  const { data: suppliers = [] } = useSuppliers();
+  const addAccountMutation = useAddAccount();
+  const deleteAccountMutation = useDeleteAccount();
+  const generateInstallmentsMutation = useGenerateInstallments();
+  const updateAccountMutation = useUpdateAccount();
+  
   const [isOpen, setIsOpen] = useState(false);
   const [isInstallmentOpen, setIsInstallmentOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -135,63 +141,114 @@ const Receivables = () => {
     });
   };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const receiver = suppliers.find((s) => s.id === formData.supplierId);
-    
-    addAccount({
-      type: 'receivable',
-      description: formData.description,
-      amount: parseFloat(formData.amount),
-      dueDate: new Date(formData.dueDate),
-      status: 'pending',
-      category: formData.category,
-      supplierId: formData.supplierId || undefined,
-      supplierName: receiver?.name,
-      notes: formData.notes || undefined,
-    });
-    
-    toast({ title: 'Conta a receber registrada com sucesso!' });
-    setIsOpen(false);
-    resetForm();
+    try {
+      const receiver = suppliers.find((s) => s.id === formData.supplierId);
+      
+      await addAccountMutation.mutateAsync({
+        type: 'receivable',
+        description: formData.description,
+        amount: parseFloat(formData.amount),
+        dueDate: new Date(formData.dueDate),
+        status: 'pending',
+        category: formData.category,
+        supplierId: formData.supplierId || undefined,
+        supplierName: receiver?.name,
+        notes: formData.notes || undefined,
+      });
+      
+      toast({ title: 'Conta a receber registrada com sucesso!' });
+      setIsOpen(false);
+      resetForm();
+    } catch (error: any) {
+      toast({ 
+        title: 'Erro', 
+        description: error.message || 'Ocorreu um erro ao salvar.',
+        variant: 'destructive' 
+      });
+    }
   };
   
-  const handleInstallmentSubmit = (e: React.FormEvent) => {
+  const handleInstallmentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const receiver = suppliers.find((s) => s.id === installmentData.supplierId);
-    
-    generateInstallments(
-      {
-        type: 'receivable',
-        description: installmentData.description,
-        amount: parseFloat(installmentData.amount),
-        dueDate: new Date(installmentData.dueDate),
-        status: 'pending',
-        category: installmentData.category as AccountCategory,
-        supplierId: installmentData.supplierId || undefined,
-        supplierName: receiver?.name,
-        notes: installmentData.notes || undefined,
-      },
-      parseInt(installmentData.numberOfInstallments)
-    );
-    
-    toast({ 
-      title: 'Parcelas geradas com sucesso!',
-      description: `${installmentData.numberOfInstallments} parcelas criadas.`
-    });
-    setIsInstallmentOpen(false);
-    setInstallmentData({
-      description: '',
-      amount: '',
-      dueDate: format(new Date(), 'yyyy-MM-dd'),
-      category: 'sales',
-      supplierId: '',
-      notes: '',
-      numberOfInstallments: '2',
-    });
+    try {
+      const receiver = suppliers.find((s) => s.id === installmentData.supplierId);
+      
+      await generateInstallmentsMutation.mutateAsync({
+        baseAccount: {
+          type: 'receivable',
+          description: installmentData.description,
+          amount: parseFloat(installmentData.amount),
+          dueDate: new Date(installmentData.dueDate),
+          status: 'pending',
+          category: installmentData.category as AccountCategory,
+          supplierId: installmentData.supplierId || undefined,
+          supplierName: receiver?.name,
+          notes: installmentData.notes || undefined,
+        },
+        numberOfInstallments: parseInt(installmentData.numberOfInstallments),
+      });
+      
+      toast({ 
+        title: 'Parcelas geradas com sucesso!',
+        description: `${installmentData.numberOfInstallments} parcelas criadas.`
+      });
+      setIsInstallmentOpen(false);
+      setInstallmentData({
+        description: '',
+        amount: '',
+        dueDate: format(new Date(), 'yyyy-MM-dd'),
+        category: 'sales',
+        supplierId: '',
+        notes: '',
+        numberOfInstallments: '2',
+      });
+    } catch (error: any) {
+      toast({ 
+        title: 'Erro', 
+        description: error.message || 'Ocorreu um erro ao gerar parcelas.',
+        variant: 'destructive' 
+      });
+    }
   };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteAccountMutation.mutateAsync(id);
+      toast({ title: 'Conta excluída!' });
+    } catch (error: any) {
+      toast({ 
+        title: 'Erro', 
+        description: error.message || 'Ocorreu um erro ao excluir.',
+        variant: 'destructive' 
+      });
+    }
+  };
+
+  const handleUpdateAccount = async (id: string, data: Partial<Account>) => {
+    try {
+      await updateAccountMutation.mutateAsync({ id, ...data });
+    } catch (error: any) {
+      toast({ 
+        title: 'Erro', 
+        description: error.message || 'Ocorreu um erro ao atualizar.',
+        variant: 'destructive' 
+      });
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </MainLayout>
+    );
+  }
   
   return (
     <MainLayout>
@@ -306,7 +363,10 @@ const Receivables = () => {
                     <Button type="button" variant="outline" onClick={() => setIsInstallmentOpen(false)}>
                       Cancelar
                     </Button>
-                    <Button type="submit">Gerar Parcelas</Button>
+                    <Button type="submit" disabled={generateInstallmentsMutation.isPending}>
+                      {generateInstallmentsMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                      Gerar Parcelas
+                    </Button>
                   </div>
                 </form>
               </DialogContent>
@@ -391,7 +451,10 @@ const Receivables = () => {
                     <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
                       Cancelar
                     </Button>
-                    <Button type="submit">Registrar</Button>
+                    <Button type="submit" disabled={addAccountMutation.isPending}>
+                      {addAccountMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                      Registrar
+                    </Button>
                   </div>
                 </form>
               </DialogContent>
@@ -497,8 +560,8 @@ const Receivables = () => {
                       <AttachmentButtons
                         billingSlipUrl={account.billingSlipUrl}
                         paymentReceiptUrl={account.paymentReceiptUrl}
-                        onBillingSlipChange={(url) => updateAccount(account.id, { billingSlipUrl: url })}
-                        onPaymentReceiptChange={(url) => updateAccount(account.id, { paymentReceiptUrl: url })}
+                        onBillingSlipChange={(url) => handleUpdateAccount(account.id, { billingSlipUrl: url })}
+                        onPaymentReceiptChange={(url) => handleUpdateAccount(account.id, { paymentReceiptUrl: url })}
                         compact
                       />
                     </TableCell>
@@ -517,10 +580,8 @@ const Receivables = () => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => {
-                            deleteAccount(account.id);
-                            toast({ title: 'Conta excluída!' });
-                          }}
+                          onClick={() => handleDelete(account.id)}
+                          disabled={deleteAccountMutation.isPending}
                         >
                           <Trash2 className="w-4 h-4 text-destructive" />
                         </Button>

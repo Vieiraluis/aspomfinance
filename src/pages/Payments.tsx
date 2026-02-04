@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
-import { useFinancialStore } from '@/store/financialStore';
+import { useAccounts, useBankAccounts, useProcessPayment, useUpdateAccount } from '@/hooks/useSupabaseData';
 import { Account, paymentMethodLabels, Payment } from '@/types/financial';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,13 +29,17 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { cn } from '@/lib/utils';
-import { Search, CreditCard, CheckCircle, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
+import { Search, CreditCard, CheckCircle, TrendingDown, TrendingUp, Wallet, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { AttachmentButtons } from '@/components/attachments/AttachmentButtons';
 
 const Payments = () => {
-  const { accounts, processPayment, updateAccount, bankAccounts } = useFinancialStore();
+  const { data: accounts = [], isLoading } = useAccounts();
+  const { data: bankAccounts = [] } = useBankAccounts();
+  const processPaymentMutation = useProcessPayment();
+  const updateAccountMutation = useUpdateAccount();
+  
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
@@ -73,7 +77,7 @@ const Payments = () => {
     setIsPaymentOpen(true);
   };
   
-  const handlePayment = (e: React.FormEvent) => {
+  const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!selectedAccount) return;
@@ -87,24 +91,57 @@ const Payments = () => {
       return;
     }
     
-    processPayment(selectedAccount.id, {
-      amount: parseFloat(paymentData.amount),
-      paymentMethod: paymentData.paymentMethod,
-      paidAt: new Date(paymentData.paidAt),
-      bankAccountId: paymentData.bankAccountId,
-      notes: paymentData.notes || undefined,
-    });
-    
-    const bankAccount = bankAccounts.find(ba => ba.id === paymentData.bankAccountId);
-    
-    toast({
-      title: selectedAccount.type === 'payable' ? 'Pagamento registrado!' : 'Recebimento registrado!',
-      description: `${selectedAccount.description} - ${formatCurrency(parseFloat(paymentData.amount))} via ${bankAccount?.name}`,
-    });
-    
-    setIsPaymentOpen(false);
-    setSelectedAccount(null);
+    try {
+      await processPaymentMutation.mutateAsync({
+        accountId: selectedAccount.id,
+        payment: {
+          amount: parseFloat(paymentData.amount),
+          paymentMethod: paymentData.paymentMethod,
+          paidAt: new Date(paymentData.paidAt),
+          bankAccountId: paymentData.bankAccountId,
+          notes: paymentData.notes || undefined,
+        },
+      });
+      
+      const bankAccount = bankAccounts.find(ba => ba.id === paymentData.bankAccountId);
+      
+      toast({
+        title: selectedAccount.type === 'payable' ? 'Pagamento registrado!' : 'Recebimento registrado!',
+        description: `${selectedAccount.description} - ${formatCurrency(parseFloat(paymentData.amount))} via ${bankAccount?.name}`,
+      });
+      
+      setIsPaymentOpen(false);
+      setSelectedAccount(null);
+    } catch (error: any) {
+      toast({
+        title: 'Erro',
+        description: error.message || 'Ocorreu um erro ao processar.',
+        variant: 'destructive',
+      });
+    }
   };
+
+  const handleUpdateAccount = async (id: string, data: Partial<Account>) => {
+    try {
+      await updateAccountMutation.mutateAsync({ id, ...data });
+    } catch (error: any) {
+      toast({
+        title: 'Erro',
+        description: error.message || 'Ocorreu um erro ao atualizar.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </MainLayout>
+    );
+  }
   
   return (
     <MainLayout>
@@ -247,8 +284,8 @@ const Payments = () => {
                       <AttachmentButtons
                         billingSlipUrl={account.billingSlipUrl}
                         paymentReceiptUrl={account.paymentReceiptUrl}
-                        onBillingSlipChange={(url) => updateAccount(account.id, { billingSlipUrl: url })}
-                        onPaymentReceiptChange={(url) => updateAccount(account.id, { paymentReceiptUrl: url })}
+                        onBillingSlipChange={(url) => handleUpdateAccount(account.id, { billingSlipUrl: url })}
+                        onPaymentReceiptChange={(url) => handleUpdateAccount(account.id, { paymentReceiptUrl: url })}
                         compact
                       />
                     </TableCell>
@@ -372,7 +409,8 @@ const Payments = () => {
                   <Button type="button" variant="outline" onClick={() => setIsPaymentOpen(false)}>
                     Cancelar
                   </Button>
-                  <Button type="submit">
+                  <Button type="submit" disabled={processPaymentMutation.isPending}>
+                    {processPaymentMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                     Confirmar {selectedAccount.type === 'payable' ? 'Pagamento' : 'Recebimento'}
                   </Button>
                 </div>
