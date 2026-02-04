@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
-import { useFinancialStore } from '@/store/financialStore';
+import { useSuppliers, useAddSupplier, useUpdateSupplier, useDeleteSupplier } from '@/hooks/useSupabaseData';
 import { Supplier } from '@/types/financial';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,11 +21,15 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { formatDocument, formatPhone, formatDate } from '@/lib/format';
-import { Plus, Pencil, Trash2, Search, Users } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, Users, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 const Suppliers = () => {
-  const { suppliers, addSupplier, updateSupplier, deleteSupplier } = useFinancialStore();
+  const { data: suppliers = [], isLoading } = useSuppliers();
+  const addSupplierMutation = useAddSupplier();
+  const updateSupplierMutation = useUpdateSupplier();
+  const deleteSupplierMutation = useDeleteSupplier();
+  
   const [isOpen, setIsOpen] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
   const [search, setSearch] = useState('');
@@ -49,19 +53,27 @@ const Suppliers = () => {
     setEditingSupplier(null);
   };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (editingSupplier) {
-      updateSupplier(editingSupplier.id, formData);
-      toast({ title: 'Fornecedor atualizado com sucesso!' });
-    } else {
-      addSupplier(formData);
-      toast({ title: 'Fornecedor cadastrado com sucesso!' });
+    try {
+      if (editingSupplier) {
+        await updateSupplierMutation.mutateAsync({ id: editingSupplier.id, ...formData });
+        toast({ title: 'Fornecedor atualizado com sucesso!' });
+      } else {
+        await addSupplierMutation.mutateAsync(formData);
+        toast({ title: 'Fornecedor cadastrado com sucesso!' });
+      }
+      
+      setIsOpen(false);
+      resetForm();
+    } catch (error: any) {
+      toast({ 
+        title: 'Erro', 
+        description: error.message || 'Ocorreu um erro ao salvar.',
+        variant: 'destructive' 
+      });
     }
-    
-    setIsOpen(false);
-    resetForm();
   };
   
   const handleEdit = (supplier: Supplier) => {
@@ -76,10 +88,28 @@ const Suppliers = () => {
     setIsOpen(true);
   };
   
-  const handleDelete = (id: string) => {
-    deleteSupplier(id);
-    toast({ title: 'Fornecedor excluído!' });
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteSupplierMutation.mutateAsync(id);
+      toast({ title: 'Fornecedor excluído!' });
+    } catch (error: any) {
+      toast({ 
+        title: 'Erro', 
+        description: error.message || 'Ocorreu um erro ao excluir.',
+        variant: 'destructive' 
+      });
+    }
   };
+  
+  if (isLoading) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </MainLayout>
+    );
+  }
   
   return (
     <MainLayout>
@@ -129,7 +159,6 @@ const Suppliers = () => {
                     value={formData.document}
                     onChange={(e) => setFormData({ ...formData, document: e.target.value })}
                     placeholder="000.000.000-00 ou 00.000.000/0000-00"
-                    required
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -141,7 +170,6 @@ const Suppliers = () => {
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       placeholder="email@exemplo.com"
-                      required
                     />
                   </div>
                   <div className="space-y-2">
@@ -151,7 +179,6 @@ const Suppliers = () => {
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                       placeholder="(00) 00000-0000"
-                      required
                     />
                   </div>
                 </div>
@@ -168,7 +195,13 @@ const Suppliers = () => {
                   <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
                     Cancelar
                   </Button>
-                  <Button type="submit">
+                  <Button 
+                    type="submit" 
+                    disabled={addSupplierMutation.isPending || updateSupplierMutation.isPending}
+                  >
+                    {(addSupplierMutation.isPending || updateSupplierMutation.isPending) && (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    )}
                     {editingSupplier ? 'Salvar Alterações' : 'Cadastrar'}
                   </Button>
                 </div>
@@ -228,6 +261,7 @@ const Suppliers = () => {
                           variant="ghost"
                           size="icon"
                           onClick={() => handleDelete(supplier.id)}
+                          disabled={deleteSupplierMutation.isPending}
                         >
                           <Trash2 className="w-4 h-4 text-destructive" />
                         </Button>

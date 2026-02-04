@@ -3,21 +3,25 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { DashboardStats } from '@/components/dashboard/DashboardStats';
 import { UpcomingAccounts } from '@/components/dashboard/UpcomingAccounts';
 import { BalanceChart } from '@/components/dashboard/BalanceChart';
-import { useFinancialStore } from '@/store/financialStore';
+import { MigrationBanner } from '@/components/migration/MigrationBanner';
+import { useUpdateOverdueStatus } from '@/hooks/useSupabaseData';
 import { CalendarDays } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 const Dashboard = () => {
-  const updateOverdueStatus = useFinancialStore((state) => state.updateOverdueStatus);
+  const updateOverdueMutation = useUpdateOverdueStatus();
   
   useEffect(() => {
-    updateOverdueStatus();
-  }, [updateOverdueStatus]);
+    updateOverdueMutation.mutate();
+  }, []);
   
   return (
     <MainLayout>
       <div className="space-y-8 animate-fade-in">
+        {/* Migration Banner */}
+        <MigrationBanner />
+        
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>

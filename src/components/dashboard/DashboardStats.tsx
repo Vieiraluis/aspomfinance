@@ -1,18 +1,15 @@
-import { useFinancialStore } from '@/store/financialStore';
+import { useFinancialSummary } from '@/hooks/useSupabaseData';
 import { StatCard } from './StatCard';
 import { 
   TrendingUp, 
   TrendingDown, 
-  AlertTriangle, 
-  DollarSign,
   ArrowUpRight,
   ArrowDownRight 
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/format';
 
 export function DashboardStats() {
-  const getSummary = useFinancialStore((state) => state.getSummary);
-  const summary = getSummary();
+  const summary = useFinancialSummary();
   
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

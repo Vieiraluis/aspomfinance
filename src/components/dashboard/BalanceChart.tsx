@@ -1,4 +1,4 @@
-import { useFinancialStore } from '@/store/financialStore';
+import { useFinancialSummary } from '@/hooks/useSupabaseData';
 import { formatCurrency } from '@/lib/format';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 
@@ -8,8 +8,7 @@ const COLORS = {
 };
 
 export function BalanceChart() {
-  const getSummary = useFinancialStore((state) => state.getSummary);
-  const summary = getSummary();
+  const summary = useFinancialSummary();
   
   const data = [
     { name: 'A Receber', value: summary.totalReceivable, color: COLORS.receivable },
