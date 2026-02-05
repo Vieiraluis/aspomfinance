@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { PrintableReceipt, ReceiptData } from './PrintableReceipt';
 import { useReceiptNumber } from '@/hooks/useReceiptNumber';
+import { useReceiptSettings } from '@/hooks/useReceiptSettings';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -34,6 +35,7 @@ export const ReceiptDialog: React.FC<ReceiptDialogProps> = ({
 }) => {
   const { user } = useAuth();
   const { generateReceiptNumber, generateMultipleReceiptNumbers, isGenerating } = useReceiptNumber();
+  const { settings } = useReceiptSettings();
   const printRef = useRef<HTMLDivElement>(null);
   
   const [receipts, setReceipts] = useState<ReceiptData[]>([]);
@@ -179,7 +181,7 @@ export const ReceiptDialog: React.FC<ReceiptDialogProps> = ({
           <div className="space-y-4">
             {/* Preview */}
             <div className="border rounded-lg overflow-hidden max-h-[50vh] overflow-y-auto bg-gray-100">
-              <PrintableReceipt ref={printRef} receipts={receipts} />
+              <PrintableReceipt ref={printRef} receipts={receipts} settings={settings} />
             </div>
             
             <div className="flex justify-end gap-3 pt-4">
