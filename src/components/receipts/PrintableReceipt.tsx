@@ -4,6 +4,7 @@ import { numberToWords } from '@/lib/numberToWords';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import aspomLogo from '@/assets/aspom-logo.png';
+import { ReceiptSettings } from '@/hooks/useReceiptSettings';
 
 export interface ReceiptData {
   receiptNumber: string;
@@ -16,11 +17,28 @@ export interface ReceiptData {
 
 interface PrintableReceiptProps {
   receipts: ReceiptData[];
+  settings?: ReceiptSettings | null;
 }
 
-const SingleReceipt: React.FC<{ receipt: ReceiptData }> = ({ receipt }) => {
+interface SingleReceiptProps {
+  receipt: ReceiptData;
+  settings?: ReceiptSettings | null;
+}
+
+const SingleReceipt: React.FC<SingleReceiptProps> = ({ receipt, settings }) => {
+  const city = settings?.city || 'Rio de Janeiro';
   const formattedDate = format(receipt.issueDate, "d 'de' MMMM 'de' yyyy", { locale: ptBR });
   const amountInWords = numberToWords(receipt.amount);
+  
+  // Use custom logo or default ASPOM logo
+  const logoUrl = settings?.logo_url || aspomLogo;
+  const companyName = settings?.company_name;
+  const companyAddress = settings?.company_address;
+  const companyDocument = settings?.company_document;
+  const companyPhone = settings?.company_phone;
+  const companyEmail = settings?.company_email;
+  const headerText = settings?.header_text;
+  const footerText = settings?.footer_text;
   
   return (
     <div 
@@ -32,17 +50,43 @@ const SingleReceipt: React.FC<{ receipt: ReceiptData }> = ({ receipt }) => {
         pageBreakInside: 'avoid'
       }}
     >
-      {/* Header with Logo */}
+      {/* Header with Logo or Company Info */}
       <div className="flex">
         <div className="w-full">
-          <img 
-            src={aspomLogo} 
-            alt="ASPOM Logo" 
-            className="w-full h-auto"
-            style={{ maxHeight: '45mm' }}
-          />
+          {logoUrl ? (
+            <img 
+              src={logoUrl} 
+              alt="Logo" 
+              className="w-full h-auto"
+              style={{ maxHeight: '35mm' }}
+            />
+          ) : companyName ? (
+            <div className="p-4 text-center border-b border-gray-300">
+              <h1 className="text-xl font-bold">{companyName}</h1>
+              {companyDocument && <p className="text-sm">{companyDocument}</p>}
+              {companyAddress && <p className="text-sm">{companyAddress}</p>}
+              <div className="text-xs text-gray-600 mt-1 flex justify-center gap-4">
+                {companyPhone && <span>{companyPhone}</span>}
+                {companyEmail && <span>{companyEmail}</span>}
+              </div>
+            </div>
+          ) : (
+            <img 
+              src={aspomLogo} 
+              alt="ASPOM Logo" 
+              className="w-full h-auto"
+              style={{ maxHeight: '35mm' }}
+            />
+          )}
         </div>
       </div>
+
+      {/* Header Text if provided */}
+      {headerText && (
+        <div className="px-4 py-2 text-center text-sm border-t border-gray-300 bg-gray-50">
+          {headerText}
+        </div>
+      )}
       
       {/* Receipt Info Row */}
       <div className="flex border-t-2 border-gray-300">
@@ -68,7 +112,9 @@ const SingleReceipt: React.FC<{ receipt: ReceiptData }> = ({ receipt }) => {
       <div className="p-4 border-t-2 border-gray-300 space-y-3 text-sm">
         <div className="flex">
           <span className="font-medium w-32">Recebi(emos) de:</span>
-          <span className="flex-1 border-b border-gray-400 font-semibold">ASPOM</span>
+          <span className="flex-1 border-b border-gray-400 font-semibold">
+            {companyName || 'ASPOM'}
+          </span>
         </div>
         
         <div className="flex">
@@ -87,7 +133,7 @@ const SingleReceipt: React.FC<{ receipt: ReceiptData }> = ({ receipt }) => {
         
         <div className="flex justify-between items-end mt-4 pt-2">
           <div className="text-sm">
-            Rio de Janeiro, {formattedDate}
+            {city}, {formattedDate}
           </div>
         </div>
         
@@ -106,13 +152,20 @@ const SingleReceipt: React.FC<{ receipt: ReceiptData }> = ({ receipt }) => {
             </div>
           </div>
         </div>
+
+        {/* Footer Text if provided */}
+        {footerText && (
+          <div className="text-center text-xs text-gray-500 mt-2 pt-2 border-t border-gray-200">
+            {footerText}
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
 export const PrintableReceipt = forwardRef<HTMLDivElement, PrintableReceiptProps>(
-  ({ receipts }, ref) => {
+  ({ receipts, settings }, ref) => {
     return (
       <div ref={ref} className="print-receipts bg-white p-4">
         <style>
@@ -147,7 +200,7 @@ export const PrintableReceipt = forwardRef<HTMLDivElement, PrintableReceiptProps
         </style>
         
         {receipts.map((receipt, index) => (
-          <SingleReceipt key={index} receipt={receipt} />
+          <SingleReceipt key={index} receipt={receipt} settings={settings} />
         ))}
       </div>
     );

@@ -249,6 +249,54 @@ export type Database = {
         }
         Relationships: []
       }
+      receipt_settings: {
+        Row: {
+          city: string | null
+          company_address: string | null
+          company_document: string | null
+          company_email: string | null
+          company_name: string | null
+          company_phone: string | null
+          created_at: string
+          footer_text: string | null
+          header_text: string | null
+          id: string
+          logo_url: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          city?: string | null
+          company_address?: string | null
+          company_document?: string | null
+          company_email?: string | null
+          company_name?: string | null
+          company_phone?: string | null
+          created_at?: string
+          footer_text?: string | null
+          header_text?: string | null
+          id?: string
+          logo_url?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          city?: string | null
+          company_address?: string | null
+          company_document?: string | null
+          company_email?: string | null
+          company_name?: string | null
+          company_phone?: string | null
+          created_at?: string
+          footer_text?: string | null
+          header_text?: string | null
+          id?: string
+          logo_url?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       receipts: {
         Row: {
           account_id: string | null
