@@ -50,34 +50,32 @@ const SingleReceipt: React.FC<SingleReceiptProps> = ({ receipt, settings }) => {
         pageBreakInside: 'avoid'
       }}
     >
-      {/* Header with Logo or Company Info */}
-      <div className="flex">
-        <div className="w-full">
-          {logoUrl ? (
-            <img 
-              src={logoUrl} 
-              alt="Logo" 
-              className="w-full h-auto"
-              style={{ maxHeight: '35mm' }}
-            />
-          ) : companyName ? (
-            <div className="p-4 text-center border-b border-gray-300">
-              <h1 className="text-xl font-bold">{companyName}</h1>
-              {companyDocument && <p className="text-sm">{companyDocument}</p>}
-              {companyAddress && <p className="text-sm">{companyAddress}</p>}
-              <div className="text-xs text-gray-600 mt-1 flex justify-center gap-4">
-                {companyPhone && <span>{companyPhone}</span>}
-                {companyEmail && <span>{companyEmail}</span>}
-              </div>
-            </div>
-          ) : (
-            <img 
-              src={aspomLogo} 
-              alt="ASPOM Logo" 
-              className="w-full h-auto"
-              style={{ maxHeight: '35mm' }}
-            />
+      {/* Header with Logo and Company Info */}
+      <div className="flex border-b-2 border-gray-300">
+        {/* Logo with black background - 4x4 cm */}
+        <div 
+          className="bg-black flex items-center justify-center"
+          style={{ width: '40mm', height: '40mm', minWidth: '40mm' }}
+        >
+          <img 
+            src={logoUrl || aspomLogo} 
+            alt="Logo" 
+            className="object-contain p-1"
+            style={{ maxWidth: '38mm', maxHeight: '38mm' }}
+          />
+        </div>
+        
+        {/* Company Info next to logo */}
+        <div className="flex-1 p-3 flex flex-col justify-center">
+          {companyName && (
+            <h1 className="text-lg font-bold">{companyName}</h1>
           )}
+          {companyDocument && <p className="text-sm">{companyDocument}</p>}
+          {companyAddress && <p className="text-sm">{companyAddress}</p>}
+          <div className="text-xs text-gray-600 mt-1 flex gap-4">
+            {companyPhone && <span>{companyPhone}</span>}
+            {companyEmail && <span>{companyEmail}</span>}
+          </div>
         </div>
       </div>
 
