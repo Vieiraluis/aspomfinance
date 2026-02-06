@@ -1,5 +1,6 @@
+import { useMemo } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
-import { useFinancialStore } from '@/store/financialStore';
+import { useAccounts } from '@/hooks/useSupabaseData';
 import { categoryLabels, AccountCategory } from '@/types/financial';
 import { formatCurrency } from '@/lib/format';
 import { 
@@ -15,9 +16,9 @@ import {
   Cell,
   Legend,
 } from 'recharts';
-import { startOfMonth, endOfMonth, subMonths, format, isWithinInterval } from 'date-fns';
+import { startOfMonth, endOfMonth, subMonths, format, isWithinInterval, isBefore, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { BarChart3, TrendingUp, TrendingDown, Calendar } from 'lucide-react';
+import { BarChart3, TrendingUp, TrendingDown, Calendar, Loader2 } from 'lucide-react';
 
 const COLORS = [
   'hsl(168, 76%, 42%)',
@@ -31,9 +32,40 @@ const COLORS = [
 ];
 
 const Reports = () => {
-  const accounts = useFinancialStore((state) => state.accounts);
-  const getSummary = useFinancialStore((state) => state.getSummary);
-  const summary = getSummary();
+  const { data: accounts = [], isLoading } = useAccounts();
+  
+  // Calculate summary from accounts
+  const summary = useMemo(() => {
+    const today = startOfDay(new Date());
+    const monthStart = startOfMonth(today);
+    const monthEnd = endOfMonth(today);
+    
+    const pendingPayable = accounts.filter(
+      (a) => a.type === 'payable' && a.status === 'pending'
+    );
+    const pendingReceivable = accounts.filter(
+      (a) => a.type === 'receivable' && a.status === 'pending'
+    );
+    
+    const totalPayable = pendingPayable.reduce((sum, a) => sum + a.amount, 0);
+    const totalReceivable = pendingReceivable.reduce((sum, a) => sum + a.amount, 0);
+    
+    const overduePayable = pendingPayable
+      .filter((a) => isBefore(new Date(a.dueDate), today))
+      .reduce((sum, a) => sum + a.amount, 0);
+      
+    const overdueReceivable = pendingReceivable
+      .filter((a) => isBefore(new Date(a.dueDate), today))
+      .reduce((sum, a) => sum + a.amount, 0);
+      
+    return {
+      totalPayable,
+      totalReceivable,
+      overduePayable,
+      overdueReceivable,
+      balance: totalReceivable - totalPayable,
+    };
+  }, [accounts]);
   
   // Monthly data for last 6 months
   const monthlyData = Array.from({ length: 6 }, (_, i) => {
@@ -108,6 +140,16 @@ const Reports = () => {
     }
     return null;
   };
+  
+  if (isLoading) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </MainLayout>
+    );
+  }
   
   return (
     <MainLayout>

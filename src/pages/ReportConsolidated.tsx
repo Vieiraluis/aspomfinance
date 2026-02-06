@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
-import { useFinancialStore } from '@/store/financialStore';
+import { useAccounts } from '@/hooks/useSupabaseData';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { 
   BarChart, 
@@ -29,6 +29,7 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Scale,
+  Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -37,7 +38,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 const ReportConsolidated = () => {
-  const accounts = useFinancialStore((state) => state.accounts);
+  const { data: accounts = [], isLoading } = useAccounts();
   const [period, setPeriod] = useState<string>('6');
   const printRef = useRef<HTMLDivElement>(null);
 
@@ -186,6 +187,16 @@ const ReportConsolidated = () => {
     }
     return null;
   };
+
+  if (isLoading) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout>

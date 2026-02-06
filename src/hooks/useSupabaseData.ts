@@ -233,6 +233,9 @@ export const useUpdateAccount = () => {
       if (account.paidAt !== undefined) updateData.paid_at = account.paidAt?.toISOString() || null;
       if (account.bankAccountId !== undefined) updateData.bank_account_id = account.bankAccountId || null;
       if (account.notes !== undefined) updateData.notes = account.notes || null;
+      // Attachment URLs
+      if (account.billingSlipUrl !== undefined) updateData.billing_slip_url = account.billingSlipUrl || null;
+      if (account.paymentReceiptUrl !== undefined) updateData.payment_receipt_url = account.paymentReceiptUrl || null;
       
       const { error } = await supabase
         .from('accounts')

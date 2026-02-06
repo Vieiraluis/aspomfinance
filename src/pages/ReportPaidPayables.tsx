@@ -3,18 +3,18 @@ import { useReactToPrint } from 'react-to-print';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { ReportFilters } from '@/components/reports/ReportFilters';
 import { PrintableReport } from '@/components/reports/PrintableReport';
-import { useFinancialStore } from '@/store/financialStore';
+import { useAccounts } from '@/hooks/useSupabaseData';
 import { exportToPdf } from '@/lib/exportPdf';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Receipt } from 'lucide-react';
+import { Receipt, Loader2 } from 'lucide-react';
 import { ReceiptDialog } from '@/components/receipts/ReceiptDialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { formatCurrency, formatDate } from '@/lib/format';
 
 const ReportPaidPayables = () => {
-  const { accounts } = useFinancialStore();
+  const { data: accounts = [], isLoading } = useAccounts();
   const printRef = useRef<HTMLDivElement>(null);
   
   const [sortBy, setSortBy] = useState<'dueDate' | 'name' | 'description' | 'amount'>('dueDate');
@@ -77,6 +77,16 @@ const ReportPaidPayables = () => {
       dateField: 'paidAt',
     });
   };
+
+  if (isLoading) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout>
