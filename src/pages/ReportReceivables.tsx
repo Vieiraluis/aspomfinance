@@ -1,16 +1,16 @@
 import { useState, useRef, useMemo } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { MainLayout } from '@/components/layout/MainLayout';
-import { useFinancialStore } from '@/store/financialStore';
+import { useAccounts } from '@/hooks/useSupabaseData';
 import { PrintableReport } from '@/components/reports/PrintableReport';
 import { ReportFilters } from '@/components/reports/ReportFilters';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FileText, CheckCircle } from 'lucide-react';
+import { FileText, CheckCircle, Loader2 } from 'lucide-react';
 import { exportToPdf } from '@/lib/exportPdf';
 import { isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 
 const ReportReceivables = () => {
-  const accounts = useFinancialStore((state) => state.accounts);
+  const { data: accounts = [], isLoading } = useAccounts();
   const [sortBy, setSortBy] = useState<'dueDate' | 'name' | 'description' | 'amount'>('dueDate');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [activeTab, setActiveTab] = useState('pending');
@@ -92,6 +92,16 @@ const ReportReceivables = () => {
       filename: 'Relatorio_Contas_Recebidas',
     });
   };
+
+  if (isLoading) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout>
