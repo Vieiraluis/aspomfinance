@@ -12,8 +12,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { FileText, Receipt, Paperclip, X, ExternalLink } from 'lucide-react';
+import { FileText, Receipt, Paperclip, X, ExternalLink, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 interface AttachmentButtonsProps {
   billingSlipUrl?: string;
@@ -30,17 +32,19 @@ export const AttachmentButtons = ({
   onPaymentReceiptChange,
   compact = false,
 }: AttachmentButtonsProps) => {
+  const { user } = useAuth();
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewTitle, setPreviewTitle] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
   const billingInputRef = useRef<HTMLInputElement>(null);
   const receiptInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = (
+  const handleFileChange = async (
     event: React.ChangeEvent<HTMLInputElement>,
     type: 'billing' | 'receipt'
   ) => {
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file || !user) return;
 
     // Validate file type
     const validTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
@@ -63,22 +67,53 @@ export const AttachmentButtons = ({
       return;
     }
 
-    // Convert to base64 for local storage (in production, you'd upload to a server)
-    const reader = new FileReader();
-    reader.onload = () => {
-      const base64 = reader.result as string;
+    setIsUploading(true);
+    
+    try {
+      // Generate unique filename
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/${type}_${Date.now()}.${fileExt}`;
+      
+      // Upload to Supabase Storage
+      const { data, error } = await supabase.storage
+        .from('attachments')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (error) {
+        throw error;
+      }
+
+      // Get signed URL (valid for 1 year)
+      const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+        .from('attachments')
+        .createSignedUrl(data.path, 365 * 24 * 60 * 60); // 1 year
+
+      if (signedUrlError) {
+        throw signedUrlError;
+      }
+
       if (type === 'billing') {
-        onBillingSlipChange(base64);
+        onBillingSlipChange(signedUrlData.signedUrl);
         toast({ title: 'Boleta anexada com sucesso!' });
       } else {
-        onPaymentReceiptChange(base64);
+        onPaymentReceiptChange(signedUrlData.signedUrl);
         toast({ title: 'Comprovante anexado com sucesso!' });
       }
-    };
-    reader.readAsDataURL(file);
-
-    // Reset input
-    event.target.value = '';
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      toast({
+        title: 'Erro ao enviar arquivo',
+        description: error.message || 'Tente novamente.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsUploading(false);
+      // Reset input
+      event.target.value = '';
+    }
   };
 
   const openPreview = (url: string, title: string) => {
@@ -86,7 +121,9 @@ export const AttachmentButtons = ({
     setPreviewTitle(title);
   };
 
-  const removeAttachment = (type: 'billing' | 'receipt') => {
+  const removeAttachment = async (type: 'billing' | 'receipt') => {
+    // Note: We could delete from storage here, but for simplicity we just remove the reference
+    // The file will remain in storage (orphaned), which can be cleaned up periodically
     if (type === 'billing') {
       onBillingSlipChange(undefined);
       toast({ title: 'Boleta removida' });
@@ -94,6 +131,10 @@ export const AttachmentButtons = ({
       onPaymentReceiptChange(undefined);
       toast({ title: 'Comprovante removido' });
     }
+  };
+
+  const isPdf = (url: string) => {
+    return url.includes('.pdf') || url.startsWith('data:application/pdf');
   };
 
   return (
@@ -106,6 +147,7 @@ export const AttachmentButtons = ({
           accept=".pdf,.jpg,.jpeg,.png,.webp"
           className="hidden"
           onChange={(e) => handleFileChange(e, 'billing')}
+          disabled={isUploading}
         />
         <Tooltip>
           <TooltipTrigger asChild>
@@ -114,6 +156,7 @@ export const AttachmentButtons = ({
               variant={billingSlipUrl ? "default" : "outline"}
               size={compact ? "icon" : "sm"}
               className={compact ? "h-8 w-8" : "gap-2"}
+              disabled={isUploading}
               onClick={() => {
                 if (billingSlipUrl) {
                   openPreview(billingSlipUrl, 'Boleta de Cobrança');
@@ -122,7 +165,11 @@ export const AttachmentButtons = ({
                 }
               }}
             >
-              <FileText className="w-4 h-4" />
+              {isUploading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <FileText className="w-4 h-4" />
+              )}
               {!compact && (billingSlipUrl ? 'Ver Boleta' : 'Anexar Boleta')}
             </Button>
           </TooltipTrigger>
@@ -138,6 +185,7 @@ export const AttachmentButtons = ({
           accept=".pdf,.jpg,.jpeg,.png,.webp"
           className="hidden"
           onChange={(e) => handleFileChange(e, 'receipt')}
+          disabled={isUploading}
         />
         <Tooltip>
           <TooltipTrigger asChild>
@@ -146,6 +194,7 @@ export const AttachmentButtons = ({
               variant={paymentReceiptUrl ? "default" : "outline"}
               size={compact ? "icon" : "sm"}
               className={compact ? "h-8 w-8" : "gap-2"}
+              disabled={isUploading}
               onClick={() => {
                 if (paymentReceiptUrl) {
                   openPreview(paymentReceiptUrl, 'Comprovante de Pagamento');
@@ -154,7 +203,11 @@ export const AttachmentButtons = ({
                 }
               }}
             >
-              <Receipt className="w-4 h-4" />
+              {isUploading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Receipt className="w-4 h-4" />
+              )}
               {!compact && (paymentReceiptUrl ? 'Ver Comprovante' : 'Anexar Comprovante')}
             </Button>
           </TooltipTrigger>
@@ -175,21 +228,16 @@ export const AttachmentButtons = ({
             <div className="space-y-4">
               {previewUrl && (
                 <>
-                  {previewUrl.startsWith('data:application/pdf') ? (
+                  {isPdf(previewUrl) ? (
                     <div className="flex flex-col items-center gap-4 py-8">
                       <FileText className="w-16 h-16 text-muted-foreground" />
                       <p className="text-muted-foreground">Arquivo PDF</p>
                       <Button
-                        onClick={() => {
-                          const link = document.createElement('a');
-                          link.href = previewUrl;
-                          link.download = `${previewTitle}.pdf`;
-                          link.click();
-                        }}
+                        onClick={() => window.open(previewUrl, '_blank')}
                         className="gap-2"
                       >
                         <ExternalLink className="w-4 h-4" />
-                        Baixar PDF
+                        Abrir PDF
                       </Button>
                     </div>
                   ) : (
