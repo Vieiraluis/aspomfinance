@@ -29,10 +29,12 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { cn } from '@/lib/utils';
-import { Search, CreditCard, CheckCircle, TrendingDown, TrendingUp, Wallet, Loader2 } from 'lucide-react';
+import { CreditCard, CheckCircle, TrendingDown, TrendingUp, Wallet, Loader2, Pencil } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { format } from 'date-fns';
+import { format, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 import { AttachmentButtons } from '@/components/attachments/AttachmentButtons';
+import { AccountFilters } from '@/components/accounts/AccountFilters';
+import { EditAccountDialog } from '@/components/accounts/EditAccountDialog';
 
 const Payments = () => {
   const { data: accounts = [], isLoading } = useAccounts();
@@ -42,8 +44,12 @@ const Payments = () => {
   
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [startDate, setStartDate] = useState<Date | undefined>();
+  const [endDate, setEndDate] = useState<Date | undefined>();
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const [editingAccount, setEditingAccount] = useState<Account | null>(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
   
   const activeBankAccounts = bankAccounts.filter(ba => ba.isActive);
   
@@ -60,9 +66,26 @@ const Payments = () => {
   );
   
   const filteredAccounts = pendingAccounts.filter((a) => {
-    const matchesSearch = a.description.toLowerCase().includes(search.toLowerCase());
+    const matchesSearch = a.description.toLowerCase().includes(search.toLowerCase()) ||
+      (a.supplierName && a.supplierName.toLowerCase().includes(search.toLowerCase()));
     const matchesType = typeFilter === 'all' || a.type === typeFilter;
-    return matchesSearch && matchesType;
+    
+    let matchesDateRange = true;
+    if (startDate || endDate) {
+      const accountDate = a.dueDate;
+      if (startDate && endDate) {
+        matchesDateRange = isWithinInterval(accountDate, { 
+          start: startOfDay(startDate), 
+          end: endOfDay(endDate) 
+        });
+      } else if (startDate) {
+        matchesDateRange = accountDate >= startOfDay(startDate);
+      } else if (endDate) {
+        matchesDateRange = accountDate <= endOfDay(endDate);
+      }
+    }
+    
+    return matchesSearch && matchesType && matchesDateRange;
   });
   
   const openPaymentDialog = (account: Account) => {
@@ -75,6 +98,11 @@ const Payments = () => {
       notes: '',
     });
     setIsPaymentOpen(true);
+  };
+
+  const openEditDialog = (account: Account) => {
+    setEditingAccount(account);
+    setIsEditOpen(true);
   };
   
   const handlePayment = async (e: React.FormEvent) => {
@@ -92,12 +120,16 @@ const Payments = () => {
     }
     
     try {
+      // Create date at noon to avoid timezone issues
+      const [year, month, day] = paymentData.paidAt.split('-').map(Number);
+      const paidAt = new Date(year, month - 1, day, 12, 0, 0);
+      
       await processPaymentMutation.mutateAsync({
         accountId: selectedAccount.id,
         payment: {
           amount: parseFloat(paymentData.amount),
           paymentMethod: paymentData.paymentMethod,
-          paidAt: new Date(paymentData.paidAt),
+          paidAt: paidAt,
           bankAccountId: paymentData.bankAccountId,
           notes: paymentData.notes || undefined,
         },
@@ -195,28 +227,24 @@ const Payments = () => {
           </div>
         </div>
         
-        {/* Filters */}
-        <div className="flex gap-4">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar por descrição..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="w-48">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas as Contas</SelectItem>
-              <SelectItem value="payable">Contas a Pagar</SelectItem>
-              <SelectItem value="receivable">Contas a Receber</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        {/* Filters - Sticky Menu */}
+        <AccountFilters
+          search={search}
+          onSearchChange={setSearch}
+          statusFilter={typeFilter}
+          onStatusFilterChange={setTypeFilter}
+          startDate={startDate}
+          onStartDateChange={setStartDate}
+          endDate={endDate}
+          onEndDateChange={setEndDate}
+          showDateFilter={true}
+          searchPlaceholder="Buscar por descrição ou fornecedor..."
+          statusOptions={[
+            { value: 'all', label: 'Todas as Contas' },
+            { value: 'payable', label: 'Contas a Pagar' },
+            { value: 'receivable', label: 'Contas a Receber' },
+          ]}
+        />
         
         {/* Table */}
         <div className="glass-card overflow-hidden">
@@ -235,7 +263,7 @@ const Payments = () => {
                   <TableHead>Valor</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Anexos</TableHead>
-                  <TableHead className="text-right">Ação</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -290,14 +318,24 @@ const Payments = () => {
                       />
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button
-                        size="sm"
-                        onClick={() => openPaymentDialog(account)}
-                        className="gap-2"
-                      >
-                        <CheckCircle className="w-4 h-4" />
-                        {account.type === 'payable' ? 'Pagar' : 'Receber'}
-                      </Button>
+                      <div className="flex items-center justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => openEditDialog(account)}
+                          title="Editar"
+                        >
+                          <Pencil className="w-4 h-4 text-primary" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() => openPaymentDialog(account)}
+                          className="gap-2"
+                        >
+                          <CheckCircle className="w-4 h-4" />
+                          {account.type === 'payable' ? 'Pagar' : 'Receber'}
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -305,6 +343,14 @@ const Payments = () => {
             </Table>
           )}
         </div>
+        
+        {/* Edit Dialog */}
+        <EditAccountDialog
+          account={editingAccount}
+          open={isEditOpen}
+          onOpenChange={setIsEditOpen}
+          type={editingAccount?.type || 'payable'}
+        />
         
         {/* Payment Dialog */}
         <Dialog open={isPaymentOpen} onOpenChange={setIsPaymentOpen}>
