@@ -5,13 +5,19 @@ import { Account, Supplier, Payment, BankAccount, FinancialSummary, BankAccountT
 import { addMonths, isBefore, startOfDay, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { toast } from '@/hooks/use-toast';
 
+// Helper to parse date string without timezone issues
+const parseDateOnly = (dateStr: string): Date => {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  return new Date(year, month - 1, day, 12, 0, 0);
+};
+
 // Helper to convert database row to frontend type
 const mapAccountFromDB = (row: any): Account => ({
   id: row.id,
   type: row.type as 'payable' | 'receivable',
   description: row.description,
   amount: Number(row.amount),
-  dueDate: new Date(row.due_date),
+  dueDate: parseDateOnly(row.due_date),
   status: row.status as 'pending' | 'paid' | 'overdue' | 'cancelled',
   supplierId: row.supplier_id || undefined,
   supplierName: row.supplier_name || undefined,

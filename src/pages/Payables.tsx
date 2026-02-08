@@ -32,11 +32,13 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { cn } from '@/lib/utils';
-import { Plus, Search, TrendingDown, Trash2, Split, Receipt, Loader2 } from 'lucide-react';
+import { Plus, TrendingDown, Trash2, Split, Receipt, Loader2, Pencil } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { format } from 'date-fns';
+import { format, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 import { SupplierSelect } from '@/components/suppliers/SupplierSelect';
 import { ReceiptDialog } from '@/components/receipts/ReceiptDialog';
+import { AccountFilters } from '@/components/accounts/AccountFilters';
+import { EditAccountDialog } from '@/components/accounts/EditAccountDialog';
 
 const statusLabels = {
   pending: 'Pendente',
@@ -63,9 +65,14 @@ const Payables = () => {
   const [isInstallmentOpen, setIsInstallmentOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [startDate, setStartDate] = useState<Date | undefined>();
+  const [endDate, setEndDate] = useState<Date | undefined>();
   const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
   const [isReceiptDialogOpen, setIsReceiptDialogOpen] = useState(false);
   const [receiptMode, setReceiptMode] = useState<'single' | 'batch'>('single');
+  const [editingAccount, setEditingAccount] = useState<Account | null>(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
   
   const [formData, setFormData] = useState({
     description: '',
@@ -88,7 +95,24 @@ const Payables = () => {
       a.description.toLowerCase().includes(search.toLowerCase()) ||
       (a.supplierName && a.supplierName.toLowerCase().includes(search.toLowerCase()));
     const matchesStatus = statusFilter === 'all' || a.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesCategory = categoryFilter === 'all' || a.category === categoryFilter;
+    
+    let matchesDateRange = true;
+    if (startDate || endDate) {
+      const accountDate = a.dueDate;
+      if (startDate && endDate) {
+        matchesDateRange = isWithinInterval(accountDate, { 
+          start: startOfDay(startDate), 
+          end: endOfDay(endDate) 
+        });
+      } else if (startDate) {
+        matchesDateRange = accountDate >= startOfDay(startDate);
+      } else if (endDate) {
+        matchesDateRange = accountDate <= endOfDay(endDate);
+      }
+    }
+    
+    return matchesSearch && matchesStatus && matchesCategory && matchesDateRange;
   });
 
   const paidPayables = filteredPayables.filter(a => a.status === 'paid');
@@ -127,6 +151,11 @@ const Payables = () => {
     setReceiptMode('single');
     setIsReceiptDialogOpen(true);
   };
+
+  const openEditDialog = (account: Account) => {
+    setEditingAccount(account);
+    setIsEditOpen(true);
+  };
   
   const resetForm = () => {
     setFormData({
@@ -145,11 +174,15 @@ const Payables = () => {
     try {
       const supplier = suppliers.find((s) => s.id === formData.supplierId);
       
+      // Create date at noon to avoid timezone issues
+      const [year, month, day] = formData.dueDate.split('-').map(Number);
+      const dueDate = new Date(year, month - 1, day, 12, 0, 0);
+      
       await addAccountMutation.mutateAsync({
         type: 'payable',
         description: formData.description,
         amount: parseFloat(formData.amount),
-        dueDate: new Date(formData.dueDate),
+        dueDate: dueDate,
         status: 'pending',
         supplierId: formData.supplierId || undefined,
         supplierName: supplier?.name,
@@ -175,12 +208,16 @@ const Payables = () => {
     try {
       const supplier = suppliers.find((s) => s.id === installmentData.supplierId);
       
+      // Create date at noon to avoid timezone issues
+      const [year, month, day] = installmentData.dueDate.split('-').map(Number);
+      const dueDate = new Date(year, month - 1, day, 12, 0, 0);
+      
       await generateInstallmentsMutation.mutateAsync({
         baseAccount: {
           type: 'payable',
           description: installmentData.description,
           amount: parseFloat(installmentData.amount),
-          dueDate: new Date(installmentData.dueDate),
+          dueDate: dueDate,
           status: 'pending',
           supplierId: installmentData.supplierId || undefined,
           supplierName: supplier?.name,
@@ -448,40 +485,34 @@ const Payables = () => {
           </div>
         </div>
         
-        {/* Filters */}
-        <div className="flex flex-wrap gap-4 items-center">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar por descrição ou fornecedor..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-40">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="pending">Pendentes</SelectItem>
-              <SelectItem value="paid">Pagos</SelectItem>
-              <SelectItem value="overdue">Vencidos</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          {paidPayables.length > 0 && (
-            <Button 
-              variant="outline" 
-              className="gap-2"
-              onClick={openBatchReceipts}
-            >
-              <Receipt className="w-4 h-4" />
-              Recibos em Lote ({selectedAccounts.length})
-            </Button>
-          )}
-        </div>
+        {/* Filters - Sticky Menu */}
+        <AccountFilters
+          search={search}
+          onSearchChange={setSearch}
+          statusFilter={statusFilter}
+          onStatusFilterChange={setStatusFilter}
+          categoryFilter={categoryFilter}
+          onCategoryFilterChange={setCategoryFilter}
+          startDate={startDate}
+          onStartDateChange={setStartDate}
+          endDate={endDate}
+          onEndDateChange={setEndDate}
+          showCategoryFilter={true}
+          showDateFilter={true}
+          searchPlaceholder="Buscar por descrição ou fornecedor..."
+          rightContent={
+            paidPayables.length > 0 && (
+              <Button 
+                variant="outline" 
+                className="gap-2"
+                onClick={openBatchReceipts}
+              >
+                <Receipt className="w-4 h-4" />
+                Recibos em Lote ({selectedAccounts.length})
+              </Button>
+            )
+          }
+        />
         
         {/* Table */}
         <div className="glass-card overflow-hidden">
@@ -545,6 +576,14 @@ const Payables = () => {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => openEditDialog(account)}
+                          title="Editar"
+                        >
+                          <Pencil className="w-4 h-4 text-primary" />
+                        </Button>
                         {account.status === 'paid' && (
                           <Button
                             variant="ghost"
@@ -571,6 +610,14 @@ const Payables = () => {
             </Table>
           )}
         </div>
+        
+        {/* Edit Dialog */}
+        <EditAccountDialog
+          account={editingAccount}
+          open={isEditOpen}
+          onOpenChange={setIsEditOpen}
+          type="payable"
+        />
         
         {/* Receipt Dialog */}
         <ReceiptDialog
