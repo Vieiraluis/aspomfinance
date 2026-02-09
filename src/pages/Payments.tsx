@@ -4,6 +4,7 @@ import { useAccounts, useBankAccounts, useProcessPayment, useUpdateAccount } fro
 import { Account, paymentMethodLabels, Payment } from '@/types/financial';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { CurrencyInput } from '@/components/ui/currency-input';
 import { Label } from '@/components/ui/label';
 import {
   Dialog,
@@ -259,6 +260,7 @@ const Payments = () => {
                 <TableRow>
                   <TableHead>Tipo</TableHead>
                   <TableHead>Descrição</TableHead>
+                  <TableHead>Fornecedor/Cliente</TableHead>
                   <TableHead>Vencimento</TableHead>
                   <TableHead>Valor</TableHead>
                   <TableHead>Status</TableHead>
@@ -288,6 +290,9 @@ const Payments = () => {
                           ({account.installmentNumber}/{account.totalInstallments})
                         </span>
                       )}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {account.supplierName || '—'}
                     </TableCell>
                     <TableCell>{formatDate(account.dueDate)}</TableCell>
                     <TableCell className={cn(
@@ -376,12 +381,10 @@ const Payments = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="amount">Valor Pago</Label>
-                    <Input
+                    <CurrencyInput
                       id="amount"
-                      type="number"
-                      step="0.01"
                       value={paymentData.amount}
-                      onChange={(e) => setPaymentData({ ...paymentData, amount: e.target.value })}
+                      onValueChange={(value) => setPaymentData({ ...paymentData, amount: value })}
                       required
                     />
                   </div>
