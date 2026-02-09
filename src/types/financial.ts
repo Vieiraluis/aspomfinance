@@ -72,23 +72,57 @@ export interface FinancialSummary {
 }
 
 export type AccountCategory = 
-  | 'utilities' 
-  | 'rent' 
-  | 'salary' 
-  | 'supplies' 
-  | 'services' 
-  | 'taxes' 
-  | 'sales' 
+  | 'rent'
+  | 'energy'
+  | 'water'
+  | 'telecom'
+  | 'salary'
+  | 'social_charges'
+  | 'office_supplies'
+  | 'cleaning_supplies'
+  | 'maintenance'
+  | 'fuel'
+  | 'food'
+  | 'accounting'
+  | 'insurance'
+  | 'taxes'
+  | 'marketing'
+  | 'freight'
+  | 'services'
+  | 'sales'
+  | 'commissions'
+  | 'subscriptions'
+  | 'equipment'
+  | 'travel'
+  | 'legal'
+  | 'financial_fees'
   | 'other';
 
 export const categoryLabels: Record<AccountCategory, string> = {
-  utilities: 'Utilidades',
   rent: 'Aluguel',
+  energy: 'Energia Elétrica',
+  water: 'Água e Esgoto',
+  telecom: 'Telefone/Internet',
   salary: 'Salários',
-  supplies: 'Suprimentos',
-  services: 'Serviços',
-  taxes: 'Impostos',
+  social_charges: 'Encargos Sociais',
+  office_supplies: 'Material de Escritório',
+  cleaning_supplies: 'Material de Limpeza',
+  maintenance: 'Manutenção',
+  fuel: 'Combustível',
+  food: 'Alimentação',
+  accounting: 'Honorários Contábeis',
+  insurance: 'Seguros',
+  taxes: 'Impostos e Taxas',
+  marketing: 'Marketing/Publicidade',
+  freight: 'Frete/Transporte',
+  services: 'Serviços Prestados',
   sales: 'Vendas',
+  commissions: 'Comissões',
+  subscriptions: 'Assinaturas/Mensalidades',
+  equipment: 'Equipamentos',
+  travel: 'Viagens/Deslocamentos',
+  legal: 'Jurídico/Advocacia',
+  financial_fees: 'Taxas Bancárias/Juros',
   other: 'Outros',
 };
 
