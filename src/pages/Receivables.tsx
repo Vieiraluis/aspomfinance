@@ -4,6 +4,7 @@ import { useAccounts, useSuppliers, useAddAccount, useDeleteAccount, useGenerate
 import { AccountCategory, categoryLabels, Account } from '@/types/financial';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { CurrencyInput } from '@/components/ui/currency-input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -337,13 +338,10 @@ const Receivables = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="inst-amount">Valor Total</Label>
-                      <Input
+                      <CurrencyInput
                         id="inst-amount"
-                        type="number"
-                        step="0.01"
                         value={installmentData.amount}
-                        onChange={(e) => setInstallmentData({ ...installmentData, amount: e.target.value })}
-                        placeholder="0,00"
+                        onValueChange={(value) => setInstallmentData({ ...installmentData, amount: value })}
                         required
                       />
                     </div>
@@ -447,13 +445,10 @@ const Receivables = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="amount">Valor</Label>
-                      <Input
+                      <CurrencyInput
                         id="amount"
-                        type="number"
-                        step="0.01"
                         value={formData.amount}
-                        onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                        placeholder="0,00"
+                        onValueChange={(value) => setFormData({ ...formData, amount: value })}
                         required
                       />
                     </div>
