@@ -115,23 +115,23 @@ export const PrintableReport = forwardRef<HTMLDivElement, PrintableReportProps>(
           <Table className="border border-gray-300">
             <TableHeader>
               <TableRow className="bg-gray-100">
-                <TableHead className="text-black font-bold border border-gray-300 w-12">#</TableHead>
-                <TableHead className="text-black font-bold border border-gray-300">{dateColumnLabel}</TableHead>
-                <TableHead className="text-black font-bold border border-gray-300">Nome</TableHead>
-                <TableHead className="text-black font-bold border border-gray-300">Descrição</TableHead>
-                <TableHead className="text-black font-bold border border-gray-300 text-right">Valor</TableHead>
+                <TableHead className="text-black font-bold border border-gray-300 w-12 py-1 text-xs">#</TableHead>
+                <TableHead className="text-black font-bold border border-gray-300 py-1 text-xs">{dateColumnLabel}</TableHead>
+                <TableHead className="text-black font-bold border border-gray-300 py-1 text-xs">Nome</TableHead>
+                <TableHead className="text-black font-bold border border-gray-300 py-1 text-xs">Descrição</TableHead>
+                <TableHead className="text-black font-bold border border-gray-300 text-right py-1 text-xs">Valor</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {sortedAccounts.map((account, index) => (
                 <TableRow key={account.id} className="hover:bg-gray-50">
-                  <TableCell className="border border-gray-300 text-center">{index + 1}</TableCell>
-                  <TableCell className="border border-gray-300">
+                  <TableCell className="border border-gray-300 text-center py-1 text-xs">{index + 1}</TableCell>
+                  <TableCell className="border border-gray-300 py-1 text-xs">
                     {formatDate(dateField === 'paidAt' && account.paidAt ? account.paidAt : account.dueDate)}
                   </TableCell>
-                  <TableCell className="border border-gray-300">{account.supplierName || '-'}</TableCell>
-                  <TableCell className="border border-gray-300">{account.description}</TableCell>
-                  <TableCell className="border border-gray-300 text-right font-mono">
+                  <TableCell className="border border-gray-300 py-1 text-xs">{account.supplierName || '-'}</TableCell>
+                  <TableCell className="border border-gray-300 py-1 text-xs">{account.description}</TableCell>
+                  <TableCell className="border border-gray-300 text-right font-mono py-1 text-xs">
                     {formatCurrency(account.amount)}
                   </TableCell>
                 </TableRow>

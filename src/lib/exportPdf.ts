@@ -99,8 +99,8 @@ export const exportToPdf = ({
     head: [['#', dateColumnLabel, 'Nome', 'Descrição', 'Valor']],
     body: tableData,
     styles: {
-      fontSize: 9,
-      cellPadding: 3,
+      fontSize: 8,
+      cellPadding: 1.5,
     },
     headStyles: {
       fillColor: [66, 66, 66],
