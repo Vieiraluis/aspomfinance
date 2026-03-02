@@ -111,7 +111,7 @@ const SingleReceipt: React.FC<SingleReceiptProps> = ({ receipt, settings }) => {
         <div className="flex">
           <span className="font-medium w-32">Recebi(emos) de:</span>
           <span className="flex-1 border-b border-gray-400 font-semibold">
-            {companyName || 'ASPOM'}
+            {receipt.receiverName || 'Não informado'}
           </span>
         </div>
         
@@ -146,7 +146,7 @@ const SingleReceipt: React.FC<SingleReceiptProps> = ({ receipt, settings }) => {
               <span className="font-medium">Nome:</span> {receipt.receiverName}
             </div>
             <div className="text-xs mt-1">
-              <span className="font-medium">CNPJ/CPF/RG:</span> {receipt.receiverDocument || '_______________'}
+              <span className="font-medium">CPF/CNPJ:</span> {receipt.receiverDocument || '_______________'}
             </div>
           </div>
         </div>
