@@ -15,6 +15,7 @@ import { PrintableReceipt, ReceiptData } from './PrintableReceipt';
 import { useReceiptNumber } from '@/hooks/useReceiptNumber';
 import { useReceiptSettings } from '@/hooks/useReceiptSettings';
 import { useAuth } from '@/hooks/useAuth';
+import { useSuppliers } from '@/hooks/useSupabaseData';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { Printer, Loader2 } from 'lucide-react';
@@ -36,6 +37,7 @@ export const ReceiptDialog: React.FC<ReceiptDialogProps> = ({
   const { user } = useAuth();
   const { generateReceiptNumber, generateMultipleReceiptNumbers, isGenerating } = useReceiptNumber();
   const { settings } = useReceiptSettings();
+  const { data: suppliers = [] } = useSuppliers();
   const printRef = useRef<HTMLDivElement>(null);
   
   const [receipts, setReceipts] = useState<ReceiptData[]>([]);
@@ -57,14 +59,21 @@ export const ReceiptDialog: React.FC<ReceiptDialogProps> = ({
         throw new Error('Failed to generate all receipt numbers');
       }
       
-      const generatedReceipts: ReceiptData[] = accounts.map((account, index) => ({
-        receiptNumber: receiptNumbers[index].receiptNumber,
-        receiverName: account.supplierName || 'Não informado',
-        receiverDocument: '',
-        amount: account.amount,
-        reference: customReference || account.description,
-        issueDate: new Date()
-      }));
+      const generatedReceipts: ReceiptData[] = accounts.map((account, index) => {
+        // Find the supplier to get their document (CPF/CNPJ)
+        const supplier = account.supplierId 
+          ? suppliers.find(s => s.id === account.supplierId) 
+          : undefined;
+        
+        return {
+          receiptNumber: receiptNumbers[index].receiptNumber,
+          receiverName: account.supplierName || 'Não informado',
+          receiverDocument: supplier?.document || '',
+          amount: account.amount,
+          reference: customReference || account.description,
+          issueDate: new Date()
+        };
+      });
       
       // Save receipts to database
       for (let i = 0; i < generatedReceipts.length; i++) {
