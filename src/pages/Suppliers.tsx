@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { useSuppliers, useAddSupplier, useUpdateSupplier, useDeleteSupplier } from '@/hooks/useSupabaseData';
-import { Supplier } from '@/types/financial';
+import { Supplier, SupplierType, supplierTypeLabels } from '@/types/financial';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,6 +13,13 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Table,
   TableBody,
   TableCell,
@@ -20,6 +27,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
 import { formatDocument, formatPhone, formatDate } from '@/lib/format';
 import { Plus, Pencil, Trash2, Search, Users, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
@@ -40,6 +48,7 @@ const Suppliers = () => {
     email: '',
     phone: '',
     address: '',
+    type: 'supplier' as SupplierType,
   });
   
   const filteredSuppliers = suppliers.filter((s) =>
@@ -49,7 +58,7 @@ const Suppliers = () => {
   );
   
   const resetForm = () => {
-    setFormData({ name: '', document: '', email: '', phone: '', address: '' });
+    setFormData({ name: '', document: '', email: '', phone: '', address: '', type: 'supplier' });
     setEditingSupplier(null);
   };
   
@@ -84,6 +93,7 @@ const Suppliers = () => {
       email: supplier.email,
       phone: supplier.phone,
       address: supplier.address || '',
+      type: supplier.type || 'supplier',
     });
     setIsOpen(true);
   };
@@ -118,7 +128,7 @@ const Suppliers = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-display font-bold text-foreground">
-              Fornecedores
+              Fornecedores e Clientes
             </h1>
             <p className="text-muted-foreground mt-1">
               Gerencie seus fornecedores e clientes
@@ -132,16 +142,31 @@ const Suppliers = () => {
             <DialogTrigger asChild>
               <Button className="gap-2">
                 <Plus className="w-4 h-4" />
-                Novo Fornecedor
+                Novo Cadastro
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[500px]">
               <DialogHeader>
                 <DialogTitle className="font-display">
-                  {editingSupplier ? 'Editar Fornecedor' : 'Novo Fornecedor'}
+                  {editingSupplier ? 'Editar Cadastro' : 'Novo Cadastro'}
                 </DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Tipo</Label>
+                  <Select
+                    value={formData.type}
+                    onValueChange={(value) => setFormData({ ...formData, type: value as SupplierType })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="supplier">Fornecedor</SelectItem>
+                      <SelectItem value="client">Cliente</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="name">Nome / Razão Social</Label>
                   <Input
@@ -233,6 +258,7 @@ const Suppliers = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Nome</TableHead>
+                  <TableHead>Tipo</TableHead>
                   <TableHead>Documento</TableHead>
                   <TableHead>E-mail</TableHead>
                   <TableHead>Telefone</TableHead>
@@ -244,6 +270,11 @@ const Suppliers = () => {
                 {filteredSuppliers.map((supplier) => (
                   <TableRow key={supplier.id}>
                     <TableCell className="font-medium">{supplier.name}</TableCell>
+                    <TableCell>
+                      <Badge variant={supplier.type === 'client' ? 'default' : 'secondary'}>
+                        {supplierTypeLabels[supplier.type] || 'Fornecedor'}
+                      </Badge>
+                    </TableCell>
                     <TableCell>{formatDocument(supplier.document)}</TableCell>
                     <TableCell>{supplier.email}</TableCell>
                     <TableCell>{formatPhone(supplier.phone)}</TableCell>

@@ -1,3 +1,10 @@
+export type SupplierType = 'supplier' | 'client';
+
+export const supplierTypeLabels: Record<SupplierType, string> = {
+  supplier: 'Fornecedor',
+  client: 'Cliente',
+};
+
 export interface Supplier {
   id: string;
   name: string;
@@ -5,6 +12,7 @@ export interface Supplier {
   email: string;
   phone: string;
   address?: string;
+  type: SupplierType;
   createdAt: Date;
 }
 
