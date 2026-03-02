@@ -58,6 +58,7 @@ export const QuickSupplierDialog = ({
         email: formData.email,
         phone: formData.phone,
         address: formData.address || undefined,
+        type: type === 'receiver' ? 'client' : 'supplier',
       });
       
       toast({ 

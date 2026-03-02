@@ -39,10 +39,15 @@ export const SupplierSelect = ({
 
   const filteredSuppliers = useMemo(
     () =>
-      suppliers.filter((s) =>
-        s.name.toLowerCase().includes(search.toLowerCase())
-      ),
-    [suppliers, search]
+      suppliers.filter((s) => {
+        const matchesSearch = s.name.toLowerCase().includes(search.toLowerCase());
+        // Filter by type: 'receiver' shows clients, 'supplier' shows suppliers
+        const matchesType = type === 'receiver' 
+          ? s.type === 'client' 
+          : s.type === 'supplier';
+        return matchesSearch && matchesType;
+      }),
+    [suppliers, search, type]
   );
 
   const label = type === 'supplier' ? 'Fornecedor' : 'Recebedor';

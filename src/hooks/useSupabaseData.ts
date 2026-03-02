@@ -40,6 +40,7 @@ const mapSupplierFromDB = (row: any): Supplier => ({
   email: row.email || '',
   phone: row.phone || '',
   address: row.address || undefined,
+  type: (row.type as Supplier['type']) || 'supplier',
   createdAt: new Date(row.created_at),
 });
 
@@ -104,6 +105,7 @@ export const useAddSupplier = () => {
           email: supplier.email || null,
           phone: supplier.phone || null,
           address: supplier.address || null,
+          type: supplier.type || 'supplier',
         })
         .select()
         .single();
@@ -130,6 +132,7 @@ export const useUpdateSupplier = () => {
           email: supplier.email || null,
           phone: supplier.phone || null,
           address: supplier.address || null,
+          type: supplier.type || undefined,
         })
         .eq('id', id);
       
