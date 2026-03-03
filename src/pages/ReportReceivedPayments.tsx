@@ -31,14 +31,15 @@ const ReportReceivedPayments = () => {
       
       const paidAtDate = new Date(a.paidAt);
       
-      if (startDate && endDate) {
-        return paidAtDate >= startDate && paidAtDate <= endDate;
-      }
       if (startDate) {
-        return paidAtDate >= startDate;
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+        if (paidAtDate < start) return false;
       }
       if (endDate) {
-        return paidAtDate <= endDate;
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        if (paidAtDate > end) return false;
       }
       return true;
     });

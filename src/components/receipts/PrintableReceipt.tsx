@@ -13,6 +13,9 @@ export interface ReceiptData {
   amount: number;
   reference: string;
   issueDate: Date;
+  accountType?: 'payable' | 'receivable';
+  companyName?: string;
+  companyDocument?: string;
 }
 
 interface PrintableReceiptProps {
@@ -108,48 +111,69 @@ const SingleReceipt: React.FC<SingleReceiptProps> = ({ receipt, settings }) => {
       
       {/* Body Content */}
       <div className="p-4 border-t-2 border-gray-300 space-y-3 text-sm">
-        <div className="flex">
-          <span className="font-medium w-32">Recebi(emos) de:</span>
-          <span className="flex-1 border-b border-gray-400 font-semibold">
-            {receipt.receiverName || 'Não informado'}
-          </span>
-        </div>
-        
-        <div className="flex">
-          <span className="font-medium w-32">A importância de:</span>
-          <span className="flex-1 border-b border-gray-400">{amountInWords}</span>
-        </div>
-        
-        <div className="flex">
-          <span className="font-medium w-32">Referente à:</span>
-          <span className="flex-1 border-b border-gray-400 uppercase">{receipt.reference}</span>
-        </div>
-        
-        <div className="text-center text-gray-600 italic mt-2">
-          e para maior clareza firmo(amos) o presente.
-        </div>
-        
-        <div className="flex justify-between items-end mt-4 pt-2">
-          <div className="text-sm">
-            {city}, {formattedDate}
-          </div>
-        </div>
-        
-        <div className="flex gap-8 mt-4 pt-2">
-          <div className="flex-1">
-            <div className="border-t border-gray-400 pt-1 text-center">
-              <div className="text-xs text-gray-600">Assinatura:</div>
-            </div>
-          </div>
-          <div className="flex-1">
-            <div className="text-xs">
-              <span className="font-medium">Nome:</span> {receipt.receiverName}
-            </div>
-            <div className="text-xs mt-1">
-              <span className="font-medium">CPF/CNPJ:</span> {receipt.receiverDocument || '_______________'}
-            </div>
-          </div>
-        </div>
+        {/* Payable: empresa pagou fornecedor → "Recebi de [Empresa]", assinatura do fornecedor */}
+        {/* Receivable: cliente pagou empresa → "Recebi de [Cliente]", assinatura da empresa */}
+        {(() => {
+          const isPayable = receipt.accountType === 'payable';
+          // Quem paga (de quem se recebeu)
+          const payerName = isPayable 
+            ? (receipt.companyName || 'Empresa') 
+            : (receipt.receiverName || 'Não informado');
+          // Quem recebe (quem assina)
+          const signerName = isPayable 
+            ? (receipt.receiverName || 'Não informado') 
+            : (receipt.companyName || 'Empresa');
+          const signerDocument = isPayable 
+            ? (receipt.receiverDocument || '_______________') 
+            : (receipt.companyDocument || '_______________');
+          
+          return (
+            <>
+              <div className="flex">
+                <span className="font-medium w-32">Recebi(emos) de:</span>
+                <span className="flex-1 border-b border-gray-400 font-semibold">
+                  {payerName}
+                </span>
+              </div>
+              
+              <div className="flex">
+                <span className="font-medium w-32">A importância de:</span>
+                <span className="flex-1 border-b border-gray-400">{amountInWords}</span>
+              </div>
+              
+              <div className="flex">
+                <span className="font-medium w-32">Referente à:</span>
+                <span className="flex-1 border-b border-gray-400 uppercase">{receipt.reference}</span>
+              </div>
+              
+              <div className="text-center text-gray-600 italic mt-2">
+                e para maior clareza firmo(amos) o presente.
+              </div>
+              
+              <div className="flex justify-between items-end mt-4 pt-2">
+                <div className="text-sm">
+                  {city}, {formattedDate}
+                </div>
+              </div>
+              
+              <div className="flex gap-8 mt-4 pt-2">
+                <div className="flex-1">
+                  <div className="border-t border-gray-400 pt-1 text-center">
+                    <div className="text-xs text-gray-600">Assinatura:</div>
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <div className="text-xs">
+                    <span className="font-medium">Nome:</span> {signerName}
+                  </div>
+                  <div className="text-xs mt-1">
+                    <span className="font-medium">CPF/CNPJ:</span> {signerDocument}
+                  </div>
+                </div>
+              </div>
+            </>
+          );
+        })()}
 
         {/* Footer Text if provided */}
         {footerText && (
