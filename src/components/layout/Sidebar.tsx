@@ -23,7 +23,7 @@ import { Button } from '@/components/ui/button';
 
 const mainNavigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { name: 'Fornecedores', href: '/suppliers', icon: Users },
+  { name: 'Cadastro', href: '/suppliers', icon: Users },
   { name: 'Contas a Pagar', href: '/payables', icon: TrendingDown },
   { name: 'Contas a Receber', href: '/receivables', icon: TrendingUp },
   { name: 'Baixa de Pagamentos', href: '/payments', icon: CreditCard },
