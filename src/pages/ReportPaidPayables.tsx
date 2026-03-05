@@ -55,6 +55,35 @@ const ReportPaidPayables = () => {
     });
   }, [accounts, startDate, endDate, selectedBankAccountId]);
 
+  // Group by bank account, sorted alphabetically
+  const groupedByBankAccount = useMemo(() => {
+    const groups: Record<string, { name: string; accounts: typeof paidPayables }> = {};
+    
+    paidPayables.forEach(account => {
+      const bankId = account.bankAccountId || 'sem-conta';
+      const bankName = getBankAccountName(account.bankAccountId);
+      
+      if (!groups[bankId]) {
+        groups[bankId] = { name: bankName, accounts: [] };
+      }
+      groups[bankId].accounts.push(account);
+    });
+
+    // Sort groups alphabetically by bank account name
+    return Object.entries(groups)
+      .sort(([, a], [, b]) => a.name.localeCompare(b.name))
+      .map(([id, group]) => ({
+        bankAccountId: id,
+        bankAccountName: group.name,
+        accounts: group.accounts.sort((a, b) => {
+          const dateA = a.paidAt ? new Date(a.paidAt).getTime() : 0;
+          const dateB = b.paidAt ? new Date(b.paidAt).getTime() : 0;
+          return dateA - dateB;
+        }),
+        total: group.accounts.reduce((sum, a) => sum + a.amount, 0),
+      }));
+  }, [paidPayables, bankAccounts]);
+
   const toggleAccountSelection = (accountId: string) => {
     setSelectedAccounts(prev => 
       prev.includes(accountId) 
@@ -140,45 +169,75 @@ const ReportPaidPayables = () => {
           onBankAccountChange={setSelectedBankAccountId}
         />
 
-        {/* Selection Table */}
-        {paidPayables.length > 0 && (
-          <div className="glass-card overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-10">
-                    <Checkbox 
-                      checked={selectedAccounts.length === paidPayables.length}
-                      onCheckedChange={toggleSelectAll}
-                    />
-                  </TableHead>
-                  <TableHead>Data Baixa</TableHead>
-                  <TableHead>Fornecedor</TableHead>
-                  <TableHead>Descrição</TableHead>
-                  <TableHead>Conta Bancária</TableHead>
-                  <TableHead className="text-right">Valor</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paidPayables.map(account => (
-                  <TableRow key={account.id}>
-                    <TableCell>
-                      <Checkbox 
-                        checked={selectedAccounts.includes(account.id)}
-                        onCheckedChange={() => toggleAccountSelection(account.id)}
-                      />
-                    </TableCell>
-                    <TableCell>{account.paidAt ? formatDate(account.paidAt) : '-'}</TableCell>
-                    <TableCell>{account.supplierName || '-'}</TableCell>
-                    <TableCell>{account.description}</TableCell>
-                    <TableCell>{getBankAccountName(account.bankAccountId)}</TableCell>
-                    <TableCell className="text-right font-semibold text-destructive">
-                      {formatCurrency(account.amount)}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+        {/* Grouped by Bank Account */}
+        {groupedByBankAccount.length > 0 ? (
+          <>
+            {groupedByBankAccount.map(group => (
+              <div key={group.bankAccountId} className="glass-card overflow-hidden">
+                <div className="bg-muted/50 px-4 py-3 border-b flex items-center justify-between">
+                  <h3 className="font-semibold text-sm">
+                    🏦 {group.bankAccountName}
+                  </h3>
+                  <span className="text-sm font-semibold text-destructive">
+                    Subtotal: {formatCurrency(group.total)}
+                  </span>
+                </div>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-10">
+                        <Checkbox 
+                          checked={group.accounts.every(a => selectedAccounts.includes(a.id))}
+                          onCheckedChange={() => {
+                            const groupIds = group.accounts.map(a => a.id);
+                            const allSelected = groupIds.every(id => selectedAccounts.includes(id));
+                            if (allSelected) {
+                              setSelectedAccounts(prev => prev.filter(id => !groupIds.includes(id)));
+                            } else {
+                              setSelectedAccounts(prev => [...new Set([...prev, ...groupIds])]);
+                            }
+                          }}
+                        />
+                      </TableHead>
+                      <TableHead>Data Baixa</TableHead>
+                      <TableHead>Fornecedor</TableHead>
+                      <TableHead>Descrição</TableHead>
+                      <TableHead className="text-right">Valor</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {group.accounts.map(account => (
+                      <TableRow key={account.id}>
+                        <TableCell>
+                          <Checkbox 
+                            checked={selectedAccounts.includes(account.id)}
+                            onCheckedChange={() => toggleAccountSelection(account.id)}
+                          />
+                        </TableCell>
+                        <TableCell>{account.paidAt ? formatDate(account.paidAt) : '-'}</TableCell>
+                        <TableCell>{account.supplierName || '-'}</TableCell>
+                        <TableCell>{account.description}</TableCell>
+                        <TableCell className="text-right font-semibold text-destructive">
+                          {formatCurrency(account.amount)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            ))}
+
+            {/* Grand Total */}
+            <div className="glass-card p-4 flex justify-between items-center">
+              <span className="font-semibold">Total Geral ({paidPayables.length} contas)</span>
+              <span className="text-lg font-bold text-destructive">
+                {formatCurrency(paidPayables.reduce((sum, a) => sum + a.amount, 0))}
+              </span>
+            </div>
+          </>
+        ) : (
+          <div className="glass-card p-8 text-center text-muted-foreground">
+            Nenhuma conta paga encontrada no período selecionado.
           </div>
         )}
 
@@ -192,6 +251,7 @@ const ReportPaidPayables = () => {
           endDate={endDate}
           dateField="paidAt"
           dateColumnLabel="Data Baixa"
+          groupedByBankAccount={groupedByBankAccount}
         />
         
         <ReceiptDialog
