@@ -3,7 +3,7 @@ import { useReactToPrint } from 'react-to-print';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { ReportFilters } from '@/components/reports/ReportFilters';
 import { PrintableReport } from '@/components/reports/PrintableReport';
-import { useAccounts } from '@/hooks/useSupabaseData';
+import { useAccounts, useBankAccounts } from '@/hooks/useSupabaseData';
 import { exportToPdf } from '@/lib/exportPdf';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
@@ -15,16 +15,23 @@ import { formatCurrency, formatDate } from '@/lib/format';
 
 const ReportPaidPayables = () => {
   const { data: accounts = [], isLoading } = useAccounts();
+  const { data: bankAccounts = [] } = useBankAccounts();
   const printRef = useRef<HTMLDivElement>(null);
   
   const [sortBy, setSortBy] = useState<'dueDate' | 'name' | 'description' | 'amount'>('dueDate');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+  const [selectedBankAccountId, setSelectedBankAccountId] = useState<string>('all');
   const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
   const [isReceiptDialogOpen, setIsReceiptDialogOpen] = useState(false);
 
-  // Filter paid payables by payment date (paidAt)
+  const getBankAccountName = (bankAccountId?: string) => {
+    if (!bankAccountId) return '-';
+    return bankAccounts.find(ba => ba.id === bankAccountId)?.name || '-';
+  };
+
+  // Filter paid payables by payment date (paidAt) and bank account
   const paidPayables = useMemo(() => {
     return accounts.filter(a => {
       if (a.type !== 'payable' || a.status !== 'paid' || !a.paidAt) return false;
@@ -41,9 +48,12 @@ const ReportPaidPayables = () => {
         end.setHours(23, 59, 59, 999);
         if (paidAtDate > end) return false;
       }
+      
+      if (selectedBankAccountId !== 'all' && a.bankAccountId !== selectedBankAccountId) return false;
+      
       return true;
     });
-  }, [accounts, startDate, endDate]);
+  }, [accounts, startDate, endDate, selectedBankAccountId]);
 
   const toggleAccountSelection = (accountId: string) => {
     setSelectedAccounts(prev => 
@@ -125,6 +135,9 @@ const ReportPaidPayables = () => {
           onPrint={handlePrint}
           onExportPdf={handleExportPdf}
           dateLabel="Data de Baixa:"
+          bankAccounts={bankAccounts}
+          selectedBankAccountId={selectedBankAccountId}
+          onBankAccountChange={setSelectedBankAccountId}
         />
 
         {/* Selection Table */}
@@ -142,6 +155,7 @@ const ReportPaidPayables = () => {
                   <TableHead>Data Baixa</TableHead>
                   <TableHead>Fornecedor</TableHead>
                   <TableHead>Descrição</TableHead>
+                  <TableHead>Conta Bancária</TableHead>
                   <TableHead className="text-right">Valor</TableHead>
                 </TableRow>
               </TableHeader>
@@ -157,6 +171,7 @@ const ReportPaidPayables = () => {
                     <TableCell>{account.paidAt ? formatDate(account.paidAt) : '-'}</TableCell>
                     <TableCell>{account.supplierName || '-'}</TableCell>
                     <TableCell>{account.description}</TableCell>
+                    <TableCell>{getBankAccountName(account.bankAccountId)}</TableCell>
                     <TableCell className="text-right font-semibold text-destructive">
                       {formatCurrency(account.amount)}
                     </TableCell>

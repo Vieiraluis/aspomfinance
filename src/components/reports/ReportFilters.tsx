@@ -7,6 +7,7 @@ import { Printer, FileDown, CalendarIcon, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { BankAccount } from '@/types/financial';
 
 interface ReportFiltersProps {
   sortBy: 'dueDate' | 'name' | 'description' | 'amount';
@@ -20,6 +21,9 @@ interface ReportFiltersProps {
   onPrint: () => void;
   onExportPdf: () => void;
   dateLabel?: string;
+  bankAccounts?: BankAccount[];
+  selectedBankAccountId?: string;
+  onBankAccountChange?: (value: string) => void;
 }
 
 export const ReportFilters = ({
@@ -34,6 +38,9 @@ export const ReportFilters = ({
   onPrint,
   onExportPdf,
   dateLabel = 'Período:',
+  bankAccounts,
+  selectedBankAccountId,
+  onBankAccountChange,
 }: ReportFiltersProps) => {
   return (
     <div className="space-y-4 no-print">
@@ -111,6 +118,24 @@ export const ReportFilters = ({
             </Button>
           )}
         </div>
+
+        {/* Bank Account Filter */}
+        {bankAccounts && onBankAccountChange && (
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Conta Bancária:</span>
+            <Select value={selectedBankAccountId || 'all'} onValueChange={onBankAccountChange}>
+              <SelectTrigger className="w-[220px]">
+                <SelectValue placeholder="Todas as contas" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas as Contas</SelectItem>
+                {bankAccounts.filter(ba => ba.isActive).map(ba => (
+                  <SelectItem key={ba.id} value={ba.id}>{ba.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
       </div>
       
       {/* Sort and Actions */}
