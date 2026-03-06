@@ -34,7 +34,7 @@ import { Badge } from '@/components/ui/badge';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { Plus, TrendingUp, Trash2, Split, Receipt, Loader2, Pencil } from 'lucide-react';
-import { FloatingActionButton } from '@/components/ui/floating-action-button';
+
 import { toast } from '@/hooks/use-toast';
 import { format, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 import { AttachmentButtons } from '@/components/attachments/AttachmentButtons';
@@ -656,16 +656,6 @@ const Receivables = () => {
           mode={receiptMode}
         />
 
-        <FloatingActionButton
-          onAdd={() => setIsOpen(true)}
-          onEdit={() => {
-            toast({ title: 'Selecione um registro', description: 'Clique no ícone de edição na tabela para alterar um registro.' });
-          }}
-          onDelete={() => {
-            toast({ title: 'Selecione um registro', description: 'Clique no ícone de exclusão na tabela para remover um registro.' });
-          }}
-          onPrint={() => window.print()}
-        />
       </div>
     </MainLayout>
   );

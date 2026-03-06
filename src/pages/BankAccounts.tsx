@@ -31,7 +31,7 @@ import { Badge } from '@/components/ui/badge';
 import { formatCurrency } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { Plus, Wallet, Trash2, Edit, Building2, Banknote, Loader2 } from 'lucide-react';
-import { FloatingActionButton } from '@/components/ui/floating-action-button';
+
 import { toast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
 
@@ -433,16 +433,6 @@ const BankAccounts = () => {
           )}
         </div>
 
-        <FloatingActionButton
-          onAdd={() => { setEditingAccount(null); setIsOpen(true); }}
-          onEdit={() => {
-            toast({ title: 'Selecione um registro', description: 'Clique no ícone de edição na tabela para alterar um registro.' });
-          }}
-          onDelete={() => {
-            toast({ title: 'Selecione um registro', description: 'Clique no ícone de exclusão na tabela para remover um registro.' });
-          }}
-          onPrint={() => window.print()}
-        />
       </div>
     </MainLayout>
   );

@@ -31,7 +31,7 @@ import { Badge } from '@/components/ui/badge';
 import { formatDocument, formatPhone, formatDate } from '@/lib/format';
 import { Plus, Pencil, Trash2, Search, Users, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { FloatingActionButton } from '@/components/ui/floating-action-button';
+
 
 const Suppliers = () => {
   const { data: suppliers = [], isLoading } = useSuppliers();
@@ -306,16 +306,6 @@ const Suppliers = () => {
           )}
         </div>
 
-        <FloatingActionButton
-          onAdd={() => { resetForm(); setIsOpen(true); }}
-          onEdit={() => {
-            toast({ title: 'Selecione um registro', description: 'Clique no ícone de edição na tabela para alterar um registro.' });
-          }}
-          onDelete={() => {
-            toast({ title: 'Selecione um registro', description: 'Clique no ícone de exclusão na tabela para remover um registro.' });
-          }}
-          onPrint={() => window.print()}
-        />
       </div>
     </MainLayout>
   );
