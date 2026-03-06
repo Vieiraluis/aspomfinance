@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { useBankAccounts, useAddBankAccount, useUpdateBankAccount, useDeleteBankAccount } from '@/hooks/useSupabaseData';
 import { BankAccountType, bankAccountTypeLabels } from '@/types/financial';
