@@ -32,10 +32,9 @@ import { Badge } from '@/components/ui/badge';
 import { formatCurrency } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { Plus, Wallet, Trash2, Edit, Building2, Banknote, Loader2, ArrowLeftRight } from 'lucide-react';
-import { BankAccountTransactions } from '@/components/bank-accounts/BankAccountTransactions';
-
 import { toast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
+import { BankAccountTransactions } from '@/components/bank-accounts/BankAccountTransactions';
 
 const BankAccounts = () => {
   const { data: bankAccounts = [], isLoading } = useBankAccounts();
@@ -342,99 +341,117 @@ const BankAccounts = () => {
           </div>
         </div>
         
-        {/* Table */}
-        <div className="glass-card overflow-hidden">
-          {bankAccounts.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-              <Wallet className="w-12 h-12 mb-3 opacity-50" />
-              <p>Nenhuma conta bancária cadastrada</p>
-              <p className="text-sm">Cadastre sua primeira conta para começar</p>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Conta</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Banco/Agência</TableHead>
-                  <TableHead>Saldo Atual</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {bankAccounts.map((account) => (
-                  <TableRow key={account.id}>
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-3">
-                        <div className={cn(
-                          "p-2 rounded-lg",
-                          account.isActive ? "bg-primary/10" : "bg-muted"
-                        )}>
-                          {getAccountIcon(account.type)}
-                        </div>
-                        {account.name}
-                      </div>
-                    </TableCell>
-                    <TableCell>{bankAccountTypeLabels[account.type]}</TableCell>
-                    <TableCell>
-                      {account.bankName && (
-                        <div>
-                          <p className="font-medium">{account.bankName}</p>
-                          {account.agency && account.accountNumber && (
-                            <p className="text-xs text-muted-foreground">
-                              Ag: {account.agency} | Cc: {account.accountNumber}
-                            </p>
-                          )}
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <span className={cn(
-                        "font-semibold",
-                        account.currentBalance >= 0 ? "text-success" : "text-destructive"
-                      )}>
-                        {formatCurrency(account.currentBalance)}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant="outline"
-                        className={cn(
-                          account.isActive
-                            ? 'bg-success/20 text-success border-success/30'
-                            : 'bg-muted text-muted-foreground border-muted'
-                        )}
-                      >
-                        {account.isActive ? 'Ativa' : 'Inativa'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleEdit(account.id)}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDelete(account.id)}
-                          disabled={deleteBankAccountMutation.isPending}
-                        >
-                          <Trash2 className="w-4 h-4 text-destructive" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </div>
+        {/* Tabs: Contas / Movimentações */}
+        <Tabs defaultValue="accounts" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="accounts" className="gap-2">
+              <Wallet className="w-4 h-4" />
+              Contas
+            </TabsTrigger>
+            <TabsTrigger value="transactions" className="gap-2">
+              <ArrowLeftRight className="w-4 h-4" />
+              Movimentações
+            </TabsTrigger>
+          </TabsList>
 
+          <TabsContent value="accounts">
+            <div className="glass-card overflow-hidden">
+              {bankAccounts.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                  <Wallet className="w-12 h-12 mb-3 opacity-50" />
+                  <p>Nenhuma conta bancária cadastrada</p>
+                  <p className="text-sm">Cadastre sua primeira conta para começar</p>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Conta</TableHead>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead>Banco/Agência</TableHead>
+                      <TableHead>Saldo Atual</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {bankAccounts.map((account) => (
+                      <TableRow key={account.id}>
+                        <TableCell className="font-medium">
+                          <div className="flex items-center gap-3">
+                            <div className={cn(
+                              "p-2 rounded-lg",
+                              account.isActive ? "bg-primary/10" : "bg-muted"
+                            )}>
+                              {getAccountIcon(account.type)}
+                            </div>
+                            {account.name}
+                          </div>
+                        </TableCell>
+                        <TableCell>{bankAccountTypeLabels[account.type]}</TableCell>
+                        <TableCell>
+                          {account.bankName && (
+                            <div>
+                              <p className="font-medium">{account.bankName}</p>
+                              {account.agency && account.accountNumber && (
+                                <p className="text-xs text-muted-foreground">
+                                  Ag: {account.agency} | Cc: {account.accountNumber}
+                                </p>
+                              )}
+                            </div>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <span className={cn(
+                            "font-semibold",
+                            account.currentBalance >= 0 ? "text-success" : "text-destructive"
+                          )}>
+                            {formatCurrency(account.currentBalance)}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant="outline"
+                            className={cn(
+                              account.isActive
+                                ? 'bg-success/20 text-success border-success/30'
+                                : 'bg-muted text-muted-foreground border-muted'
+                            )}
+                          >
+                            {account.isActive ? 'Ativa' : 'Inativa'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleEdit(account.id)}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDelete(account.id)}
+                              disabled={deleteBankAccountMutation.isPending}
+                            >
+                              <Trash2 className="w-4 h-4 text-destructive" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="transactions">
+            <BankAccountTransactions />
+          </TabsContent>
+        </Tabs>
       </div>
     </MainLayout>
   );
