@@ -34,7 +34,7 @@ import { Badge } from '@/components/ui/badge';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { Plus, TrendingDown, Trash2, Split, Receipt, Loader2, Pencil } from 'lucide-react';
-import { FloatingActionButton } from '@/components/ui/floating-action-button';
+
 import { toast } from '@/hooks/use-toast';
 import { format, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 import { SupplierSelect } from '@/components/suppliers/SupplierSelect';
