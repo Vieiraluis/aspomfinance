@@ -31,7 +31,7 @@ import { Badge } from '@/components/ui/badge';
 import { formatDocument, formatPhone, formatDate } from '@/lib/format';
 import { Plus, Pencil, Trash2, Search, Users, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { FloatingActionButton } from '@/components/ui/floating-action-button';
+
 
 const Suppliers = () => {
   const { data: suppliers = [], isLoading } = useSuppliers();
