@@ -31,7 +31,7 @@ import { Badge } from '@/components/ui/badge';
 import { formatCurrency } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { Plus, Wallet, Trash2, Edit, Building2, Banknote, Loader2 } from 'lucide-react';
-import { FloatingActionButton } from '@/components/ui/floating-action-button';
+
 import { toast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
 
