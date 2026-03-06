@@ -31,7 +31,7 @@ import { Badge } from '@/components/ui/badge';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { CreditCard, CheckCircle, TrendingDown, TrendingUp, Wallet, Loader2, Pencil } from 'lucide-react';
-import { FloatingActionButton } from '@/components/ui/floating-action-button';
+
 import { toast } from '@/hooks/use-toast';
 import { format, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 import { AttachmentButtons } from '@/components/attachments/AttachmentButtons';
