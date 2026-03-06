@@ -469,17 +469,6 @@ const Payments = () => {
           </DialogContent>
         </Dialog>
 
-        <FloatingActionButton
-          hideAdd
-          onEdit={() => {
-            toast({ title: 'Selecione um registro', description: 'Clique no ícone de edição na tabela para alterar um registro.' });
-          }}
-          onDelete={() => {
-            toast({ title: 'Selecione um registro', description: 'Clique no ícone de exclusão na tabela para remover um registro.' });
-          }}
-          onPrint={() => window.print()}
-          hideDelete
-        />
       </div>
     </MainLayout>
   );
