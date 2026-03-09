@@ -32,6 +32,7 @@ const mainNavigation = [
   { name: 'Contas Bancárias', href: '/bank-accounts', icon: Wallet },
   { name: 'Fluxo de Caixa', href: '/cash-flow', icon: ArrowLeftRight },
   { name: 'Todos os Registros', href: '/all-records', icon: ListChecks },
+  { name: 'Gestão de RH', href: '/hr', icon: UserCog },
 ];
 
 const reportsNavigation = [

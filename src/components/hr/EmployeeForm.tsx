@@ -191,7 +191,7 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
             <h3 className="text-sm font-semibold text-muted-foreground mb-3">Dados Contratuais</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div><Label>Data Admissão</Label><Input type="date" value={form.admission_date} onChange={e => updateField('admission_date', e.target.value)} /></div>
-              <div><Label>Salário</Label><CurrencyInput value={form.salary} onChange={val => updateField('salary', val)} /></div>
+              <div><Label>Salário</Label><CurrencyInput value={String(form.salary)} onValueChange={val => updateField('salary', Number(val) || 0)} /></div>
               <div><Label>Cargo</Label><Input value={form.position} onChange={e => updateField('position', e.target.value)} /></div>
               <div><Label>Departamento</Label><Input value={form.department} onChange={e => updateField('department', e.target.value)} /></div>
               <div>
