@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAddEmployee, useUpdateEmployee, useUploadHRFile } from '@/hooks/useHRData';
 import { Camera, Loader2 } from 'lucide-react';
 import { CurrencyInput } from '@/components/ui/currency-input';
+import { formatCurrency } from '@/lib/format';
 
 interface EmployeeFormProps {
   open: boolean;
