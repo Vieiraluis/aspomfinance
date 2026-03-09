@@ -13,7 +13,8 @@ import {
   Wallet,
   ArrowLeftRight,
   LogOut,
-  Settings } from
+  Settings,
+  UserCog } from
 'lucide-react';
 import { useState } from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
