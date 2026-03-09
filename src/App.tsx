@@ -20,6 +20,7 @@ import ReportReceivedPayments from "./pages/ReportReceivedPayments";
 import AllRecords from "./pages/AllRecords";
 import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
+import HR from "./pages/HR";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
 
