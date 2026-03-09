@@ -13,7 +13,8 @@ import {
   Wallet,
   ArrowLeftRight,
   LogOut,
-  Settings } from
+  Settings,
+  UserCog } from
 'lucide-react';
 import { useState } from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -30,6 +31,7 @@ const mainNavigation = [
 { name: 'Contas Bancárias', href: '/bank-accounts', icon: Wallet },
 { name: 'Fluxo de Caixa', href: '/cash-flow', icon: ArrowLeftRight },
 { name: 'Todos os Registros', href: '/all-records', icon: ListChecks },
+{ name: 'Gestão de RH', href: '/hr', icon: UserCog },
 { name: 'Configurações', href: '/settings', icon: Settings }];
 
 

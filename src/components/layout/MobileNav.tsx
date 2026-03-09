@@ -14,6 +14,7 @@ import {
   ListChecks,
   FileSpreadsheet,
   LogOut,
+  UserCog,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
@@ -31,6 +32,7 @@ const mainNavigation = [
   { name: 'Contas Bancárias', href: '/bank-accounts', icon: Wallet },
   { name: 'Fluxo de Caixa', href: '/cash-flow', icon: ArrowLeftRight },
   { name: 'Todos os Registros', href: '/all-records', icon: ListChecks },
+  { name: 'Gestão de RH', href: '/hr', icon: UserCog },
 ];
 
 const reportsNavigation = [

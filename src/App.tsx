@@ -20,6 +20,7 @@ import ReportReceivedPayments from "./pages/ReportReceivedPayments";
 import AllRecords from "./pages/AllRecords";
 import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
+import HR from "./pages/HR";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
 
@@ -73,6 +74,7 @@ function AppRoutes() {
       <Route path="/bank-accounts" element={<ProtectedRoute><BankAccounts /></ProtectedRoute>} />
       <Route path="/cash-flow" element={<ProtectedRoute><CashFlow /></ProtectedRoute>} />
       <Route path="/all-records" element={<ProtectedRoute><AllRecords /></ProtectedRoute>} />
+      <Route path="/hr" element={<ProtectedRoute><HR /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
       <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
       <Route path="/reports/payables" element={<ProtectedRoute><ReportPayables /></ProtectedRoute>} />
