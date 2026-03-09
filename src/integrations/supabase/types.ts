@@ -144,6 +144,328 @@ export type Database = {
         }
         Relationships: []
       }
+      employee_absences: {
+        Row: {
+          absence_type: string
+          certificate_url: string | null
+          cid_code: string | null
+          created_at: string
+          employee_id: string
+          end_date: string | null
+          id: string
+          notes: string | null
+          reason: string | null
+          start_date: string
+          user_id: string
+        }
+        Insert: {
+          absence_type?: string
+          certificate_url?: string | null
+          cid_code?: string | null
+          created_at?: string
+          employee_id: string
+          end_date?: string | null
+          id?: string
+          notes?: string | null
+          reason?: string | null
+          start_date: string
+          user_id: string
+        }
+        Update: {
+          absence_type?: string
+          certificate_url?: string | null
+          cid_code?: string | null
+          created_at?: string
+          employee_id?: string
+          end_date?: string | null
+          id?: string
+          notes?: string | null
+          reason?: string | null
+          start_date?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_absences_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_benefits: {
+        Row: {
+          benefit_type: string
+          created_at: string
+          daily_cost: number
+          employee_id: string
+          id: string
+          month_reference: string
+          total_value: number
+          user_id: string
+          working_days: number
+        }
+        Insert: {
+          benefit_type: string
+          created_at?: string
+          daily_cost?: number
+          employee_id: string
+          id?: string
+          month_reference: string
+          total_value?: number
+          user_id: string
+          working_days?: number
+        }
+        Update: {
+          benefit_type?: string
+          created_at?: string
+          daily_cost?: number
+          employee_id?: string
+          id?: string
+          month_reference?: string
+          total_value?: number
+          user_id?: string
+          working_days?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_benefits_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_documents: {
+        Row: {
+          created_at: string
+          doc_type: string
+          employee_id: string
+          file_url: string
+          id: string
+          notes: string | null
+          reference_month: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          doc_type?: string
+          employee_id: string
+          file_url: string
+          id?: string
+          notes?: string | null
+          reference_month: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          doc_type?: string
+          employee_id?: string
+          file_url?: string
+          id?: string
+          notes?: string | null
+          reference_month?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_documents_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_exams: {
+        Row: {
+          created_at: string
+          employee_id: string
+          exam_date: string
+          exam_type: string
+          file_url: string | null
+          id: string
+          next_exam_date: string | null
+          notes: string | null
+          result: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          employee_id: string
+          exam_date: string
+          exam_type: string
+          file_url?: string | null
+          id?: string
+          next_exam_date?: string | null
+          notes?: string | null
+          result?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          employee_id?: string
+          exam_date?: string
+          exam_type?: string
+          file_url?: string | null
+          id?: string
+          next_exam_date?: string | null
+          notes?: string | null
+          result?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_exams_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_vacations: {
+        Row: {
+          created_at: string
+          days: number
+          employee_id: string
+          id: string
+          notes: string | null
+          period_end: string
+          period_start: string
+          receipt_url: string | null
+          status: string
+          user_id: string
+          vacation_end: string | null
+          vacation_start: string | null
+        }
+        Insert: {
+          created_at?: string
+          days?: number
+          employee_id: string
+          id?: string
+          notes?: string | null
+          period_end: string
+          period_start: string
+          receipt_url?: string | null
+          status?: string
+          user_id: string
+          vacation_end?: string | null
+          vacation_start?: string | null
+        }
+        Update: {
+          created_at?: string
+          days?: number
+          employee_id?: string
+          id?: string
+          notes?: string | null
+          period_end?: string
+          period_start?: string
+          receipt_url?: string | null
+          status?: string
+          user_id?: string
+          vacation_end?: string | null
+          vacation_start?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_vacations_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employees: {
+        Row: {
+          address_cep: string | null
+          address_city: string | null
+          address_complement: string | null
+          address_neighborhood: string | null
+          address_number: string | null
+          address_state: string | null
+          address_street: string | null
+          admission_date: string | null
+          bank_account: string | null
+          bank_agency: string | null
+          bank_name: string | null
+          birth_date: string | null
+          cpf: string | null
+          created_at: string
+          department: string | null
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+          photo_url: string | null
+          position: string | null
+          rg: string | null
+          salary: number | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address_cep?: string | null
+          address_city?: string | null
+          address_complement?: string | null
+          address_neighborhood?: string | null
+          address_number?: string | null
+          address_state?: string | null
+          address_street?: string | null
+          admission_date?: string | null
+          bank_account?: string | null
+          bank_agency?: string | null
+          bank_name?: string | null
+          birth_date?: string | null
+          cpf?: string | null
+          created_at?: string
+          department?: string | null
+          email?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          photo_url?: string | null
+          position?: string | null
+          rg?: string | null
+          salary?: number | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address_cep?: string | null
+          address_city?: string | null
+          address_complement?: string | null
+          address_neighborhood?: string | null
+          address_number?: string | null
+          address_state?: string | null
+          address_street?: string | null
+          admission_date?: string | null
+          bank_account?: string | null
+          bank_agency?: string | null
+          bank_name?: string | null
+          birth_date?: string | null
+          cpf?: string | null
+          created_at?: string
+          department?: string | null
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          photo_url?: string | null
+          position?: string | null
+          rg?: string | null
+          salary?: number | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           account_id: string
