@@ -14,6 +14,7 @@ import {
   ListChecks,
   FileSpreadsheet,
   LogOut,
+  UserCog,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
