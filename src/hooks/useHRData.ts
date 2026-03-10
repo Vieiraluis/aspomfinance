@@ -357,8 +357,8 @@ export const useUploadHRFile = () => {
       const fileName = `${user.id}/${folder}/${Date.now()}.${ext}`;
       const { error } = await supabase.storage.from('hr-documents').upload(fileName, file);
       if (error) throw error;
-      const { data: urlData } = await supabase.storage.from('hr-documents').createSignedUrl(fileName, 60 * 60 * 24 * 365);
-      return urlData?.signedUrl || '';
+      const { data: urlData } = supabase.storage.from('hr-documents').getPublicUrl(fileName);
+      return urlData?.publicUrl || '';
     },
   });
 };
