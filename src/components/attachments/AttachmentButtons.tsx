@@ -86,20 +86,16 @@ export const AttachmentButtons = ({
         throw error;
       }
 
-      // Get signed URL (valid for 1 year)
-      const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+      // Get permanent public URL
+      const { data: publicUrlData } = supabase.storage
         .from('attachments')
-        .createSignedUrl(data.path, 365 * 24 * 60 * 60); // 1 year
-
-      if (signedUrlError) {
-        throw signedUrlError;
-      }
+        .getPublicUrl(data.path);
 
       if (type === 'billing') {
-        onBillingSlipChange(signedUrlData.signedUrl);
+        onBillingSlipChange(publicUrlData.publicUrl);
         toast({ title: 'Boleta anexada com sucesso!' });
       } else {
-        onPaymentReceiptChange(signedUrlData.signedUrl);
+        onPaymentReceiptChange(publicUrlData.publicUrl);
         toast({ title: 'Comprovante anexado com sucesso!' });
       }
     } catch (error: any) {
