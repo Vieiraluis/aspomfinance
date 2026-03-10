@@ -95,7 +95,7 @@ export const AttachmentButtons = ({
         onBillingSlipChange(publicUrlData.publicUrl);
         toast({ title: 'Boleta anexada com sucesso!' });
       } else {
-        onPaymentReceiptChange(signedUrlData.signedUrl);
+        onPaymentReceiptChange(publicUrlData.publicUrl);
         toast({ title: 'Comprovante anexado com sucesso!' });
       }
     } catch (error: any) {
