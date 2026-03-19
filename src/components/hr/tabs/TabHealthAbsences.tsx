@@ -8,6 +8,7 @@ import { useEmployeeAbsences, useAddAbsence, useDeleteAbsence, useEmployeeExams,
 import { Plus, Trash2, FileUp, ExternalLink } from 'lucide-react';
 import { format } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { toast } from '@/hooks/use-toast';
 
 interface Props { employeeId: string; }
 
@@ -28,15 +29,27 @@ export function TabHealthAbsences({ employeeId }: Props) {
   const handleAbsFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const url = await uploadFile.mutateAsync({ file, folder: 'absences' });
-    setAbsForm(prev => ({ ...prev, certificate_url: url }));
+
+    try {
+      const url = await uploadFile.mutateAsync({ file, folder: 'absences' });
+      setAbsForm(prev => ({ ...prev, certificate_url: url }));
+      toast({ title: 'Atestado anexado com sucesso!' });
+    } catch (error: any) {
+      toast({ title: 'Erro ao anexar atestado', description: error.message || 'Tente novamente.', variant: 'destructive' });
+    }
   };
 
   const handleExamFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const url = await uploadFile.mutateAsync({ file, folder: 'exams' });
-    setExamForm(prev => ({ ...prev, file_url: url }));
+
+    try {
+      const url = await uploadFile.mutateAsync({ file, folder: 'exams' });
+      setExamForm(prev => ({ ...prev, file_url: url }));
+      toast({ title: 'Arquivo do exame anexado com sucesso!' });
+    } catch (error: any) {
+      toast({ title: 'Erro ao anexar arquivo do exame', description: error.message || 'Tente novamente.', variant: 'destructive' });
+    }
   };
 
   const submitAbsence = async () => {

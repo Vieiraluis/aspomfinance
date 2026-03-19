@@ -9,6 +9,7 @@ import { useAddEmployee, useUpdateEmployee, useUploadHRFile } from '@/hooks/useH
 import { Camera, Loader2 } from 'lucide-react';
 import { CurrencyInput } from '@/components/ui/currency-input';
 import { formatCurrency } from '@/lib/format';
+import { toast } from '@/hooks/use-toast';
 
 interface EmployeeFormProps {
   open: boolean;
@@ -99,13 +100,16 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
   const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) return;
+
     setPhotoPreview(URL.createObjectURL(file));
+
     try {
       const url = await uploadFile.mutateAsync({ file, folder: 'photos' });
       setForm(prev => ({ ...prev, photo_url: url }));
-    } catch {
-      // ignore
+      toast({ title: 'Foto anexada com sucesso!' });
+    } catch (error: any) {
+      toast({ title: 'Erro ao anexar foto', description: error.message || 'Tente novamente.', variant: 'destructive' });
+      setPhotoPreview(form.photo_url || null);
     }
   };
 

@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { 
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -16,6 +16,7 @@ import { FileText, Receipt, Paperclip, X, ExternalLink, Loader2 } from 'lucide-r
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { isPdfFileUrl, normalizeStorageUrl } from '@/lib/storageUrl';
 
 interface AttachmentButtonsProps {
   billingSlipUrl?: string;
@@ -57,24 +58,24 @@ export const AttachmentButtons = ({
       return;
     }
 
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
+    // Validate file size (max 20MB)
+    if (file.size > 20 * 1024 * 1024) {
       toast({
         title: 'Arquivo muito grande',
-        description: 'O tamanho máximo é de 5MB.',
+        description: 'O tamanho máximo é de 20MB.',
         variant: 'destructive',
       });
       return;
     }
 
     setIsUploading(true);
-    
+
     try {
       // Generate unique filename
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${type}_${Date.now()}.${fileExt}`;
-      
-      // Upload to Supabase Storage
+
+      // Upload to storage
       const { data, error } = await supabase.storage
         .from('attachments')
         .upload(fileName, file, {
@@ -91,11 +92,13 @@ export const AttachmentButtons = ({
         .from('attachments')
         .getPublicUrl(data.path);
 
+      const stableUrl = normalizeStorageUrl(publicUrlData.publicUrl);
+
       if (type === 'billing') {
-        onBillingSlipChange(publicUrlData.publicUrl);
+        onBillingSlipChange(stableUrl);
         toast({ title: 'Boleta anexada com sucesso!' });
       } else {
-        onPaymentReceiptChange(publicUrlData.publicUrl);
+        onPaymentReceiptChange(stableUrl);
         toast({ title: 'Comprovante anexado com sucesso!' });
       }
     } catch (error: any) {
@@ -107,13 +110,12 @@ export const AttachmentButtons = ({
       });
     } finally {
       setIsUploading(false);
-      // Reset input
       event.target.value = '';
     }
   };
 
   const openPreview = (url: string, title: string) => {
-    setPreviewUrl(url);
+    setPreviewUrl(normalizeStorageUrl(url) || url);
     setPreviewTitle(title);
   };
 
@@ -130,7 +132,7 @@ export const AttachmentButtons = ({
   };
 
   const isPdf = (url: string) => {
-    return url.includes('.pdf') || url.startsWith('data:application/pdf');
+    return isPdfFileUrl(url);
   };
 
   return (

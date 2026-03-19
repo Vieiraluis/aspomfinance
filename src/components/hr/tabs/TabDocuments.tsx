@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useEmployeeDocuments, useAddDocument, useDeleteDocument, useUploadHRFile } from '@/hooks/useHRData';
 import { Plus, Trash2, ExternalLink, FileUp } from 'lucide-react';
 import { format } from 'date-fns';
+import { toast } from '@/hooks/use-toast';
 
 interface Props { employeeId: string; }
 
@@ -26,8 +27,14 @@ export function TabDocuments({ employeeId }: Props) {
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const url = await uploadFile.mutateAsync({ file, folder: 'documents' });
-    setForm(prev => ({ ...prev, file_url: url }));
+
+    try {
+      const url = await uploadFile.mutateAsync({ file, folder: 'documents' });
+      setForm(prev => ({ ...prev, file_url: url }));
+      toast({ title: 'Documento anexado com sucesso!' });
+    } catch (error: any) {
+      toast({ title: 'Erro ao anexar documento', description: error.message || 'Tente novamente.', variant: 'destructive' });
+    }
   };
 
   const handleSubmit = async () => {

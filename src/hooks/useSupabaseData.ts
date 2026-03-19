@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Account, Supplier, Payment, BankAccount, FinancialSummary, BankAccountType, AccountCategory } from '@/types/financial';
 import { addMonths, isBefore, startOfDay, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { toast } from '@/hooks/use-toast';
+import { normalizeStorageUrl } from '@/lib/storageUrl';
 
 // Helper to parse date string without timezone issues
 const parseDateOnly = (dateStr: string): Date => {
@@ -29,8 +30,8 @@ const mapAccountFromDB = (row: any): Account => ({
   bankAccountId: row.bank_account_id || undefined,
   createdAt: new Date(row.created_at),
   notes: row.notes || undefined,
-  billingSlipUrl: row.billing_slip_url || undefined,
-  paymentReceiptUrl: row.payment_receipt_url || undefined,
+  billingSlipUrl: normalizeStorageUrl(row.billing_slip_url),
+  paymentReceiptUrl: normalizeStorageUrl(row.payment_receipt_url),
 });
 
 const mapSupplierFromDB = (row: any): Supplier => ({
