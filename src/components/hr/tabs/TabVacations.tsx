@@ -6,7 +6,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { useEmployeeVacations, useAddVacation, useUpdateVacation, useDeleteVacation, useUploadHRFile } from '@/hooks/useHRData';
 import { Plus, Trash2, FileUp, ExternalLink, AlertTriangle } from 'lucide-react';
-import { format, differenceInDays, addYears, isBefore } from 'date-fns';
+import { format, differenceInDays, addYears } from 'date-fns';
+import { toast } from '@/hooks/use-toast';
 
 interface Props { employeeId: string; }
 
@@ -29,8 +30,14 @@ export function TabVacations({ employeeId }: Props) {
   const handleReceipt = async (vacationId: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const url = await uploadFile.mutateAsync({ file, folder: 'vacations' });
-    await updateVacation.mutateAsync({ id: vacationId, receipt_url: url });
+
+    try {
+      const url = await uploadFile.mutateAsync({ file, folder: 'vacations' });
+      await updateVacation.mutateAsync({ id: vacationId, receipt_url: url });
+      toast({ title: 'Recibo de férias anexado com sucesso!' });
+    } catch (error: any) {
+      toast({ title: 'Erro ao anexar recibo', description: error.message || 'Tente novamente.', variant: 'destructive' });
+    }
   };
 
   const formatDate = (d: string | null) => d ? format(new Date(d + 'T12:00:00'), 'dd/MM/yyyy') : '—';
