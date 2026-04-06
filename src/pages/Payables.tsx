@@ -93,9 +93,11 @@ const Payables = () => {
   const payables = accounts.filter((a) => a.type === 'payable');
   
   const filteredPayables = payables.filter((a) => {
+    const searchLower = search.toLowerCase();
     const matchesSearch = 
-      a.description.toLowerCase().includes(search.toLowerCase()) ||
-      (a.supplierName && a.supplierName.toLowerCase().includes(search.toLowerCase()));
+      a.description.toLowerCase().includes(searchLower) ||
+      (a.supplierName && a.supplierName.toLowerCase().includes(searchLower)) ||
+      (a.code && a.code.toLowerCase().includes(searchLower));
     const matchesStatus = statusFilter === 'all' || a.status === statusFilter;
     const matchesCategory = categoryFilter === 'all' || a.category === categoryFilter;
     
@@ -495,7 +497,7 @@ const Payables = () => {
           onEndDateChange={setEndDate}
           showCategoryFilter={true}
           showDateFilter={true}
-          searchPlaceholder="Buscar por descrição ou fornecedor..."
+          searchPlaceholder="Buscar por código, descrição ou fornecedor..."
           rightContent={
             paidPayables.length > 0 && (
               <Button 
@@ -529,6 +531,7 @@ const Payables = () => {
                       />
                     </TableHead>
                   )}
+                  <TableHead>Código</TableHead>
                   <TableHead>Descrição</TableHead>
                   <TableHead>Fornecedor</TableHead>
                   <TableHead>Categoria</TableHead>
@@ -551,6 +554,9 @@ const Payables = () => {
                         )}
                       </TableCell>
                     )}
+                    <TableCell className="font-mono text-xs text-muted-foreground">
+                      {account.code || '—'}
+                    </TableCell>
                     <TableCell className="font-medium">
                       {account.description}
                       {account.installmentNumber && (
