@@ -71,7 +71,7 @@ export const ReceiptDialog: React.FC<ReceiptDialogProps> = ({
           receiverDocument: supplier?.document || '',
           amount: account.amount,
           reference: customReference || account.description,
-          issueDate: new Date(),
+          issueDate: account.paidAt ? new Date(account.paidAt) : new Date(),
           accountType: account.type,
           companyName: settings?.company_name || '',
           companyDocument: settings?.company_document || '',
