@@ -94,10 +94,11 @@ const Payables = () => {
   
   const filteredPayables = payables.filter((a) => {
     const searchLower = search.toLowerCase();
-    const matchesSearch = 
+    const searchNormalized = searchLower.replace(/[-\/]/g, '');
+    const matchesSearch =
       a.description.toLowerCase().includes(searchLower) ||
       (a.supplierName && a.supplierName.toLowerCase().includes(searchLower)) ||
-      (a.code && a.code.toLowerCase().includes(searchLower));
+      (a.code && (a.code.toLowerCase().includes(searchLower) || a.code.toLowerCase().replace(/[-\/]/g, '').includes(searchNormalized)));
     const matchesStatus = statusFilter === 'all' || a.status === statusFilter;
     const matchesCategory = categoryFilter === 'all' || a.category === categoryFilter;
     
