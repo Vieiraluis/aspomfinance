@@ -375,6 +375,9 @@ const Payments = () => {
             {selectedAccount && (
               <form onSubmit={handlePayment} className="space-y-4">
                 <div className="p-4 rounded-lg bg-muted/50 border border-border">
+                  {selectedAccount.code && (
+                    <p className="text-xs font-mono text-muted-foreground mb-1">{selectedAccount.code}</p>
+                  )}
                   <p className="text-sm text-muted-foreground">Conta:</p>
                   <p className="font-medium">{selectedAccount.description}</p>
                   <p className={cn(
