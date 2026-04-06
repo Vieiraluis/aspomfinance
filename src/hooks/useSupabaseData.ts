@@ -15,6 +15,7 @@ const parseDateOnly = (dateStr: string): Date => {
 // Helper to convert database row to frontend type
 const mapAccountFromDB = (row: any): Account => ({
   id: row.id,
+  code: row.code || undefined,
   type: row.type as 'payable' | 'receivable',
   description: row.description,
   amount: Number(row.amount),
