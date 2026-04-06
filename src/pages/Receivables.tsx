@@ -95,9 +95,11 @@ const Receivables = () => {
   const receivables = accounts.filter((a) => a.type === 'receivable');
   
   const filteredReceivables = receivables.filter((a) => {
+    const searchLower = search.toLowerCase();
     const matchesSearch = 
-      a.description.toLowerCase().includes(search.toLowerCase()) ||
-      (a.supplierName && a.supplierName.toLowerCase().includes(search.toLowerCase()));
+      a.description.toLowerCase().includes(searchLower) ||
+      (a.supplierName && a.supplierName.toLowerCase().includes(searchLower)) ||
+      (a.code && a.code.toLowerCase().includes(searchLower));
     const matchesStatus = statusFilter === 'all' || a.status === statusFilter;
     const matchesCategory = categoryFilter === 'all' || a.category === categoryFilter;
     
@@ -509,7 +511,7 @@ const Receivables = () => {
           onEndDateChange={setEndDate}
           showCategoryFilter={true}
           showDateFilter={true}
-          searchPlaceholder="Buscar por descrição ou cliente..."
+          searchPlaceholder="Buscar por código, descrição ou cliente..."
           statusOptions={[
             { value: 'all', label: 'Todos' },
             { value: 'pending', label: 'Pendentes' },
@@ -549,6 +551,7 @@ const Receivables = () => {
                       />
                     </TableHead>
                   )}
+                  <TableHead>Código</TableHead>
                   <TableHead>Descrição</TableHead>
                   <TableHead>Cliente</TableHead>
                   <TableHead>Categoria</TableHead>
@@ -572,6 +575,9 @@ const Receivables = () => {
                         )}
                       </TableCell>
                     )}
+                    <TableCell className="font-mono text-xs text-muted-foreground">
+                      {account.code || '—'}
+                    </TableCell>
                     <TableCell className="font-medium">
                       {account.description}
                       {account.installmentNumber && (

@@ -68,8 +68,10 @@ const Payments = () => {
   );
   
   const filteredAccounts = pendingAccounts.filter((a) => {
-    const matchesSearch = a.description.toLowerCase().includes(search.toLowerCase()) ||
-      (a.supplierName && a.supplierName.toLowerCase().includes(search.toLowerCase()));
+    const searchLower = search.toLowerCase();
+    const matchesSearch = a.description.toLowerCase().includes(searchLower) ||
+      (a.supplierName && a.supplierName.toLowerCase().includes(searchLower)) ||
+      (a.code && a.code.toLowerCase().includes(searchLower));
     const matchesType = typeFilter === 'all' || a.type === typeFilter;
     
     let matchesDateRange = true;
@@ -240,7 +242,7 @@ const Payments = () => {
           endDate={endDate}
           onEndDateChange={setEndDate}
           showDateFilter={true}
-          searchPlaceholder="Buscar por descrição ou fornecedor..."
+          searchPlaceholder="Buscar por código, descrição ou fornecedor..."
           statusOptions={[
             { value: 'all', label: 'Todas as Contas' },
             { value: 'payable', label: 'Contas a Pagar' },
@@ -259,6 +261,7 @@ const Payments = () => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Código</TableHead>
                   <TableHead>Tipo</TableHead>
                   <TableHead>Descrição</TableHead>
                   <TableHead>Fornecedor/Cliente</TableHead>
@@ -272,6 +275,9 @@ const Payments = () => {
               <TableBody>
                 {filteredAccounts.map((account) => (
                   <TableRow key={account.id}>
+                    <TableCell className="font-mono text-xs text-muted-foreground">
+                      {account.code || '—'}
+                    </TableCell>
                     <TableCell>
                       <Badge
                         variant="outline"
@@ -369,6 +375,9 @@ const Payments = () => {
             {selectedAccount && (
               <form onSubmit={handlePayment} className="space-y-4">
                 <div className="p-4 rounded-lg bg-muted/50 border border-border">
+                  {selectedAccount.code && (
+                    <p className="text-xs font-mono text-muted-foreground mb-1">{selectedAccount.code}</p>
+                  )}
                   <p className="text-sm text-muted-foreground">Conta:</p>
                   <p className="font-medium">{selectedAccount.description}</p>
                   <p className={cn(

@@ -20,6 +20,7 @@ export type Database = {
           bank_account_id: string | null
           billing_slip_url: string | null
           category: string
+          code: string | null
           created_at: string
           description: string
           due_date: string
@@ -41,6 +42,7 @@ export type Database = {
           bank_account_id?: string | null
           billing_slip_url?: string | null
           category: string
+          code?: string | null
           created_at?: string
           description: string
           due_date: string
@@ -62,6 +64,7 @@ export type Database = {
           bank_account_id?: string | null
           billing_slip_url?: string | null
           category?: string
+          code?: string | null
           created_at?: string
           description?: string
           due_date?: string
