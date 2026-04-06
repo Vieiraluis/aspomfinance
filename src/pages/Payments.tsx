@@ -69,9 +69,10 @@ const Payments = () => {
   
   const filteredAccounts = pendingAccounts.filter((a) => {
     const searchLower = search.toLowerCase();
+    const searchNormalized = searchLower.replace(/[-\/]/g, '');
     const matchesSearch = a.description.toLowerCase().includes(searchLower) ||
       (a.supplierName && a.supplierName.toLowerCase().includes(searchLower)) ||
-      (a.code && a.code.toLowerCase().includes(searchLower));
+      (a.code && (a.code.toLowerCase().includes(searchLower) || a.code.toLowerCase().replace(/[-\/]/g, '').includes(searchNormalized)));
     const matchesType = typeFilter === 'all' || a.type === typeFilter;
     
     let matchesDateRange = true;
