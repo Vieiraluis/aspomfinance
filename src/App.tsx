@@ -17,6 +17,7 @@ import ReportReceivables from "./pages/ReportReceivables";
 import ReportConsolidated from "./pages/ReportConsolidated";
 import ReportPaidPayables from "./pages/ReportPaidPayables";
 import ReportReceivedPayments from "./pages/ReportReceivedPayments";
+import ReportBySupplier from "./pages/ReportBySupplier";
 import AllRecords from "./pages/AllRecords";
 import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
@@ -82,6 +83,7 @@ function AppRoutes() {
       <Route path="/reports/consolidated" element={<ProtectedRoute><ReportConsolidated /></ProtectedRoute>} />
       <Route path="/reports/paid-payables" element={<ProtectedRoute><ReportPaidPayables /></ProtectedRoute>} />
       <Route path="/reports/received-payments" element={<ProtectedRoute><ReportReceivedPayments /></ProtectedRoute>} />
+      <Route path="/reports/by-supplier" element={<ProtectedRoute><ReportBySupplier /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

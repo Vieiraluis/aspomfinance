@@ -41,7 +41,8 @@ const reportsNavigation = [
 { name: 'Rel. Contas a Pagar', href: '/reports/payables', icon: FileSpreadsheet },
 { name: 'Rel. Contas a Receber', href: '/reports/receivables', icon: FileSpreadsheet },
 { name: 'Contas Pagas', href: '/reports/paid-payables', icon: FileSpreadsheet },
-{ name: 'Contas Recebidas', href: '/reports/received-payments', icon: FileSpreadsheet }];
+{ name: 'Contas Recebidas', href: '/reports/received-payments', icon: FileSpreadsheet },
+{ name: 'Por Cadastro', href: '/reports/by-supplier', icon: FileSpreadsheet }];
 
 
 export function Sidebar() {
