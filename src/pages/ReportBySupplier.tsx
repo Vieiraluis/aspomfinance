@@ -4,17 +4,18 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { useAccounts, useSuppliers, useBankAccounts } from '@/hooks/useSupabaseData';
 import { exportToPdf } from '@/lib/exportPdf';
 import { formatCurrency, formatDate } from '@/lib/format';
-import { format, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
+import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
-import { Calendar as CalendarIcon, FileSpreadsheet, FileText, Printer, Loader2, TrendingUp, TrendingDown, BarChart3, Hash } from 'lucide-react';
-import { paymentMethodLabels, Payment } from '@/types/financial';
+import { Calendar as CalendarIcon, FileSpreadsheet, FileText, Printer, Loader2, TrendingUp, TrendingDown, BarChart3, Hash, Search, X } from 'lucide-react';
+import { paymentMethodLabels } from '@/types/financial';
 import * as XLSX from 'xlsx';
 
 const ITEMS_PER_PAGE = 20;
@@ -25,20 +26,44 @@ const ReportBySupplier = () => {
   const { data: bankAccounts = [] } = useBankAccounts();
   const printRef = useRef<HTMLDivElement>(null);
 
+  const [searchText, setSearchText] = useState('');
   const [selectedSupplierId, setSelectedSupplierId] = useState<string>('all');
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [paymentMethodFilter, setPaymentMethodFilter] = useState<string>('all');
   const [dateField, setDateField] = useState<'dueDate' | 'paidAt'>('dueDate');
   const [currentPage, setCurrentPage] = useState(1);
 
   const isLoading = loadingAccounts || loadingSuppliers;
 
+  // Match suppliers by search text (name or document/CPF/CNPJ)
+  const matchedSupplierIds = useMemo(() => {
+    if (!searchText.trim()) return null; // null = no text filter
+    const term = searchText.toLowerCase().replace(/[.\-\/]/g, '');
+    return suppliers
+      .filter(s => {
+        const nameMatch = s.name.toLowerCase().includes(term);
+        const docNormalized = (s.document || '').replace(/[.\-\/]/g, '').toLowerCase();
+        const docMatch = docNormalized.includes(term);
+        return nameMatch || docMatch;
+      })
+      .map(s => s.id);
+  }, [searchText, suppliers]);
+
   // Filtered accounts
   const filteredAccounts = useMemo(() => {
     return accounts.filter(a => {
-      // Supplier filter
+      // Text search filter (by supplier name/doc)
+      if (matchedSupplierIds !== null) {
+        if (!a.supplierId || !matchedSupplierIds.includes(a.supplierId)) {
+          // Also check supplierName directly
+          const term = searchText.toLowerCase().replace(/[.\-\/]/g, '');
+          const nameMatch = a.supplierName && a.supplierName.toLowerCase().includes(term);
+          if (!nameMatch) return false;
+        }
+      }
+
+      // Dropdown supplier filter
       if (selectedSupplierId !== 'all' && a.supplierId !== selectedSupplierId) return false;
 
       // Status filter
@@ -60,7 +85,7 @@ const ReportBySupplier = () => {
 
       return true;
     });
-  }, [accounts, selectedSupplierId, startDate, endDate, statusFilter, dateField]);
+  }, [accounts, matchedSupplierIds, searchText, selectedSupplierId, startDate, endDate, statusFilter, dateField]);
 
   // Sorted (newest first)
   const sortedAccounts = useMemo(() => {
@@ -82,14 +107,20 @@ const ReportBySupplier = () => {
   const totalPages = Math.ceil(sortedAccounts.length / ITEMS_PER_PAGE);
   const paginatedAccounts = sortedAccounts.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
-  // Summary
+  // Summary - now includes ALL values (paid + pending)
   const summary = useMemo(() => {
-    const totalReceived = filteredAccounts.filter(a => a.type === 'receivable' && a.status === 'paid').reduce((s, a) => s + a.amount, 0);
-    const totalPaid = filteredAccounts.filter(a => a.type === 'payable' && a.status === 'paid').reduce((s, a) => s + a.amount, 0);
+    const totalReceived = filteredAccounts.filter(a => a.type === 'receivable').reduce((s, a) => s + a.amount, 0);
+    const totalReceivedPaid = filteredAccounts.filter(a => a.type === 'receivable' && a.status === 'paid').reduce((s, a) => s + a.amount, 0);
+    const totalPaid = filteredAccounts.filter(a => a.type === 'payable').reduce((s, a) => s + a.amount, 0);
+    const totalPaidConfirmed = filteredAccounts.filter(a => a.type === 'payable' && a.status === 'paid').reduce((s, a) => s + a.amount, 0);
+    const totalPending = filteredAccounts.filter(a => a.status === 'pending' || a.status === 'overdue').reduce((s, a) => s + a.amount, 0);
     return {
       totalReceived,
+      totalReceivedPaid,
       totalPaid,
-      balance: totalReceived - totalPaid,
+      totalPaidConfirmed,
+      totalPending,
+      balance: totalReceivedPaid - totalPaidConfirmed,
       count: filteredAccounts.length,
     };
   }, [filteredAccounts]);
@@ -118,7 +149,9 @@ const ReportBySupplier = () => {
     exportToPdf({
       title: selectedSupplierId !== 'all'
         ? `Relatório Financeiro - ${suppliers.find(s => s.id === selectedSupplierId)?.name || ''}`
-        : 'Relatório Financeiro por Cadastro',
+        : searchText.trim()
+          ? `Relatório Financeiro - ${searchText.trim()}`
+          : 'Relatório Financeiro por Cadastro',
       accounts: sortedAccounts,
       sortBy: 'dueDate',
       sortOrder: 'desc',
@@ -137,8 +170,8 @@ const ReportBySupplier = () => {
       'Descrição': a.description,
       'Cadastro': a.supplierName || '-',
       'Data Baixa': a.paidAt ? formatDate(a.paidAt) : '-',
-      'Valor Recebido': a.type === 'receivable' && a.status === 'paid' ? a.amount : 0,
-      'Valor Pago': a.type === 'payable' && a.status === 'paid' ? a.amount : 0,
+      'Valor Recebido': a.type === 'receivable' ? a.amount : 0,
+      'Valor Pago': a.type === 'payable' ? a.amount : 0,
       'Status': getStatusLabel(a.status),
     }));
 
@@ -146,6 +179,40 @@ const ReportBySupplier = () => {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Relatório');
     XLSX.writeFile(wb, `relatorio-cadastro-${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+  };
+
+  // Monthly summary component (reused in screen and print)
+  const MonthlySummarySection = ({ forPrint = false }: { forPrint?: boolean }) => {
+    if (monthlyGroups.length === 0) return null;
+    return (
+      <div className={forPrint ? 'mb-4' : 'glass-card p-6'}>
+        <h3 className={forPrint ? 'font-bold text-sm mb-2' : 'font-display font-semibold text-lg mb-4'}>Resumo Mensal</h3>
+        <div className={forPrint ? 'grid grid-cols-3 gap-2' : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3'}>
+          {monthlyGroups.map(([key, items]) => {
+            const received = items.filter(a => a.type === 'receivable').reduce((s, a) => s + a.amount, 0);
+            const paid = items.filter(a => a.type === 'payable').reduce((s, a) => s + a.amount, 0);
+            const pending = items.filter(a => a.status === 'pending' || a.status === 'overdue').reduce((s, a) => s + a.amount, 0);
+            const [y, m] = key.split('-');
+            const monthLabel = format(new Date(Number(y), Number(m) - 1, 1), 'MMMM yyyy', { locale: ptBR });
+            return (
+              <div key={key} className={forPrint ? 'border border-gray-300 rounded p-2 text-xs' : 'border border-border rounded-lg p-3'}>
+                <p className={cn('font-medium capitalize mb-2', forPrint ? 'text-xs' : 'text-sm')}>{monthLabel}</p>
+                <div className={cn('flex justify-between', forPrint ? 'text-xs' : 'text-xs')}>
+                  <span className={forPrint ? 'text-green-700' : 'text-success'}>Recebido: {formatCurrency(received)}</span>
+                  <span className={forPrint ? 'text-red-700' : 'text-destructive'}>Pago: {formatCurrency(paid)}</span>
+                </div>
+                {pending > 0 && (
+                  <div className={cn('mt-1', forPrint ? 'text-xs text-yellow-700' : 'text-xs text-warning')}>
+                    Pendente: {formatCurrency(pending)}
+                  </div>
+                )}
+                <div className={cn('mt-1', forPrint ? 'text-xs text-gray-500' : 'text-xs text-muted-foreground')}>{items.length} registro(s)</div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
   };
 
   if (isLoading) {
@@ -183,9 +250,28 @@ const ReportBySupplier = () => {
         {/* Filters */}
         <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-4 -mx-4 md:-mx-8 px-4 md:px-8 border-b border-border/40">
           <div className="flex flex-wrap gap-3 items-center">
-            {/* Supplier select */}
+            {/* Search by name or CPF/CNPJ */}
+            <div className="relative w-[280px]">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Pesquisar por Nome ou CPF/CNPJ..."
+                value={searchText}
+                onChange={(e) => { setSearchText(e.target.value); setCurrentPage(1); }}
+                className="pl-9 pr-8"
+              />
+              {searchText && (
+                <button
+                  onClick={() => { setSearchText(''); setCurrentPage(1); }}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Supplier dropdown */}
             <Select value={selectedSupplierId} onValueChange={(v) => { setSelectedSupplierId(v); setCurrentPage(1); }}>
-              <SelectTrigger className="w-[220px]">
+              <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="Selecionar Cadastro" />
               </SelectTrigger>
               <SelectContent>
@@ -248,34 +334,45 @@ const ReportBySupplier = () => {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-2 mb-1">
                 <TrendingUp className="w-4 h-4 text-success" />
-                <span className="text-sm text-muted-foreground">Total Recebido</span>
+                <span className="text-sm text-muted-foreground">Total a Receber</span>
               </div>
-              <p className="text-2xl font-bold text-success">{formatCurrency(summary.totalReceived)}</p>
+              <p className="text-xl font-bold text-success">{formatCurrency(summary.totalReceived)}</p>
+              <p className="text-xs text-muted-foreground mt-1">Confirmado: {formatCurrency(summary.totalReceivedPaid)}</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-2 mb-1">
                 <TrendingDown className="w-4 h-4 text-destructive" />
-                <span className="text-sm text-muted-foreground">Total Pago</span>
+                <span className="text-sm text-muted-foreground">Total a Pagar</span>
               </div>
-              <p className="text-2xl font-bold text-destructive">{formatCurrency(summary.totalPaid)}</p>
+              <p className="text-xl font-bold text-destructive">{formatCurrency(summary.totalPaid)}</p>
+              <p className="text-xs text-muted-foreground mt-1">Confirmado: {formatCurrency(summary.totalPaidConfirmed)}</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-2 mb-1">
                 <BarChart3 className="w-4 h-4 text-primary" />
-                <span className="text-sm text-muted-foreground">Saldo</span>
+                <span className="text-sm text-muted-foreground">Saldo Confirmado</span>
               </div>
-              <p className={cn('text-2xl font-bold', summary.balance >= 0 ? 'text-success' : 'text-destructive')}>
+              <p className={cn('text-xl font-bold', summary.balance >= 0 ? 'text-success' : 'text-destructive')}>
                 {summary.balance >= 0 ? '+' : ''}{formatCurrency(summary.balance)}
               </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-2 mb-1">
+                <CalendarIcon className="w-4 h-4 text-warning" />
+                <span className="text-sm text-muted-foreground">Pendente</span>
+              </div>
+              <p className="text-xl font-bold text-warning">{formatCurrency(summary.totalPending)}</p>
             </CardContent>
           </Card>
           <Card>
@@ -284,10 +381,13 @@ const ReportBySupplier = () => {
                 <Hash className="w-4 h-4 text-muted-foreground" />
                 <span className="text-sm text-muted-foreground">Registros</span>
               </div>
-              <p className="text-2xl font-bold text-foreground">{summary.count}</p>
+              <p className="text-xl font-bold text-foreground">{summary.count}</p>
             </CardContent>
           </Card>
         </div>
+
+        {/* Monthly Summary - BEFORE the table */}
+        <MonthlySummarySection />
 
         {/* Table */}
         <div className="glass-card overflow-hidden">
@@ -319,10 +419,10 @@ const ReportBySupplier = () => {
                       <TableCell className="max-w-[200px] truncate">{a.description}</TableCell>
                       <TableCell>{a.paidAt ? formatDate(a.paidAt) : '-'}</TableCell>
                       <TableCell className="text-right text-success font-medium">
-                        {a.type === 'receivable' && a.status === 'paid' ? formatCurrency(a.amount) : '-'}
+                        {a.type === 'receivable' ? formatCurrency(a.amount) : '-'}
                       </TableCell>
                       <TableCell className="text-right text-destructive font-medium">
-                        {a.type === 'payable' && a.status === 'paid' ? formatCurrency(a.amount) : '-'}
+                        {a.type === 'payable' ? formatCurrency(a.amount) : '-'}
                       </TableCell>
                       <TableCell>
                         <span className={cn('text-sm font-medium', getStatusClass(a.status))}>
@@ -354,37 +454,15 @@ const ReportBySupplier = () => {
           )}
         </div>
 
-        {/* Monthly Summary */}
-        {monthlyGroups.length > 0 && (
-          <div className="glass-card p-6">
-            <h3 className="font-display font-semibold text-lg mb-4">Resumo Mensal</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {monthlyGroups.map(([key, items]) => {
-                const received = items.filter(a => a.type === 'receivable' && a.status === 'paid').reduce((s, a) => s + a.amount, 0);
-                const paid = items.filter(a => a.type === 'payable' && a.status === 'paid').reduce((s, a) => s + a.amount, 0);
-                const [y, m] = key.split('-');
-                const monthLabel = format(new Date(Number(y), Number(m) - 1, 1), 'MMMM yyyy', { locale: ptBR });
-                return (
-                  <div key={key} className="border border-border rounded-lg p-3">
-                    <p className="font-medium text-sm capitalize mb-2">{monthLabel}</p>
-                    <div className="flex justify-between text-xs">
-                      <span className="text-success">Recebido: {formatCurrency(received)}</span>
-                      <span className="text-destructive">Pago: {formatCurrency(paid)}</span>
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-1">{items.length} registro(s)</div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
         {/* Printable area (hidden) */}
         <div className="hidden">
           <div ref={printRef} className="p-8 bg-white text-black">
             <h1 className="text-xl font-bold mb-2 text-center">Relatório Financeiro por Cadastro</h1>
             {selectedSupplierId !== 'all' && (
               <p className="text-center text-sm mb-1">{suppliers.find(s => s.id === selectedSupplierId)?.name}</p>
+            )}
+            {searchText.trim() && (
+              <p className="text-center text-sm mb-1">Pesquisa: {searchText.trim()}</p>
             )}
             <p className="text-center text-xs mb-4 text-gray-500">
               {startDate && endDate ? `Período: ${format(startDate, 'dd/MM/yyyy')} até ${format(endDate, 'dd/MM/yyyy')}` : 'Todos os registros'}
@@ -395,8 +473,12 @@ const ReportBySupplier = () => {
               <span>Total Recebido: <strong className="text-green-700">{formatCurrency(summary.totalReceived)}</strong></span>
               <span>Total Pago: <strong className="text-red-700">{formatCurrency(summary.totalPaid)}</strong></span>
               <span>Saldo: <strong>{formatCurrency(summary.balance)}</strong></span>
+              <span>Pendente: <strong className="text-yellow-700">{formatCurrency(summary.totalPending)}</strong></span>
               <span>Registros: <strong>{summary.count}</strong></span>
             </div>
+
+            {/* Monthly summary at top of print */}
+            <MonthlySummarySection forPrint />
 
             <table className="w-full text-xs border-collapse">
               <thead>
@@ -419,8 +501,8 @@ const ReportBySupplier = () => {
                     <td className="py-1">{a.supplierName || '-'}</td>
                     <td className="py-1">{a.description}</td>
                     <td className="py-1">{a.paidAt ? formatDate(a.paidAt) : '-'}</td>
-                    <td className="py-1 text-right">{a.type === 'receivable' && a.status === 'paid' ? formatCurrency(a.amount) : '-'}</td>
-                    <td className="py-1 text-right">{a.type === 'payable' && a.status === 'paid' ? formatCurrency(a.amount) : '-'}</td>
+                    <td className="py-1 text-right">{a.type === 'receivable' ? formatCurrency(a.amount) : '-'}</td>
+                    <td className="py-1 text-right">{a.type === 'payable' ? formatCurrency(a.amount) : '-'}</td>
                     <td className="py-1">{getStatusLabel(a.status)}</td>
                   </tr>
                 ))}
