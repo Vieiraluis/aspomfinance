@@ -28,6 +28,8 @@ const ReportBySupplier = () => {
 
   const [searchText, setSearchText] = useState('');
   const [selectedSupplierId, setSelectedSupplierId] = useState<string>('all');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [statusFilter, setStatusFilter] = useState<string>('all');
