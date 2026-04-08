@@ -267,11 +267,9 @@ const ReportBySupplier = () => {
           <div>
             <h1 className="text-3xl font-display font-bold text-foreground">Ficha Financeira</h1>
             <p className="text-muted-foreground mt-1">
-              {selectedSupplierId !== 'all'
-                ? suppliers.find(s => s.id === selectedSupplierId)?.name
-                : searchText.trim()
-                  ? `Cadastro: ${searchText.trim()}`
-                  : 'Análise financeira detalhada por registro'}
+              {selectedSupplierObj
+                ? selectedSupplierObj.name + (selectedSupplierObj.document ? ` — ${selectedSupplierObj.document}` : '')
+                : 'Análise financeira detalhada por registro'}
             </p>
           </div>
           <div className="flex items-center gap-2">
