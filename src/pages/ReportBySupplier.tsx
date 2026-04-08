@@ -288,37 +288,56 @@ const ReportBySupplier = () => {
         {/* Filters */}
         <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-4 -mx-4 md:-mx-8 px-4 md:px-8 border-b border-border/40">
           <div className="flex flex-wrap gap-3 items-center">
-            {/* Search by name or CPF/CNPJ */}
-            <div className="relative w-[280px]">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            {/* Search by name or CPF/CNPJ with autocomplete */}
+            <div className="relative w-[320px]" ref={searchRef}>
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
               <Input
                 placeholder="Pesquisar por Nome ou CPF/CNPJ..."
                 value={searchText}
-                onChange={(e) => { setSearchText(e.target.value); setCurrentPage(1); }}
+                onChange={(e) => {
+                  setSearchText(e.target.value);
+                  setSelectedSupplierId('all');
+                  setShowSuggestions(true);
+                  setCurrentPage(1);
+                }}
+                onFocus={() => searchText.trim() && setShowSuggestions(true)}
                 className="pl-9 pr-8"
               />
-              {searchText && (
+              {(searchText || selectedSupplierId !== 'all') && (
                 <button
-                  onClick={() => { setSearchText(''); setCurrentPage(1); }}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  onClick={() => {
+                    setSearchText('');
+                    setSelectedSupplierId('all');
+                    setShowSuggestions(false);
+                    setCurrentPage(1);
+                  }}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground z-10"
                 >
                   <X className="h-4 w-4" />
                 </button>
               )}
+              {showSuggestions && searchSuggestions.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-popover border border-border rounded-md shadow-lg z-50 max-h-[240px] overflow-y-auto">
+                  {searchSuggestions.map(s => (
+                    <button
+                      key={s.id}
+                      onClick={() => {
+                        setSelectedSupplierId(s.id);
+                        setSearchText(s.name);
+                        setShowSuggestions(false);
+                        setCurrentPage(1);
+                      }}
+                      className="w-full text-left px-3 py-2 hover:bg-accent hover:text-accent-foreground text-sm flex flex-col"
+                    >
+                      <span className="font-medium">{s.name}</span>
+                      {s.document && (
+                        <span className="text-xs text-muted-foreground">{s.document}</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-
-            {/* Supplier dropdown */}
-            <Select value={selectedSupplierId} onValueChange={(v) => { setSelectedSupplierId(v); setCurrentPage(1); }}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Selecionar Cadastro" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os Cadastros</SelectItem>
-                {suppliers.sort((a, b) => a.name.localeCompare(b.name)).map(s => (
-                  <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
 
             {/* Date field selector */}
             <Select value={dateField} onValueChange={(v: 'dueDate' | 'paidAt') => { setDateField(v); setCurrentPage(1); }}>
