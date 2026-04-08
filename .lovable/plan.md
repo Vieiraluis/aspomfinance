@@ -1,21 +1,46 @@
 
+# Módulo de Gestão de Eventos — Plano de Implementação
 
-## Plano: Usar data de baixa no recibo em vez da data de geração
+## Fase 1 — Banco de Dados e Estrutura Base
+Criar as tabelas no banco de dados:
+- **events**: nome, data, horário, local, layout_url, capacidade, descrição, status
+- **event_tables**: numero, evento_id, status, area (VIP/Premium/Padrão/Econômica), posição x/y, assentos_por_mesa, preço
+- **event_seats**: mesa_id, numero, status (disponível/reservado/bloqueado)
+- **event_reservations**: cliente_nome, cliente_doc, evento_id, valor_total, status, qr_code, checked_in
+- **event_reservation_items**: reserva_id, mesa_id, assento_id, preço
 
-### Problema
-Atualmente, na linha 74 de `ReceiptDialog.tsx`, o recibo usa `issueDate: new Date()` (data atual de geração). O correto é usar a data em que a baixa foi feita (`paidAt` do objeto `Account`).
+## Fase 2 — Painel Interativo de Mesas (Core)
+- Mapa visual baseado no layout ASPOM (123 mesas)
+- Layout pré-definido com posicionamento real das mesas
+- Estados visuais: 🟢 Verde (disponível), 🔴 Vermelho (reservado), ⚪ Cinza (bloqueado)
+- Modal ao clicar: detalhes da mesa, botões Reservar/Bloquear/Liberar
+- Seleção múltipla de assentos e mesa inteira
+- Palco, pista, entrada, cantina, banheiro posicionados
 
-### Alterações
+## Fase 3 — Gestão de Eventos (CRUD)
+- Cadastro/edição de eventos
+- Configuração de layout por evento
+- Lista de eventos com filtros
 
-**1. `src/components/receipts/ReceiptDialog.tsx`**
-- Trocar `issueDate: new Date()` por `issueDate: account.paidAt || new Date()` na geração dos recibos (linha 74)
-- Fazer o mesmo na gravação no banco, onde `issue_date` recebe `receipt.issueDate.toISOString()` (já usa o valor do receipt, então basta a mudança acima)
+## Fase 4 — Precificação e Carrinho
+- Definir preços por área (VIP, Premium, Padrão, Econômica)
+- Carrinho de compras com adição/remoção
+- Resumo do pedido
 
-**2. Nenhuma outra alteração necessária**
-- O tipo `ReceiptData.issueDate` já é `Date`, compatível
-- O `PrintableReceipt` já formata `receipt.issueDate` corretamente
-- O campo `paidAt` já existe no tipo `Account` e é preenchido na baixa
+## Fase 5 — Checkout e Vendas
+- Simulador de pagamento (PIX, Cartão, Dinheiro)
+- Confirmação de reserva
+- Atualização em tempo real
 
-### Resumo
-Uma única linha alterada: a data do recibo passa a refletir a data de baixa do pagamento/recebimento.
+## Fase 6 — Dashboard Financeiro
+- Total faturado, mesas vendidas/disponíveis, taxa de ocupação
+- Relatórios por período, evento e área
 
+## Fase 7 — QR Code e Check-in
+- Geração de QR Code por reserva
+- Validação de ingresso
+- Lista de presença
+
+---
+
+**Início**: Fases 1 e 2 (banco de dados + mapa interativo com o layout ASPOM de 123 mesas)
