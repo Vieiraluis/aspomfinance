@@ -38,9 +38,25 @@ const ReportBySupplier = () => {
 
   const isLoading = loadingAccounts || loadingSuppliers;
 
+  // Suggestions for autocomplete dropdown
+  const searchSuggestions = useMemo(() => {
+    if (!searchText.trim() || searchText.trim().length < 1) return [];
+    const term = searchText.toLowerCase().replace(/[.\-\/]/g, '');
+    return suppliers
+      .filter(s => {
+        const nameMatch = s.name.toLowerCase().includes(term);
+        const docNormalized = (s.document || '').replace(/[.\-\/]/g, '').toLowerCase();
+        const docMatch = docNormalized.includes(term);
+        return nameMatch || docMatch;
+      })
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .slice(0, 10);
+  }, [searchText, suppliers]);
+
   // Match suppliers by search text (name or document/CPF/CNPJ)
   const matchedSupplierIds = useMemo(() => {
-    if (!searchText.trim()) return null; // null = no text filter
+    if (selectedSupplierId !== 'all') return null;
+    if (!searchText.trim()) return null;
     const term = searchText.toLowerCase().replace(/[.\-\/]/g, '');
     return suppliers
       .filter(s => {
@@ -50,7 +66,24 @@ const ReportBySupplier = () => {
         return nameMatch || docMatch;
       })
       .map(s => s.id);
-  }, [searchText, suppliers]);
+  }, [searchText, suppliers, selectedSupplierId]);
+
+  // Selected supplier object for header display
+  const selectedSupplierObj = useMemo(() => {
+    if (selectedSupplierId !== 'all') return suppliers.find(s => s.id === selectedSupplierId) || null;
+    return null;
+  }, [selectedSupplierId, suppliers]);
+
+  // Close suggestions on click outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Filtered accounts
   const filteredAccounts = useMemo(() => {
