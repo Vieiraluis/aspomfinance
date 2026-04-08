@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { useAccounts, useSuppliers, useBankAccounts } from '@/hooks/useSupabaseData';
@@ -28,6 +28,8 @@ const ReportBySupplier = () => {
 
   const [searchText, setSearchText] = useState('');
   const [selectedSupplierId, setSelectedSupplierId] = useState<string>('all');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -36,9 +38,25 @@ const ReportBySupplier = () => {
 
   const isLoading = loadingAccounts || loadingSuppliers;
 
+  // Suggestions for autocomplete dropdown
+  const searchSuggestions = useMemo(() => {
+    if (!searchText.trim() || searchText.trim().length < 1) return [];
+    const term = searchText.toLowerCase().replace(/[.\-\/]/g, '');
+    return suppliers
+      .filter(s => {
+        const nameMatch = s.name.toLowerCase().includes(term);
+        const docNormalized = (s.document || '').replace(/[.\-\/]/g, '').toLowerCase();
+        const docMatch = docNormalized.includes(term);
+        return nameMatch || docMatch;
+      })
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .slice(0, 10);
+  }, [searchText, suppliers]);
+
   // Match suppliers by search text (name or document/CPF/CNPJ)
   const matchedSupplierIds = useMemo(() => {
-    if (!searchText.trim()) return null; // null = no text filter
+    if (selectedSupplierId !== 'all') return null;
+    if (!searchText.trim()) return null;
     const term = searchText.toLowerCase().replace(/[.\-\/]/g, '');
     return suppliers
       .filter(s => {
@@ -48,23 +66,39 @@ const ReportBySupplier = () => {
         return nameMatch || docMatch;
       })
       .map(s => s.id);
-  }, [searchText, suppliers]);
+  }, [searchText, suppliers, selectedSupplierId]);
+
+  // Selected supplier object for header display
+  const selectedSupplierObj = useMemo(() => {
+    if (selectedSupplierId !== 'all') return suppliers.find(s => s.id === selectedSupplierId) || null;
+    return null;
+  }, [selectedSupplierId, suppliers]);
+
+  // Close suggestions on click outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Filtered accounts
   const filteredAccounts = useMemo(() => {
     return accounts.filter(a => {
-      // Text search filter (by supplier name/doc)
-      if (matchedSupplierIds !== null) {
+      // If a specific supplier is selected via autocomplete
+      if (selectedSupplierId !== 'all') {
+        if (a.supplierId !== selectedSupplierId) return false;
+      } else if (matchedSupplierIds !== null) {
+        // Text search filter (by supplier name/doc)
         if (!a.supplierId || !matchedSupplierIds.includes(a.supplierId)) {
-          // Also check supplierName directly
           const term = searchText.toLowerCase().replace(/[.\-\/]/g, '');
           const nameMatch = a.supplierName && a.supplierName.toLowerCase().includes(term);
           if (!nameMatch) return false;
         }
       }
-
-      // Dropdown supplier filter
-      if (selectedSupplierId !== 'all' && a.supplierId !== selectedSupplierId) return false;
 
       // Status filter
       if (statusFilter === 'paid' && a.status !== 'paid') return false;
@@ -147,11 +181,9 @@ const ReportBySupplier = () => {
 
   const handleExportPdf = () => {
     exportToPdf({
-      title: selectedSupplierId !== 'all'
-        ? `Ficha Financeira - ${suppliers.find(s => s.id === selectedSupplierId)?.name || ''}`
-        : searchText.trim()
-          ? `Ficha Financeira - ${searchText.trim()}`
-          : 'Ficha Financeira',
+      title: selectedSupplierObj
+        ? `Ficha Financeira - ${selectedSupplierObj.name}`
+        : 'Ficha Financeira',
       accounts: sortedAccounts,
       sortBy: 'dueDate',
       sortOrder: 'desc',
@@ -232,11 +264,9 @@ const ReportBySupplier = () => {
           <div>
             <h1 className="text-3xl font-display font-bold text-foreground">Ficha Financeira</h1>
             <p className="text-muted-foreground mt-1">
-              {selectedSupplierId !== 'all'
-                ? suppliers.find(s => s.id === selectedSupplierId)?.name
-                : searchText.trim()
-                  ? `Cadastro: ${searchText.trim()}`
-                  : 'Análise financeira detalhada por registro'}
+              {selectedSupplierObj
+                ? selectedSupplierObj.name + (selectedSupplierObj.document ? ` — ${selectedSupplierObj.document}` : '')
+                : 'Análise financeira detalhada por registro'}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -255,37 +285,56 @@ const ReportBySupplier = () => {
         {/* Filters */}
         <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-4 -mx-4 md:-mx-8 px-4 md:px-8 border-b border-border/40">
           <div className="flex flex-wrap gap-3 items-center">
-            {/* Search by name or CPF/CNPJ */}
-            <div className="relative w-[280px]">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            {/* Search by name or CPF/CNPJ with autocomplete */}
+            <div className="relative w-[320px]" ref={searchRef}>
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
               <Input
                 placeholder="Pesquisar por Nome ou CPF/CNPJ..."
                 value={searchText}
-                onChange={(e) => { setSearchText(e.target.value); setCurrentPage(1); }}
+                onChange={(e) => {
+                  setSearchText(e.target.value);
+                  setSelectedSupplierId('all');
+                  setShowSuggestions(true);
+                  setCurrentPage(1);
+                }}
+                onFocus={() => searchText.trim() && setShowSuggestions(true)}
                 className="pl-9 pr-8"
               />
-              {searchText && (
+              {(searchText || selectedSupplierId !== 'all') && (
                 <button
-                  onClick={() => { setSearchText(''); setCurrentPage(1); }}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  onClick={() => {
+                    setSearchText('');
+                    setSelectedSupplierId('all');
+                    setShowSuggestions(false);
+                    setCurrentPage(1);
+                  }}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground z-10"
                 >
                   <X className="h-4 w-4" />
                 </button>
               )}
+              {showSuggestions && searchSuggestions.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-popover border border-border rounded-md shadow-lg z-50 max-h-[240px] overflow-y-auto">
+                  {searchSuggestions.map(s => (
+                    <button
+                      key={s.id}
+                      onClick={() => {
+                        setSelectedSupplierId(s.id);
+                        setSearchText(s.name);
+                        setShowSuggestions(false);
+                        setCurrentPage(1);
+                      }}
+                      className="w-full text-left px-3 py-2 hover:bg-accent hover:text-accent-foreground text-sm flex flex-col"
+                    >
+                      <span className="font-medium">{s.name}</span>
+                      {s.document && (
+                        <span className="text-xs text-muted-foreground">{s.document}</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-
-            {/* Supplier dropdown */}
-            <Select value={selectedSupplierId} onValueChange={(v) => { setSelectedSupplierId(v); setCurrentPage(1); }}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Selecionar Cadastro" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os Cadastros</SelectItem>
-                {suppliers.sort((a, b) => a.name.localeCompare(b.name)).map(s => (
-                  <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
 
             {/* Date field selector */}
             <Select value={dateField} onValueChange={(v: 'dueDate' | 'paidAt') => { setDateField(v); setCurrentPage(1); }}>
