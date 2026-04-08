@@ -22,6 +22,8 @@ import AllRecords from "./pages/AllRecords";
 import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
 import HR from "./pages/HR";
+import Events from "./pages/Events";
+import EventDetail from "./pages/EventDetail";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
 
@@ -76,6 +78,8 @@ function AppRoutes() {
       <Route path="/cash-flow" element={<ProtectedRoute><CashFlow /></ProtectedRoute>} />
       <Route path="/all-records" element={<ProtectedRoute><AllRecords /></ProtectedRoute>} />
       <Route path="/hr" element={<ProtectedRoute><HR /></ProtectedRoute>} />
+      <Route path="/events" element={<ProtectedRoute><Events /></ProtectedRoute>} />
+      <Route path="/events/:eventId" element={<ProtectedRoute><EventDetail /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
       <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
       <Route path="/reports/payables" element={<ProtectedRoute><ReportPayables /></ProtectedRoute>} />

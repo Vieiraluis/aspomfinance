@@ -14,7 +14,8 @@ import {
   ArrowLeftRight,
   LogOut,
   Settings,
-  UserCog } from
+  UserCog,
+  CalendarDays } from
 'lucide-react';
 import { useState } from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -32,6 +33,7 @@ const mainNavigation = [
 { name: 'Fluxo de Caixa', href: '/cash-flow', icon: ArrowLeftRight },
 { name: 'Todos os Registros', href: '/all-records', icon: ListChecks },
 { name: 'Gestão de RH', href: '/hr', icon: UserCog },
+{ name: 'Eventos', href: '/events', icon: CalendarDays },
 { name: 'Configurações', href: '/settings', icon: Settings }];
 
 
