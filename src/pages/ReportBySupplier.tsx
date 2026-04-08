@@ -88,18 +88,17 @@ const ReportBySupplier = () => {
   // Filtered accounts
   const filteredAccounts = useMemo(() => {
     return accounts.filter(a => {
-      // Text search filter (by supplier name/doc)
-      if (matchedSupplierIds !== null) {
+      // If a specific supplier is selected via autocomplete
+      if (selectedSupplierId !== 'all') {
+        if (a.supplierId !== selectedSupplierId) return false;
+      } else if (matchedSupplierIds !== null) {
+        // Text search filter (by supplier name/doc)
         if (!a.supplierId || !matchedSupplierIds.includes(a.supplierId)) {
-          // Also check supplierName directly
           const term = searchText.toLowerCase().replace(/[.\-\/]/g, '');
           const nameMatch = a.supplierName && a.supplierName.toLowerCase().includes(term);
           if (!nameMatch) return false;
         }
       }
-
-      // Dropdown supplier filter
-      if (selectedSupplierId !== 'all' && a.supplierId !== selectedSupplierId) return false;
 
       // Status filter
       if (statusFilter === 'paid' && a.status !== 'paid') return false;
