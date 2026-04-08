@@ -148,10 +148,10 @@ const ReportBySupplier = () => {
   const handleExportPdf = () => {
     exportToPdf({
       title: selectedSupplierId !== 'all'
-        ? `Relatório Financeiro - ${suppliers.find(s => s.id === selectedSupplierId)?.name || ''}`
+        ? `Ficha Financeira - ${suppliers.find(s => s.id === selectedSupplierId)?.name || ''}`
         : searchText.trim()
-          ? `Relatório Financeiro - ${searchText.trim()}`
-          : 'Relatório Financeiro por Cadastro',
+          ? `Ficha Financeira - ${searchText.trim()}`
+          : 'Ficha Financeira',
       accounts: sortedAccounts,
       sortBy: 'dueDate',
       sortOrder: 'desc',
@@ -168,7 +168,6 @@ const ReportBySupplier = () => {
       'Código': a.code || '-',
       'Vencimento': formatDate(a.dueDate),
       'Descrição': a.description,
-      'Cadastro': a.supplierName || '-',
       'Data Baixa': a.paidAt ? formatDate(a.paidAt) : '-',
       'Valor Recebido': a.type === 'receivable' ? a.amount : 0,
       'Valor Pago': a.type === 'payable' ? a.amount : 0,
@@ -231,8 +230,14 @@ const ReportBySupplier = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-display font-bold text-foreground">Relatório Financeiro por Cadastro</h1>
-            <p className="text-muted-foreground mt-1">Análise financeira detalhada por registro</p>
+            <h1 className="text-3xl font-display font-bold text-foreground">Ficha Financeira</h1>
+            <p className="text-muted-foreground mt-1">
+              {selectedSupplierId !== 'all'
+                ? suppliers.find(s => s.id === selectedSupplierId)?.name
+                : searchText.trim()
+                  ? `Cadastro: ${searchText.trim()}`
+                  : 'Análise financeira detalhada por registro'}
+            </p>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={handlePrint} className="gap-1">
@@ -402,7 +407,6 @@ const ReportBySupplier = () => {
                   <TableRow>
                     <TableHead>Código</TableHead>
                     <TableHead>Vencimento</TableHead>
-                    <TableHead>Cadastro</TableHead>
                     <TableHead>Descrição</TableHead>
                     <TableHead>Data Baixa</TableHead>
                     <TableHead className="text-right">Recebido</TableHead>
@@ -415,7 +419,6 @@ const ReportBySupplier = () => {
                     <TableRow key={a.id}>
                       <TableCell className="font-mono text-xs">{a.code || '-'}</TableCell>
                       <TableCell>{formatDate(a.dueDate)}</TableCell>
-                      <TableCell>{a.supplierName || '-'}</TableCell>
                       <TableCell className="max-w-[200px] truncate">{a.description}</TableCell>
                       <TableCell>{a.paidAt ? formatDate(a.paidAt) : '-'}</TableCell>
                       <TableCell className="text-right text-success font-medium">
@@ -457,12 +460,13 @@ const ReportBySupplier = () => {
         {/* Printable area (hidden) */}
         <div className="hidden">
           <div ref={printRef} className="p-8 bg-white text-black">
-            <h1 className="text-xl font-bold mb-2 text-center">Relatório Financeiro por Cadastro</h1>
-            {selectedSupplierId !== 'all' && (
-              <p className="text-center text-sm mb-1">{suppliers.find(s => s.id === selectedSupplierId)?.name}</p>
-            )}
-            {searchText.trim() && (
-              <p className="text-center text-sm mb-1">Pesquisa: {searchText.trim()}</p>
+            <h1 className="text-xl font-bold mb-1 text-center">Ficha Financeira</h1>
+            {(selectedSupplierId !== 'all' || searchText.trim()) && (
+              <p className="text-center text-sm font-semibold mb-1">
+                {selectedSupplierId !== 'all'
+                  ? suppliers.find(s => s.id === selectedSupplierId)?.name
+                  : searchText.trim()}
+              </p>
             )}
             <p className="text-center text-xs mb-4 text-gray-500">
               {startDate && endDate ? `Período: ${format(startDate, 'dd/MM/yyyy')} até ${format(endDate, 'dd/MM/yyyy')}` : 'Todos os registros'}
@@ -485,7 +489,6 @@ const ReportBySupplier = () => {
                 <tr className="border-b-2 border-gray-400">
                   <th className="py-1 text-left">Código</th>
                   <th className="py-1 text-left">Vencimento</th>
-                  <th className="py-1 text-left">Cadastro</th>
                   <th className="py-1 text-left">Descrição</th>
                   <th className="py-1 text-left">Data Baixa</th>
                   <th className="py-1 text-right">Recebido</th>
@@ -498,7 +501,6 @@ const ReportBySupplier = () => {
                   <tr key={a.id} className={i % 2 === 0 ? 'bg-gray-50' : ''}>
                     <td className="py-1">{a.code || '-'}</td>
                     <td className="py-1">{formatDate(a.dueDate)}</td>
-                    <td className="py-1">{a.supplierName || '-'}</td>
                     <td className="py-1">{a.description}</td>
                     <td className="py-1">{a.paidAt ? formatDate(a.paidAt) : '-'}</td>
                     <td className="py-1 text-right">{a.type === 'receivable' ? formatCurrency(a.amount) : '-'}</td>
