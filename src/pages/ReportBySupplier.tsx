@@ -148,10 +148,10 @@ const ReportBySupplier = () => {
   const handleExportPdf = () => {
     exportToPdf({
       title: selectedSupplierId !== 'all'
-        ? `Relatório Financeiro - ${suppliers.find(s => s.id === selectedSupplierId)?.name || ''}`
+        ? `Ficha Financeira - ${suppliers.find(s => s.id === selectedSupplierId)?.name || ''}`
         : searchText.trim()
-          ? `Relatório Financeiro - ${searchText.trim()}`
-          : 'Relatório Financeiro por Cadastro',
+          ? `Ficha Financeira - ${searchText.trim()}`
+          : 'Ficha Financeira',
       accounts: sortedAccounts,
       sortBy: 'dueDate',
       sortOrder: 'desc',
@@ -168,7 +168,6 @@ const ReportBySupplier = () => {
       'Código': a.code || '-',
       'Vencimento': formatDate(a.dueDate),
       'Descrição': a.description,
-      'Cadastro': a.supplierName || '-',
       'Data Baixa': a.paidAt ? formatDate(a.paidAt) : '-',
       'Valor Recebido': a.type === 'receivable' ? a.amount : 0,
       'Valor Pago': a.type === 'payable' ? a.amount : 0,
