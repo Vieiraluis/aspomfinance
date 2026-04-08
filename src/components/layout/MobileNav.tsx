@@ -15,6 +15,7 @@ import {
   FileSpreadsheet,
   LogOut,
   UserCog,
+  CalendarDays,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
@@ -33,6 +34,7 @@ const mainNavigation = [
   { name: 'Fluxo de Caixa', href: '/cash-flow', icon: ArrowLeftRight },
   { name: 'Todos os Registros', href: '/all-records', icon: ListChecks },
   { name: 'Gestão de RH', href: '/hr', icon: UserCog },
+  { name: 'Eventos', href: '/events', icon: CalendarDays },
 ];
 
 const reportsNavigation = [

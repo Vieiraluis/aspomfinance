@@ -469,6 +469,247 @@ export type Database = {
         }
         Relationships: []
       }
+      event_reservation_items: {
+        Row: {
+          created_at: string
+          id: string
+          reservation_id: string
+          seat_id: string | null
+          table_id: string
+          unit_price: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reservation_id: string
+          seat_id?: string | null
+          table_id: string
+          unit_price?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reservation_id?: string
+          seat_id?: string | null
+          table_id?: string
+          unit_price?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_reservation_items_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "event_reservations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_reservation_items_seat_id_fkey"
+            columns: ["seat_id"]
+            isOneToOne: false
+            referencedRelation: "event_seats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_reservation_items_table_id_fkey"
+            columns: ["table_id"]
+            isOneToOne: false
+            referencedRelation: "event_tables"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_reservations: {
+        Row: {
+          checked_in: boolean
+          checked_in_at: string | null
+          client_document: string | null
+          client_name: string
+          client_phone: string | null
+          created_at: string
+          event_id: string
+          id: string
+          payment_method: string | null
+          qr_code: string | null
+          status: string
+          total_amount: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          checked_in?: boolean
+          checked_in_at?: string | null
+          client_document?: string | null
+          client_name: string
+          client_phone?: string | null
+          created_at?: string
+          event_id: string
+          id?: string
+          payment_method?: string | null
+          qr_code?: string | null
+          status?: string
+          total_amount?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          checked_in?: boolean
+          checked_in_at?: string | null
+          client_document?: string | null
+          client_name?: string
+          client_phone?: string | null
+          created_at?: string
+          event_id?: string
+          id?: string
+          payment_method?: string | null
+          qr_code?: string | null
+          status?: string
+          total_amount?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_reservations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_seats: {
+        Row: {
+          created_at: string
+          id: string
+          seat_number: number
+          status: string
+          table_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          seat_number: number
+          status?: string
+          table_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          seat_number?: number
+          status?: string
+          table_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_seats_table_id_fkey"
+            columns: ["table_id"]
+            isOneToOne: false
+            referencedRelation: "event_tables"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_tables: {
+        Row: {
+          area: string
+          created_at: string
+          event_id: string
+          id: string
+          pos_x: number
+          pos_y: number
+          price: number
+          seats_count: number
+          status: string
+          table_number: number
+          user_id: string
+        }
+        Insert: {
+          area?: string
+          created_at?: string
+          event_id: string
+          id?: string
+          pos_x?: number
+          pos_y?: number
+          price?: number
+          seats_count?: number
+          status?: string
+          table_number: number
+          user_id: string
+        }
+        Update: {
+          area?: string
+          created_at?: string
+          event_id?: string
+          id?: string
+          pos_x?: number
+          pos_y?: number
+          price?: number
+          seats_count?: number
+          status?: string
+          table_number?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_tables_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          capacity: number
+          created_at: string
+          description: string | null
+          event_date: string
+          event_time: string
+          id: string
+          layout_url: string | null
+          location: string
+          name: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          capacity?: number
+          created_at?: string
+          description?: string | null
+          event_date: string
+          event_time?: string
+          id?: string
+          layout_url?: string | null
+          location?: string
+          name: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          capacity?: number
+          created_at?: string
+          description?: string | null
+          event_date?: string
+          event_time?: string
+          id?: string
+          layout_url?: string | null
+          location?: string
+          name?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           account_id: string
