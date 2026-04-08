@@ -181,11 +181,9 @@ const ReportBySupplier = () => {
 
   const handleExportPdf = () => {
     exportToPdf({
-      title: selectedSupplierId !== 'all'
-        ? `Ficha Financeira - ${suppliers.find(s => s.id === selectedSupplierId)?.name || ''}`
-        : searchText.trim()
-          ? `Ficha Financeira - ${searchText.trim()}`
-          : 'Ficha Financeira',
+      title: selectedSupplierObj
+        ? `Ficha Financeira - ${selectedSupplierObj.name}`
+        : 'Ficha Financeira',
       accounts: sortedAccounts,
       sortBy: 'dueDate',
       sortOrder: 'desc',
