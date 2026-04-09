@@ -6,6 +6,7 @@ import {
   TrendingUp,
   CreditCard,
   Menu,
+  Settings,
   X,
   Users,
   BarChart3,
