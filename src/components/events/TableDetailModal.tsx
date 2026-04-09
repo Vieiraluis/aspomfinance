@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -7,10 +8,12 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { EventTableRow, EventSeatRow, useUpdateTableStatus } from '@/hooks/useEventsData';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { EventTableRow, EventSeatRow, useUpdateTableStatus, useReleaseTable, useUpdateTablePrice } from '@/hooks/useEventsData';
 import { formatCurrency } from '@/lib/format';
 import { cn } from '@/lib/utils';
-import { Lock, Unlock, ShieldCheck } from 'lucide-react';
+import { Lock, Unlock, ShieldCheck, Pencil, Save } from 'lucide-react';
 
 const STATUS_LABEL: Record<string, string> = {
   available: 'Disponível',
@@ -35,20 +38,49 @@ interface Props {
 
 export function TableDetailModal({ table, seats, eventId, open, onClose }: Props) {
   const updateStatus = useUpdateTableStatus();
+  const releaseTable = useReleaseTable();
+  const updatePrice = useUpdateTablePrice();
+  const [editingPrice, setEditingPrice] = useState(false);
+  const [newPrice, setNewPrice] = useState(String(table.price));
+
   const availableSeats = seats.filter(s => s.status === 'available').length;
   const reservedSeats = seats.filter(s => s.status === 'reserved').length;
 
-  const handleStatusChange = async (status: string) => {
-    await updateStatus.mutateAsync({ tableId: table.id, status, eventId });
+  const handleBlock = async () => {
+    await updateStatus.mutateAsync({ tableId: table.id, status: 'blocked', eventId });
     onClose();
   };
+
+  const handleRelease = async () => {
+    if (table.status === 'reserved') {
+      // Delete reservation data when releasing a reserved table
+      await releaseTable.mutateAsync({ tableId: table.id, eventId });
+    } else {
+      await updateStatus.mutateAsync({ tableId: table.id, status: 'available', eventId });
+    }
+    onClose();
+  };
+
+  const handleReserve = async () => {
+    await updateStatus.mutateAsync({ tableId: table.id, status: 'reserved', eventId });
+    onClose();
+  };
+
+  const handleSavePrice = async () => {
+    const price = parseFloat(newPrice);
+    if (isNaN(price) || price < 0) return;
+    await updatePrice.mutateAsync({ tableId: table.id, price, eventId });
+    setEditingPrice(false);
+  };
+
+  const isPending = updateStatus.isPending || releaseTable.isPending || updatePrice.isPending;
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
-            <span className="text-xl">Mesa {table.table_number}</span>
+            <span className="text-xl">Mesa {String(table.table_number).padStart(2, '0')}</span>
             <Badge variant={table.status === 'available' ? 'default' : table.status === 'reserved' ? 'destructive' : 'secondary'}>
               {STATUS_LABEL[table.status]}
             </Badge>
@@ -81,6 +113,35 @@ export function TableDetailModal({ table, seats, eventId, open, onClose }: Props
             </div>
           </div>
 
+          {/* Price editing */}
+          <div className="bg-secondary/50 rounded-lg p-3">
+            <div className="flex items-center justify-between mb-1">
+              <Label className="text-sm text-muted-foreground">Preço da Mesa</Label>
+              {!editingPrice && (
+                <Button variant="ghost" size="sm" className="h-6 px-2" onClick={() => { setNewPrice(String(table.price)); setEditingPrice(true); }}>
+                  <Pencil className="w-3 h-3 mr-1" /> Editar
+                </Button>
+              )}
+            </div>
+            {editingPrice ? (
+              <div className="flex gap-2 items-center">
+                <Input
+                  type="number"
+                  value={newPrice}
+                  onChange={e => setNewPrice(e.target.value)}
+                  className="h-8"
+                  min={0}
+                  step={10}
+                />
+                <Button size="sm" className="h-8" onClick={handleSavePrice} disabled={isPending}>
+                  <Save className="w-3 h-3 mr-1" /> Salvar
+                </Button>
+              </div>
+            ) : (
+              <p className="text-lg font-bold text-primary">{formatCurrency(table.price)}</p>
+            )}
+          </div>
+
           {/* Info */}
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div className="bg-secondary/50 rounded-lg p-3">
@@ -88,8 +149,8 @@ export function TableDetailModal({ table, seats, eventId, open, onClose }: Props
               <p className="text-lg font-bold text-red-400">{reservedSeats}</p>
             </div>
             <div className="bg-secondary/50 rounded-lg p-3">
-              <span className="text-muted-foreground">Preço</span>
-              <p className="text-lg font-bold text-primary">{formatCurrency(table.price)}</p>
+              <span className="text-muted-foreground">Área</span>
+              <p className="text-lg font-bold">{AREA_LABEL[table.area]}</p>
             </div>
           </div>
 
@@ -99,8 +160,8 @@ export function TableDetailModal({ table, seats, eventId, open, onClose }: Props
               <Button
                 variant="outline"
                 className="flex-1"
-                onClick={() => handleStatusChange('available')}
-                disabled={updateStatus.isPending}
+                onClick={handleRelease}
+                disabled={isPending}
               >
                 <Unlock className="w-4 h-4 mr-2" />
                 Liberar
@@ -110,8 +171,8 @@ export function TableDetailModal({ table, seats, eventId, open, onClose }: Props
               <Button
                 variant="secondary"
                 className="flex-1"
-                onClick={() => handleStatusChange('blocked')}
-                disabled={updateStatus.isPending}
+                onClick={handleBlock}
+                disabled={isPending}
               >
                 <Lock className="w-4 h-4 mr-2" />
                 Bloquear
@@ -120,14 +181,20 @@ export function TableDetailModal({ table, seats, eventId, open, onClose }: Props
             {table.status === 'available' && (
               <Button
                 className="flex-1"
-                onClick={() => handleStatusChange('reserved')}
-                disabled={updateStatus.isPending}
+                onClick={handleReserve}
+                disabled={isPending}
               >
                 <ShieldCheck className="w-4 h-4 mr-2" />
                 Reservar
               </Button>
             )}
           </div>
+
+          {table.status === 'reserved' && (
+            <p className="text-xs text-muted-foreground text-center">
+              ⚠️ Ao liberar uma mesa reservada, os dados da reserva serão excluídos.
+            </p>
+          )}
         </div>
       </DialogContent>
     </Dialog>
