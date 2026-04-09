@@ -6,6 +6,7 @@ import {
   TrendingUp,
   CreditCard,
   Menu,
+  Settings,
   X,
   Users,
   BarChart3,
@@ -24,15 +25,20 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { DueDateNotifications } from '@/components/notifications/DueDateNotifications';
 
-const mainNavigation = [
+const topNavigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { name: 'Fornecedores', href: '/suppliers', icon: Users },
+  { name: 'Cadastro', href: '/suppliers', icon: Users },
+];
+
+const financeiroNavigation = [
   { name: 'Contas a Pagar', href: '/payables', icon: TrendingDown },
   { name: 'Contas a Receber', href: '/receivables', icon: TrendingUp },
-  { name: 'Baixa de Pagamentos', href: '/payments', icon: CreditCard },
-  { name: 'Contas Bancárias', href: '/bank-accounts', icon: Wallet },
+  { name: 'Baixa de Conciliação', href: '/payments', icon: CreditCard },
   { name: 'Fluxo de Caixa', href: '/cash-flow', icon: ArrowLeftRight },
   { name: 'Todos os Registros', href: '/all-records', icon: ListChecks },
+];
+
+const bottomNavigation = [
   { name: 'Gestão de RH', href: '/hr', icon: UserCog },
   { name: 'Eventos', href: '/events', icon: CalendarDays },
 ];
@@ -88,20 +94,13 @@ export function MobileNav() {
             
             <ScrollArea className="h-[calc(100vh-3.5rem)]">
               <nav className="p-4 space-y-1">
-                {mainNavigation.map((item) => {
+                {topNavigation.map((item) => {
                   const isActive = location.pathname === item.href;
                   return (
-                    <Link
-                      key={item.name}
-                      to={item.href}
-                      onClick={() => setOpen(false)}
-                      className={cn(
-                        'flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200',
-                        isActive
-                          ? 'bg-sidebar-accent text-sidebar-primary'
-                          : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
-                      )}
-                    >
+                    <Link key={item.name} to={item.href} onClick={() => setOpen(false)} className={cn(
+                      'flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200',
+                      isActive ? 'bg-sidebar-accent text-sidebar-primary' : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
+                    )}>
                       <item.icon className={cn('w-5 h-5', isActive ? 'text-sidebar-primary' : '')} />
                       {item.name}
                     </Link>
@@ -109,30 +108,57 @@ export function MobileNav() {
                 })}
                 
                 <div className="pt-4 pb-2">
-                  <span className="px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                    Relatórios
-                  </span>
+                  <span className="px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Financeiro</span>
                 </div>
-                
-                {reportsNavigation.map((item) => {
+                {financeiroNavigation.map((item) => {
                   const isActive = location.pathname === item.href;
                   return (
-                    <Link
-                      key={item.name}
-                      to={item.href}
-                      onClick={() => setOpen(false)}
-                      className={cn(
-                        'flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200',
-                        isActive
-                          ? 'bg-sidebar-accent text-sidebar-primary'
-                          : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
-                      )}
-                    >
+                    <Link key={item.name} to={item.href} onClick={() => setOpen(false)} className={cn(
+                      'flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200',
+                      isActive ? 'bg-sidebar-accent text-sidebar-primary' : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
+                    )}>
                       <item.icon className={cn('w-4 h-4', isActive ? 'text-sidebar-primary' : '')} />
                       {item.name}
                     </Link>
                   );
                 })}
+
+                {bottomNavigation.map((item) => {
+                  const isActive = location.pathname === item.href || location.pathname.startsWith(item.href + '/');
+                  return (
+                    <Link key={item.name} to={item.href} onClick={() => setOpen(false)} className={cn(
+                      'flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 mt-1',
+                      isActive ? 'bg-sidebar-accent text-sidebar-primary' : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
+                    )}>
+                      <item.icon className={cn('w-5 h-5', isActive ? 'text-sidebar-primary' : '')} />
+                      {item.name}
+                    </Link>
+                  );
+                })}
+
+                <div className="pt-4 pb-2">
+                  <span className="px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Relatórios</span>
+                </div>
+                {reportsNavigation.map((item) => {
+                  const isActive = location.pathname === item.href;
+                  return (
+                    <Link key={item.name} to={item.href} onClick={() => setOpen(false)} className={cn(
+                      'flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200',
+                      isActive ? 'bg-sidebar-accent text-sidebar-primary' : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
+                    )}>
+                      <item.icon className={cn('w-4 h-4', isActive ? 'text-sidebar-primary' : '')} />
+                      {item.name}
+                    </Link>
+                  );
+                })}
+
+                <Link to="/settings" onClick={() => setOpen(false)} className={cn(
+                  'flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 mt-1',
+                  location.pathname === '/settings' ? 'bg-sidebar-accent text-sidebar-primary' : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
+                )}>
+                  <Settings className={cn('w-5 h-5', location.pathname === '/settings' ? 'text-sidebar-primary' : '')} />
+                  Configurações
+                </Link>
 
                 <div className="pt-6">
                   <Button

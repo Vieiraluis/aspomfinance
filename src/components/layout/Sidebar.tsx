@@ -23,18 +23,23 @@ import { DueDateNotifications } from '@/components/notifications/DueDateNotifica
 import { useAuthContext } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 
-const mainNavigation = [
-{ name: 'Dashboard', href: '/', icon: LayoutDashboard },
-{ name: 'Cadastro', href: '/suppliers', icon: Users },
-{ name: 'Contas a Pagar', href: '/payables', icon: TrendingDown },
-{ name: 'Contas a Receber', href: '/receivables', icon: TrendingUp },
-{ name: 'Baixa de Conciliação', href: '/payments', icon: CreditCard },
-{ name: 'Contas Bancárias', href: '/bank-accounts', icon: Wallet },
-{ name: 'Fluxo de Caixa', href: '/cash-flow', icon: ArrowLeftRight },
-{ name: 'Todos os Registros', href: '/all-records', icon: ListChecks },
-{ name: 'Gestão de RH', href: '/hr', icon: UserCog },
-{ name: 'Eventos', href: '/events', icon: CalendarDays },
-{ name: 'Configurações', href: '/settings', icon: Settings }];
+const topNavigation = [
+  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
+  { name: 'Cadastro', href: '/suppliers', icon: Users },
+];
+
+const financeiroNavigation = [
+  { name: 'Contas a Pagar', href: '/payables', icon: TrendingDown },
+  { name: 'Contas a Receber', href: '/receivables', icon: TrendingUp },
+  { name: 'Baixa de Conciliação', href: '/payments', icon: CreditCard },
+  { name: 'Fluxo de Caixa', href: '/cash-flow', icon: ArrowLeftRight },
+  { name: 'Todos os Registros', href: '/all-records', icon: ListChecks },
+];
+
+const bottomNavigation = [
+  { name: 'Gestão de RH', href: '/hr', icon: UserCog },
+  { name: 'Eventos', href: '/events', icon: CalendarDays },
+];
 
 
 const reportsNavigation = [
@@ -49,6 +54,9 @@ const reportsNavigation = [
 
 export function Sidebar() {
   const location = useLocation();
+  const [financeiroOpen, setFinanceiroOpen] = useState(
+    ['/payables', '/receivables', '/payments', '/cash-flow', '/all-records', '/bank-accounts'].some(p => location.pathname.startsWith(p))
+  );
   const [reportsOpen, setReportsOpen] = useState(location.pathname.startsWith('/reports'));
   const { signOut, user } = useAuthContext();
 
@@ -72,64 +80,97 @@ export function Sidebar() {
       </div>
       
       <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-        {mainNavigation.map((item) => {
+        {/* Dashboard + Cadastro */}
+        {topNavigation.map((item) => {
           const isActive = location.pathname === item.href;
           return (
-            <Link
-              key={item.name}
-              to={item.href}
-              className={cn(
-                'flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200',
-                isActive ?
-                'bg-sidebar-accent text-sidebar-primary shadow-glow-primary/20' :
-                'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
-              )}>
-              
-              <item.icon className={cn(
-                'w-5 h-5 transition-colors',
-                isActive ? 'text-sidebar-primary' : ''
-              )} />
+            <Link key={item.name} to={item.href} className={cn(
+              'flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200',
+              isActive ? 'bg-sidebar-accent text-sidebar-primary shadow-glow-primary/20' : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
+            )}>
+              <item.icon className={cn('w-5 h-5 transition-colors', isActive ? 'text-sidebar-primary' : '')} />
               {item.name}
-            </Link>);
-
+            </Link>
+          );
         })}
-        
-        {/* Reports Section with Collapsible */}
+
+        {/* Financeiro Group */}
+        <Collapsible open={financeiroOpen} onOpenChange={setFinanceiroOpen}>
+          <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 rounded-lg text-sm font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground transition-all duration-200">
+            <div className="flex items-center gap-3">
+              <Wallet className="w-5 h-5" />
+              Financeiro
+            </div>
+            <ChevronDown className={cn('w-4 h-4 transition-transform duration-200', financeiroOpen && 'rotate-180')} />
+          </CollapsibleTrigger>
+          <CollapsibleContent className="space-y-1 mt-1 ml-4">
+            {financeiroNavigation.map((item) => {
+              const isActive = location.pathname === item.href;
+              return (
+                <Link key={item.name} to={item.href} className={cn(
+                  'flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200',
+                  isActive ? 'bg-sidebar-accent text-sidebar-primary shadow-glow-primary/20' : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
+                )}>
+                  <item.icon className={cn('w-4 h-4 transition-colors', isActive ? 'text-sidebar-primary' : '')} />
+                  {item.name}
+                </Link>
+              );
+            })}
+          </CollapsibleContent>
+        </Collapsible>
+
+        {/* RH + Eventos */}
+        {bottomNavigation.map((item) => {
+          const isActive = location.pathname === item.href || location.pathname.startsWith(item.href + '/');
+          return (
+            <Link key={item.name} to={item.href} className={cn(
+              'flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200',
+              isActive ? 'bg-sidebar-accent text-sidebar-primary shadow-glow-primary/20' : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
+            )}>
+              <item.icon className={cn('w-5 h-5 transition-colors', isActive ? 'text-sidebar-primary' : '')} />
+              {item.name}
+            </Link>
+          );
+        })}
+
+        {/* Relatórios Group */}
         <Collapsible open={reportsOpen} onOpenChange={setReportsOpen}>
           <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 rounded-lg text-sm font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground transition-all duration-200">
             <div className="flex items-center gap-3">
               <BarChart3 className="w-5 h-5" />
               Relatórios
             </div>
-            <ChevronDown className={cn(
-              'w-4 h-4 transition-transform duration-200',
-              reportsOpen && 'rotate-180'
-            )} />
+            <ChevronDown className={cn('w-4 h-4 transition-transform duration-200', reportsOpen && 'rotate-180')} />
           </CollapsibleTrigger>
           <CollapsibleContent className="space-y-1 mt-1 ml-4">
             {reportsNavigation.map((item) => {
               const isActive = location.pathname === item.href;
               return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={cn(
-                    'flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200',
-                    isActive ?
-                    'bg-sidebar-accent text-sidebar-primary shadow-glow-primary/20' :
-                    'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
-                  )}>
-                  
-                  <item.icon className={cn(
-                    'w-4 h-4 transition-colors',
-                    isActive ? 'text-sidebar-primary' : ''
-                  )} />
+                <Link key={item.name} to={item.href} className={cn(
+                  'flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200',
+                  isActive ? 'bg-sidebar-accent text-sidebar-primary shadow-glow-primary/20' : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
+                )}>
+                  <item.icon className={cn('w-4 h-4 transition-colors', isActive ? 'text-sidebar-primary' : '')} />
                   {item.name}
-                </Link>);
-
+                </Link>
+              );
             })}
           </CollapsibleContent>
         </Collapsible>
+
+        {/* Configurações */}
+        {(() => {
+          const isActive = location.pathname === '/settings';
+          return (
+            <Link to="/settings" className={cn(
+              'flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200',
+              isActive ? 'bg-sidebar-accent text-sidebar-primary shadow-glow-primary/20' : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
+            )}>
+              <Settings className={cn('w-5 h-5 transition-colors', isActive ? 'text-sidebar-primary' : '')} />
+              Configurações
+            </Link>
+          );
+        })()}
       </nav>
       
       <div className="p-4 border-t border-sidebar-border space-y-3">
