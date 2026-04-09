@@ -24,15 +24,20 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { DueDateNotifications } from '@/components/notifications/DueDateNotifications';
 
-const mainNavigation = [
+const topNavigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { name: 'Fornecedores', href: '/suppliers', icon: Users },
+  { name: 'Cadastro', href: '/suppliers', icon: Users },
+];
+
+const financeiroNavigation = [
   { name: 'Contas a Pagar', href: '/payables', icon: TrendingDown },
   { name: 'Contas a Receber', href: '/receivables', icon: TrendingUp },
-  { name: 'Baixa de Pagamentos', href: '/payments', icon: CreditCard },
-  { name: 'Contas Bancárias', href: '/bank-accounts', icon: Wallet },
+  { name: 'Baixa de Conciliação', href: '/payments', icon: CreditCard },
   { name: 'Fluxo de Caixa', href: '/cash-flow', icon: ArrowLeftRight },
   { name: 'Todos os Registros', href: '/all-records', icon: ListChecks },
+];
+
+const bottomNavigation = [
   { name: 'Gestão de RH', href: '/hr', icon: UserCog },
   { name: 'Eventos', href: '/events', icon: CalendarDays },
 ];
