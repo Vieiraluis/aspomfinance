@@ -23,18 +23,23 @@ import { DueDateNotifications } from '@/components/notifications/DueDateNotifica
 import { useAuthContext } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 
-const mainNavigation = [
-{ name: 'Dashboard', href: '/', icon: LayoutDashboard },
-{ name: 'Cadastro', href: '/suppliers', icon: Users },
-{ name: 'Contas a Pagar', href: '/payables', icon: TrendingDown },
-{ name: 'Contas a Receber', href: '/receivables', icon: TrendingUp },
-{ name: 'Baixa de Conciliação', href: '/payments', icon: CreditCard },
-{ name: 'Contas Bancárias', href: '/bank-accounts', icon: Wallet },
-{ name: 'Fluxo de Caixa', href: '/cash-flow', icon: ArrowLeftRight },
-{ name: 'Todos os Registros', href: '/all-records', icon: ListChecks },
-{ name: 'Gestão de RH', href: '/hr', icon: UserCog },
-{ name: 'Eventos', href: '/events', icon: CalendarDays },
-{ name: 'Configurações', href: '/settings', icon: Settings }];
+const topNavigation = [
+  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
+  { name: 'Cadastro', href: '/suppliers', icon: Users },
+];
+
+const financeiroNavigation = [
+  { name: 'Contas a Pagar', href: '/payables', icon: TrendingDown },
+  { name: 'Contas a Receber', href: '/receivables', icon: TrendingUp },
+  { name: 'Baixa de Conciliação', href: '/payments', icon: CreditCard },
+  { name: 'Fluxo de Caixa', href: '/cash-flow', icon: ArrowLeftRight },
+  { name: 'Todos os Registros', href: '/all-records', icon: ListChecks },
+];
+
+const bottomNavigation = [
+  { name: 'Gestão de RH', href: '/hr', icon: UserCog },
+  { name: 'Eventos', href: '/events', icon: CalendarDays },
+];
 
 
 const reportsNavigation = [
