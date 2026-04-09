@@ -357,6 +357,84 @@ export function useUpdateSeatStatus() {
   });
 }
 
+export function useReleaseTable() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ tableId, eventId }: { tableId: string; eventId: string }) => {
+      // Find reservation items for this table
+      const { data: items } = await supabase
+        .from('event_reservation_items')
+        .select('reservation_id')
+        .eq('table_id', tableId);
+
+      if (items && items.length > 0) {
+        const reservationIds = [...new Set(items.map(i => i.reservation_id))];
+
+        // Delete reservation items for this table
+        await supabase
+          .from('event_reservation_items')
+          .delete()
+          .eq('table_id', tableId);
+
+        // Delete reservations that have no remaining items
+        for (const resId of reservationIds) {
+          const { data: remaining } = await supabase
+            .from('event_reservation_items')
+            .select('id')
+            .eq('reservation_id', resId)
+            .limit(1);
+          if (!remaining || remaining.length === 0) {
+            await supabase
+              .from('event_reservations')
+              .delete()
+              .eq('id', resId);
+          }
+        }
+      }
+
+      // Set table and seats back to available
+      await supabase
+        .from('event_tables')
+        .update({ status: 'available' } as any)
+        .eq('id', tableId);
+      await supabase
+        .from('event_seats')
+        .update({ status: 'available' } as any)
+        .eq('table_id', tableId);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['event_tables', variables.eventId] });
+      queryClient.invalidateQueries({ queryKey: ['event_seats', variables.eventId] });
+      queryClient.invalidateQueries({ queryKey: ['event_reservations', variables.eventId] });
+      toast({ title: 'Mesa liberada e reserva excluída!' });
+    },
+    onError: (e: any) => {
+      toast({ title: 'Erro ao liberar mesa', description: e.message, variant: 'destructive' });
+    },
+  });
+}
+
+export function useUpdateTablePrice() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ tableId, price }: { tableId: string; price: number; eventId: string }) => {
+      const { error } = await supabase
+        .from('event_tables')
+        .update({ price } as any)
+        .eq('id', tableId);
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['event_tables', variables.eventId] });
+      toast({ title: 'Preço atualizado!' });
+    },
+  });
+}
+
 export function useCreateReservation() {
   const queryClient = useQueryClient();
   const { user } = useAuthContext();
