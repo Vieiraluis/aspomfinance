@@ -435,6 +435,110 @@ export function useUpdateTablePrice() {
   });
 }
 
+export function useBulkUpdateTablePrice() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ tableIds, price, eventId }: { tableIds: string[]; price: number; eventId: string }) => {
+      for (const tableId of tableIds) {
+        const { error } = await supabase
+          .from('event_tables')
+          .update({ price } as any)
+          .eq('id', tableId);
+        if (error) throw error;
+      }
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['event_tables', variables.eventId] });
+      toast({ title: `Preço atualizado para ${variables.tableIds.length} mesa(s)!` });
+    },
+  });
+}
+
+export function useUpdateTableSeatsCount() {
+  const queryClient = useQueryClient();
+  const { user } = useAuthContext();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ tableId, seatsCount, eventId }: { tableId: string; seatsCount: number; eventId: string }) => {
+      // Update table seats_count
+      const { error } = await supabase
+        .from('event_tables')
+        .update({ seats_count: seatsCount } as any)
+        .eq('id', tableId);
+      if (error) throw error;
+
+      // Delete existing seats
+      await supabase.from('event_seats').delete().eq('table_id', tableId);
+
+      // Re-create seats with new count
+      const seatsToInsert = Array.from({ length: seatsCount }, (_, i) => ({
+        table_id: tableId,
+        user_id: user!.id,
+        seat_number: i + 1,
+        status: 'available',
+      }));
+
+      const { error: seatError } = await supabase
+        .from('event_seats')
+        .insert(seatsToInsert as any);
+      if (seatError) throw seatError;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['event_tables', variables.eventId] });
+      queryClient.invalidateQueries({ queryKey: ['event_seats', variables.eventId] });
+      toast({ title: 'Assentos atualizados!' });
+    },
+  });
+}
+
+export interface ReservationItemRow {
+  id: string;
+  reservation_id: string;
+  table_id: string;
+  seat_id: string | null;
+  unit_price: number;
+  user_id: string;
+  created_at: string;
+}
+
+export function useReservationItems(eventId: string | undefined) {
+  const { user } = useAuthContext();
+  return useQuery({
+    queryKey: ['event_reservation_items', eventId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('event_reservation_items')
+        .select('*')
+        .order('created_at');
+      if (error) throw error;
+      return data as ReservationItemRow[];
+    },
+    enabled: !!user && !!eventId,
+  });
+}
+
+export function useCheckinReservation() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ reservationId, eventId }: { reservationId: string; eventId: string }) => {
+      const { error } = await supabase
+        .from('event_reservations')
+        .update({ checked_in: true, checked_in_at: new Date().toISOString() } as any)
+        .eq('id', reservationId);
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['event_reservations', variables.eventId] });
+      toast({ title: 'Check-in realizado com sucesso!' });
+    },
+  });
+}
+
 export function useCreateReservation() {
   const queryClient = useQueryClient();
   const { user } = useAuthContext();
