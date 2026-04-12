@@ -40,8 +40,11 @@ export function TableDetailModal({ table, seats, eventId, open, onClose }: Props
   const updateStatus = useUpdateTableStatus();
   const releaseTable = useReleaseTable();
   const updatePrice = useUpdateTablePrice();
+  const updateSeats = useUpdateTableSeatsCount();
   const [editingPrice, setEditingPrice] = useState(false);
+  const [editingSeats, setEditingSeats] = useState(false);
   const [newPrice, setNewPrice] = useState(String(table.price));
+  const [newSeatsCount, setNewSeatsCount] = useState(String(table.seats_count));
 
   const availableSeats = seats.filter(s => s.status === 'available').length;
   const reservedSeats = seats.filter(s => s.status === 'reserved').length;
@@ -53,7 +56,6 @@ export function TableDetailModal({ table, seats, eventId, open, onClose }: Props
 
   const handleRelease = async () => {
     if (table.status === 'reserved') {
-      // Delete reservation data when releasing a reserved table
       await releaseTable.mutateAsync({ tableId: table.id, eventId });
     } else {
       await updateStatus.mutateAsync({ tableId: table.id, status: 'available', eventId });
@@ -73,7 +75,14 @@ export function TableDetailModal({ table, seats, eventId, open, onClose }: Props
     setEditingPrice(false);
   };
 
-  const isPending = updateStatus.isPending || releaseTable.isPending || updatePrice.isPending;
+  const handleSaveSeats = async () => {
+    const count = parseInt(newSeatsCount);
+    if (isNaN(count) || count < 1) return;
+    await updateSeats.mutateAsync({ tableId: table.id, seatsCount: count, eventId });
+    setEditingSeats(false);
+  };
+
+  const isPending = updateStatus.isPending || releaseTable.isPending || updatePrice.isPending || updateSeats.isPending;
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
