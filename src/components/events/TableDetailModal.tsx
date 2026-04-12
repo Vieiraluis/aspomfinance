@@ -151,6 +151,37 @@ export function TableDetailModal({ table, seats, eventId, open, onClose }: Props
             )}
           </div>
 
+          {/* Seats count editing */}
+          <div className="bg-secondary/50 rounded-lg p-3">
+            <div className="flex items-center justify-between mb-1">
+              <Label className="text-sm text-muted-foreground">Assentos por Mesa</Label>
+              {!editingSeats && table.status === 'available' && (
+                <Button variant="ghost" size="sm" className="h-6 px-2" onClick={() => { setNewSeatsCount(String(table.seats_count)); setEditingSeats(true); }}>
+                  <Pencil className="w-3 h-3 mr-1" /> Editar
+                </Button>
+              )}
+            </div>
+            {editingSeats ? (
+              <div className="flex gap-2 items-center">
+                <Input
+                  type="number"
+                  value={newSeatsCount}
+                  onChange={e => setNewSeatsCount(e.target.value)}
+                  className="h-8"
+                  min={1}
+                  max={20}
+                />
+                <Button size="sm" className="h-8" onClick={handleSaveSeats} disabled={isPending}>
+                  <Save className="w-3 h-3 mr-1" /> Salvar
+                </Button>
+              </div>
+            ) : (
+              <p className="text-lg font-bold flex items-center gap-1">
+                <Users className="w-4 h-4" /> {seats.length}
+              </p>
+            )}
+          </div>
+
           {/* Info */}
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div className="bg-secondary/50 rounded-lg p-3">
