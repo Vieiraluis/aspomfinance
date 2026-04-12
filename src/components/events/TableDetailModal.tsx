@@ -10,10 +10,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { EventTableRow, EventSeatRow, useUpdateTableStatus, useReleaseTable, useUpdateTablePrice } from '@/hooks/useEventsData';
+import { EventTableRow, EventSeatRow, useUpdateTableStatus, useReleaseTable, useUpdateTablePrice, useUpdateTableSeatsCount } from '@/hooks/useEventsData';
 import { formatCurrency } from '@/lib/format';
 import { cn } from '@/lib/utils';
-import { Lock, Unlock, ShieldCheck, Pencil, Save } from 'lucide-react';
+import { Lock, Unlock, ShieldCheck, Pencil, Save, Users } from 'lucide-react';
 
 const STATUS_LABEL: Record<string, string> = {
   available: 'Disponível',
@@ -40,8 +40,11 @@ export function TableDetailModal({ table, seats, eventId, open, onClose }: Props
   const updateStatus = useUpdateTableStatus();
   const releaseTable = useReleaseTable();
   const updatePrice = useUpdateTablePrice();
+  const updateSeats = useUpdateTableSeatsCount();
   const [editingPrice, setEditingPrice] = useState(false);
+  const [editingSeats, setEditingSeats] = useState(false);
   const [newPrice, setNewPrice] = useState(String(table.price));
+  const [newSeatsCount, setNewSeatsCount] = useState(String(table.seats_count));
 
   const availableSeats = seats.filter(s => s.status === 'available').length;
   const reservedSeats = seats.filter(s => s.status === 'reserved').length;
@@ -53,7 +56,6 @@ export function TableDetailModal({ table, seats, eventId, open, onClose }: Props
 
   const handleRelease = async () => {
     if (table.status === 'reserved') {
-      // Delete reservation data when releasing a reserved table
       await releaseTable.mutateAsync({ tableId: table.id, eventId });
     } else {
       await updateStatus.mutateAsync({ tableId: table.id, status: 'available', eventId });
@@ -73,7 +75,14 @@ export function TableDetailModal({ table, seats, eventId, open, onClose }: Props
     setEditingPrice(false);
   };
 
-  const isPending = updateStatus.isPending || releaseTable.isPending || updatePrice.isPending;
+  const handleSaveSeats = async () => {
+    const count = parseInt(newSeatsCount);
+    if (isNaN(count) || count < 1) return;
+    await updateSeats.mutateAsync({ tableId: table.id, seatsCount: count, eventId });
+    setEditingSeats(false);
+  };
+
+  const isPending = updateStatus.isPending || releaseTable.isPending || updatePrice.isPending || updateSeats.isPending;
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -139,6 +148,37 @@ export function TableDetailModal({ table, seats, eventId, open, onClose }: Props
               </div>
             ) : (
               <p className="text-lg font-bold text-primary">{formatCurrency(table.price)}</p>
+            )}
+          </div>
+
+          {/* Seats count editing */}
+          <div className="bg-secondary/50 rounded-lg p-3">
+            <div className="flex items-center justify-between mb-1">
+              <Label className="text-sm text-muted-foreground">Assentos por Mesa</Label>
+              {!editingSeats && table.status === 'available' && (
+                <Button variant="ghost" size="sm" className="h-6 px-2" onClick={() => { setNewSeatsCount(String(table.seats_count)); setEditingSeats(true); }}>
+                  <Pencil className="w-3 h-3 mr-1" /> Editar
+                </Button>
+              )}
+            </div>
+            {editingSeats ? (
+              <div className="flex gap-2 items-center">
+                <Input
+                  type="number"
+                  value={newSeatsCount}
+                  onChange={e => setNewSeatsCount(e.target.value)}
+                  className="h-8"
+                  min={1}
+                  max={20}
+                />
+                <Button size="sm" className="h-8" onClick={handleSaveSeats} disabled={isPending}>
+                  <Save className="w-3 h-3 mr-1" /> Salvar
+                </Button>
+              </div>
+            ) : (
+              <p className="text-lg font-bold flex items-center gap-1">
+                <Users className="w-4 h-4" /> {seats.length}
+              </p>
             )}
           </div>
 

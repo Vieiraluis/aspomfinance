@@ -46,25 +46,25 @@ export function TableMapASPOM({ tables, seats, eventId, selectedTables, onToggle
     return map;
   }, [seats]);
 
-  // Layout sections
   // LEFT: Entrance corridor - Tables 01-40 in 4 columns x 10 rows
-  // Col1(leftmost): 31-40, Col2: 21-30, Col3: 11-20, Col4(near pista): 01-10
+  // Numbering starts from bottom: row 0 (bottom) = 1,11,21,31 ... row 9 (top) = 10,20,30,40
+  // Col1(leftmost): 01-10 (bottom to top), Col2: 11-20, Col3: 21-30, Col4: 31-40
   const entranceCols = useMemo(() => [
-    Array.from({ length: 10 }, (_, i) => byNumber.get(31 + i)).filter(Boolean) as EventTableRow[],
-    Array.from({ length: 10 }, (_, i) => byNumber.get(21 + i)).filter(Boolean) as EventTableRow[],
-    Array.from({ length: 10 }, (_, i) => byNumber.get(11 + i)).filter(Boolean) as EventTableRow[],
     Array.from({ length: 10 }, (_, i) => byNumber.get(1 + i)).filter(Boolean) as EventTableRow[],
+    Array.from({ length: 10 }, (_, i) => byNumber.get(11 + i)).filter(Boolean) as EventTableRow[],
+    Array.from({ length: 10 }, (_, i) => byNumber.get(21 + i)).filter(Boolean) as EventTableRow[],
+    Array.from({ length: 10 }, (_, i) => byNumber.get(31 + i)).filter(Boolean) as EventTableRow[],
   ], [byNumber]);
 
-  // LEFT of pista/palco: Tables 41-88 (48 tables, top to bottom) - 4 columns x 12 rows
-  const leftCols = useMemo(() => [
+  // RIGHT of pista/palco: Tables 41-88 (48 tables) - 4 columns x 12 rows
+  const rightCols = useMemo(() => [
     Array.from({ length: 12 }, (_, i) => byNumber.get(41 + i)).filter(Boolean) as EventTableRow[],
     Array.from({ length: 12 }, (_, i) => byNumber.get(53 + i)).filter(Boolean) as EventTableRow[],
     Array.from({ length: 12 }, (_, i) => byNumber.get(65 + i)).filter(Boolean) as EventTableRow[],
     Array.from({ length: 12 }, (_, i) => byNumber.get(77 + i)).filter(Boolean) as EventTableRow[],
   ], [byNumber]);
 
-  // In front of palco: Tables 89-123 (35 tables) - 7 rows x 5 cols, left to right
+  // In front of palco: Tables 89-123 (35 tables) - 7 rows x 5 cols
   const frontRows = useMemo(() => {
     const rows: EventTableRow[][] = [];
     for (let r = 0; r < 7; r++) {
@@ -101,18 +101,18 @@ export function TableMapASPOM({ tables, seats, eventId, selectedTables, onToggle
           }
         }}
         className={cn(
-          'relative w-9 h-9 md:w-11 md:h-11 rounded-lg border-2 flex flex-col items-center justify-center text-xs font-bold transition-all duration-200 shadow-md',
+          'relative w-8 h-8 md:w-10 md:h-10 rounded-lg border-2 flex flex-col items-center justify-center text-xs font-bold transition-all duration-200 shadow-md',
           STATUS_COLORS[table.status] || STATUS_COLORS.available,
           isSelected && 'ring-2 ring-primary ring-offset-2 ring-offset-background scale-110 z-10',
           table.status === 'blocked' && 'cursor-not-allowed opacity-60',
         )}
         title={`Mesa ${table.table_number} - ${AREA_LABELS[table.area]} - ${formatCurrency(table.price)}`}
       >
-        <span className="text-[9px] md:text-[11px] font-bold leading-none text-foreground drop-shadow-sm">
+        <span className="text-[8px] md:text-[10px] font-bold leading-none text-foreground drop-shadow-sm">
           {String(table.table_number).padStart(2, '0')}
         </span>
         {table.status === 'available' && (
-          <span className="text-[7px] leading-none opacity-80">{availableSeats}</span>
+          <span className="text-[6px] leading-none opacity-80">{availableSeats}</span>
         )}
       </button>
     );
@@ -125,27 +125,27 @@ export function TableMapASPOM({ tables, seats, eventId, selectedTables, onToggle
   );
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {/* Title */}
       <div className="text-center">
         <h2 className="text-lg font-bold text-primary tracking-wide">🏟️ Ginásio Principal</h2>
       </div>
 
       {/* Legend */}
-      <div className="flex flex-wrap gap-4 text-xs justify-center">
+      <div className="flex flex-wrap gap-3 text-xs justify-center">
         <div className="flex items-center gap-1.5">
-          <div className="w-4 h-4 rounded bg-emerald-500 border border-emerald-400" />
+          <div className="w-3.5 h-3.5 rounded bg-emerald-500 border border-emerald-400" />
           <span className="text-muted-foreground">Disponível</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-4 h-4 rounded bg-red-500 border border-red-400" />
+          <div className="w-3.5 h-3.5 rounded bg-red-500 border border-red-400" />
           <span className="text-muted-foreground">Reservado</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-4 h-4 rounded bg-muted-foreground/40 border border-muted-foreground/30" />
+          <div className="w-3.5 h-3.5 rounded bg-muted-foreground/40 border border-muted-foreground/30" />
           <span className="text-muted-foreground">Bloqueado</span>
         </div>
-        <div className="border-l border-border pl-4 flex gap-3">
+        <div className="border-l border-border pl-3 flex gap-2">
           {Object.entries(AREA_LABELS).map(([key, label]) => (
             <span key={key} className={cn('font-medium', AREA_BADGE[key])}>{label}</span>
           ))}
@@ -154,14 +154,25 @@ export function TableMapASPOM({ tables, seats, eventId, selectedTables, onToggle
 
       {/* Map Container - Landscape */}
       <div className="relative bg-card border border-border rounded-xl p-3 overflow-auto">
-        <div className="min-w-[850px] flex flex-col gap-4">
-          {/* TOP ROW: Entrance + Pista + Tables 41-88 area */}
-          <div className="flex gap-3">
+        <div className="min-w-[900px] flex flex-col gap-2">
+          {/* Icons: Bar + WC - top right */}
+          <div className="flex justify-end gap-3 mb-1">
+            <div className="bg-secondary/40 rounded px-2 py-1 text-[10px] text-muted-foreground text-center flex items-center gap-1">
+              🍺 Bar
+            </div>
+            <div className="bg-secondary/40 rounded px-2 py-1 text-[10px] text-muted-foreground text-center flex items-center gap-1">
+              🚹 WC
+            </div>
+          </div>
+
+          {/* MAIN ROW: Left entrance | Pista de Dança (center) | Tables 41-88 (right) */}
+          <div className="flex gap-3 items-stretch">
             {/* Entrance corridor: tables 01-40 (4 cols x 10 rows) */}
-            <div className="flex flex-col items-center gap-1">
+            <div className="flex flex-col items-center gap-1 shrink-0">
               <div className="text-[10px] font-bold text-muted-foreground bg-secondary/60 rounded px-2 py-0.5 mb-1">
                 🚪 ENTRADA
               </div>
+              <div className="text-[9px] text-muted-foreground mb-0.5">Mesas 01-40</div>
               <div className="flex gap-0.5">
                 {entranceCols.map((col, i) => (
                   <div key={`ecol-${i}`}>{renderColumn(col)}</div>
@@ -169,43 +180,29 @@ export function TableMapASPOM({ tables, seats, eventId, selectedTables, onToggle
               </div>
             </div>
 
-            {/* Icons: Bar + Banheiro between entrance/left tables and pista */}
-            <div className="flex flex-col items-center justify-center gap-3 min-w-[50px]">
-              <div className="bg-secondary/40 rounded px-1.5 py-1 text-[10px] text-muted-foreground text-center">
-                🍺<br/>Bar
-              </div>
-              <div className="bg-secondary/40 rounded px-1.5 py-1 text-[10px] text-muted-foreground text-center">
-                🚹<br/>WC
-              </div>
-            </div>
-
-            {/* Tables 41-88 (left of pista and palco, 4 cols x 12 rows, top to bottom) */}
-            <div className="flex flex-col items-center gap-1">
-              <div className="text-[10px] font-medium text-muted-foreground bg-secondary/40 rounded px-2 py-0.5 mb-1">
-                Mesas 41-88
-              </div>
-              <div className="flex gap-0.5">
-                {leftCols.map((col, i) => (
-                  <div key={`lcol-${i}`}>{renderColumn(col)}</div>
-                ))}
-              </div>
-            </div>
-
             {/* PISTA DE DANÇA (center) */}
             <div className="flex-1 flex items-center justify-center">
-              <div className="border-2 border-dashed border-primary/30 rounded-2xl px-6 py-10 flex items-center justify-center min-w-[140px]">
-                <span className="text-sm font-bold text-primary/60 tracking-widest rotate-0">
+              <div className="border-2 border-dashed border-primary/30 rounded-2xl px-4 py-8 flex items-center justify-center w-full max-w-[220px] min-h-[200px]">
+                <span className="text-sm font-bold text-primary/60 tracking-widest">
                   💃 PISTA DE DANÇA
                 </span>
               </div>
             </div>
+
+            {/* Tables 41-88 (right side, 4 cols x 12 rows) */}
+            <div className="flex flex-col items-center gap-1 shrink-0">
+              <div className="text-[9px] text-muted-foreground mb-0.5">Mesas 41-88</div>
+              <div className="flex gap-0.5">
+                {rightCols.map((col, i) => (
+                  <div key={`rcol-${i}`}>{renderColumn(col)}</div>
+                ))}
+              </div>
+            </div>
           </div>
 
-          {/* Tables 89-123 (in front of palco, 7 rows x 5 cols) */}
-          <div className="flex flex-col items-center gap-1">
-            <div className="text-[10px] font-medium text-muted-foreground bg-secondary/40 rounded px-2 py-0.5">
-              Mesas 89-123
-            </div>
+          {/* Tables 89-123 (in front of palco, centered) */}
+          <div className="flex flex-col items-center gap-1 mt-1">
+            <div className="text-[9px] text-muted-foreground">Mesas 89-123</div>
             <div className="flex flex-col gap-0.5 items-center">
               {frontRows.map((row, i) => (
                 <div key={`fr-${i}`} className="flex gap-0.5">
@@ -216,8 +213,8 @@ export function TableMapASPOM({ tables, seats, eventId, selectedTables, onToggle
           </div>
 
           {/* PALCO - Bottom center */}
-          <div className="flex justify-center">
-            <div className="bg-secondary border-2 border-primary/40 rounded-xl px-20 py-3 text-center">
+          <div className="flex justify-center mt-1">
+            <div className="bg-secondary border-2 border-primary/40 rounded-xl px-16 py-2.5 text-center">
               <span className="text-sm font-bold text-primary tracking-widest">🎵 PALCO</span>
             </div>
           </div>
