@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -10,6 +10,7 @@ import {
   useEventTables,
   useEventSeats,
   useEventReservations,
+  useReservationItems,
   useGenerateEventLayout,
   useUpdateEvent,
   EventTableRow,
@@ -18,10 +19,11 @@ import { TableMapASPOM } from '@/components/events/TableMapASPOM';
 import { EventCart } from '@/components/events/EventCart';
 import { EventDashboard } from '@/components/events/EventDashboard';
 import { CheckoutDialog } from '@/components/events/CheckoutDialog';
-import { ArrowLeft, Loader2, LayoutGrid, Calendar, MapPin, Users, Play } from 'lucide-react';
+import { ReservationsList } from '@/components/events/ReservationsList';
+import { BulkPriceEditor } from '@/components/events/BulkPriceEditor';
+import { ArrowLeft, Loader2, LayoutGrid, Calendar, MapPin, Users, Play, Ticket } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { formatCurrency } from '@/lib/format';
 
 export default function EventDetail() {
   const { eventId } = useParams<{ eventId: string }>();
@@ -30,6 +32,7 @@ export default function EventDetail() {
   const { data: tables = [], isLoading: loadingTables } = useEventTables(eventId);
   const { data: seats = [] } = useEventSeats(eventId);
   const { data: reservations = [] } = useEventReservations(eventId);
+  const { data: reservationItems = [] } = useReservationItems(eventId);
   const generateLayout = useGenerateEventLayout();
   const updateEvent = useUpdateEvent();
 
@@ -150,6 +153,7 @@ export default function EventDetail() {
             <TabsList>
               <TabsTrigger value="map">Mapa de Mesas</TabsTrigger>
               <TabsTrigger value="reservations">Reservas ({reservations.length})</TabsTrigger>
+              <TabsTrigger value="settings">Configurações</TabsTrigger>
             </TabsList>
 
             <TabsContent value="map" className="mt-4">
@@ -171,42 +175,18 @@ export default function EventDetail() {
             </TabsContent>
 
             <TabsContent value="reservations" className="mt-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Reservas</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {reservations.length === 0 ? (
-                    <p className="text-center text-muted-foreground py-8">Nenhuma reserva realizada</p>
-                  ) : (
-                    <div className="space-y-3">
-                      {reservations.map(res => (
-                        <div key={res.id} className="flex items-center justify-between bg-secondary/50 rounded-lg p-4">
-                          <div>
-                            <p className="font-medium">{res.client_name}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {res.client_document || 'Sem documento'} • {res.payment_method || ''}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-bold text-primary">{formatCurrency(res.total_amount)}</p>
-                            <div className="flex items-center gap-2">
-                              <Badge variant={res.status === 'confirmed' ? 'default' : 'secondary'}>
-                                {res.status === 'confirmed' ? 'Confirmada' : res.status}
-                              </Badge>
-                              {res.checked_in && (
-                                <Badge variant="outline" className="text-emerald-400 border-emerald-400">
-                                  Check-in ✓
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+              <ReservationsList
+                reservations={reservations}
+                reservationItems={reservationItems}
+                tables={tables}
+                eventId={eventId!}
+              />
+            </TabsContent>
+
+            <TabsContent value="settings" className="mt-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <BulkPriceEditor tables={tables} eventId={eventId!} />
+              </div>
             </TabsContent>
           </Tabs>
         )}
