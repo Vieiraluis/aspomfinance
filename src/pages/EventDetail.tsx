@@ -164,6 +164,8 @@ export default function EventDetail() {
                   eventId={eventId!}
                   selectedTables={selectedTableIds}
                   onToggleTable={toggleTable}
+                  reservations={reservations}
+                  reservationItems={reservationItems}
                 />
                 <EventCart
                   selectedTables={selectedTables}

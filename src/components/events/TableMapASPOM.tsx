@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react';
 import { cn } from '@/lib/utils';
-import { EventTableRow, EventSeatRow } from '@/hooks/useEventsData';
+import { EventTableRow, EventSeatRow, EventReservationRow, ReservationItemRow } from '@/hooks/useEventsData';
 import { formatCurrency } from '@/lib/format';
 import { TableDetailModal } from './TableDetailModal';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 interface TableMapASPOMProps {
   tables: EventTableRow[];
@@ -10,6 +11,8 @@ interface TableMapASPOMProps {
   eventId: string;
   selectedTables: string[];
   onToggleTable: (tableId: string) => void;
+  reservations?: EventReservationRow[];
+  reservationItems?: ReservationItemRow[];
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -32,7 +35,7 @@ const AREA_BADGE: Record<string, string> = {
   economy: 'text-muted-foreground',
 };
 
-export function TableMapASPOM({ tables, seats, eventId, selectedTables, onToggleTable }: TableMapASPOMProps) {
+export function TableMapASPOM({ tables, seats, eventId, selectedTables, onToggleTable, reservations = [], reservationItems = [] }: TableMapASPOMProps) {
   const [detailTable, setDetailTable] = useState<EventTableRow | null>(null);
 
   const byNumber = useMemo(() => new Map(tables.map(t => [t.table_number, t])), [tables]);
@@ -46,9 +49,19 @@ export function TableMapASPOM({ tables, seats, eventId, selectedTables, onToggle
     return map;
   }, [seats]);
 
-  // LEFT: Tables 01-40, 4 cols x 10 rows.
-  // Column order: rightmost (near pista) = 01-10, leftmost = 31-40
-  // Each column: top = highest number, bottom = lowest (nearest entrance/palco)
+  // Build tableId -> client name map from reservation items + reservations
+  const clientByTable = useMemo(() => {
+    const resMap = new Map(reservations.map(r => [r.id, r]));
+    const map = new Map<string, string>();
+    reservationItems.forEach(item => {
+      const res = resMap.get(item.reservation_id);
+      if (res && res.status !== 'cancelled') {
+        map.set(item.table_id, res.client_name);
+      }
+    });
+    return map;
+  }, [reservations, reservationItems]);
+
   const entranceCols = useMemo(() => [
     Array.from({ length: 10 }, (_, i) => byNumber.get(40 - i)).filter(Boolean) as EventTableRow[],
     Array.from({ length: 10 }, (_, i) => byNumber.get(30 - i)).filter(Boolean) as EventTableRow[],
@@ -56,7 +69,6 @@ export function TableMapASPOM({ tables, seats, eventId, selectedTables, onToggle
     Array.from({ length: 10 }, (_, i) => byNumber.get(10 - i)).filter(Boolean) as EventTableRow[],
   ], [byNumber]);
 
-  // RIGHT: Tables 41-88, 4 cols x 12 rows (top to bottom)
   const rightCols = useMemo(() => [
     Array.from({ length: 12 }, (_, i) => byNumber.get(41 + i)).filter(Boolean) as EventTableRow[],
     Array.from({ length: 12 }, (_, i) => byNumber.get(53 + i)).filter(Boolean) as EventTableRow[],
@@ -64,8 +76,6 @@ export function TableMapASPOM({ tables, seats, eventId, selectedTables, onToggle
     Array.from({ length: 12 }, (_, i) => byNumber.get(77 + i)).filter(Boolean) as EventTableRow[],
   ], [byNumber]);
 
-  // TOP CENTER: Tables 89-123 (35 tables) - 7 rows x 5 cols
-  // Row closest to pista (bottom) = 89-93, top row = 119-123
   const topRows = useMemo(() => {
     const rows: EventTableRow[][] = [];
     for (let r = 6; r >= 0; r--) {
@@ -86,8 +96,9 @@ export function TableMapASPOM({ tables, seats, eventId, selectedTables, onToggle
     const isSelected = selectedTables.includes(table.id);
     const tableSeats = seatsByTable.get(table.id) || [];
     const availableSeats = tableSeats.filter(s => s.status === 'available').length;
+    const clientName = clientByTable.get(table.id);
 
-    return (
+    const btn = (
       <button
         key={table.id}
         onClick={(e) => {
@@ -102,45 +113,63 @@ export function TableMapASPOM({ tables, seats, eventId, selectedTables, onToggle
           }
         }}
         className={cn(
-          'relative w-7 h-7 rounded border-[1.5px] flex flex-col items-center justify-center font-bold transition-all duration-150 shadow-sm',
+          'relative w-9 h-9 rounded-md border-2 flex flex-col items-center justify-center font-bold transition-all duration-150 shadow-sm cursor-pointer',
           STATUS_COLORS[table.status] || STATUS_COLORS.available,
           isSelected && 'ring-2 ring-primary ring-offset-1 ring-offset-background scale-110 z-10',
           table.status === 'blocked' && 'cursor-not-allowed opacity-60',
         )}
-        title={`Mesa ${table.table_number} - ${AREA_LABELS[table.area]} - ${formatCurrency(table.price)}`}
+        title={`Mesa ${table.table_number} - ${AREA_LABELS[table.area]} - ${formatCurrency(table.price)}${clientName ? ` - ${clientName}` : ''}`}
       >
-        <span className="text-[8px] font-bold leading-none text-foreground drop-shadow-sm">
+        <span className="text-[9px] font-bold leading-none text-foreground drop-shadow-sm">
           {String(table.table_number).padStart(2, '0')}
         </span>
         {table.status === 'available' && (
-          <span className="text-[5px] leading-none opacity-80">{availableSeats}</span>
+          <span className="text-[6px] leading-none opacity-80">{availableSeats}</span>
         )}
       </button>
     );
+
+    // Show popover with client name for reserved tables
+    if (table.status === 'reserved' && clientName) {
+      return (
+        <Popover key={table.id}>
+          <PopoverTrigger asChild>{btn}</PopoverTrigger>
+          <PopoverContent side="top" className="w-auto px-3 py-2 text-xs" sideOffset={4}>
+            <div className="flex flex-col gap-0.5">
+              <span className="font-bold text-foreground">Mesa {String(table.table_number).padStart(2, '0')}</span>
+              <span className="text-muted-foreground">👤 {clientName}</span>
+              <span className="text-muted-foreground">{formatCurrency(table.price)}</span>
+            </div>
+          </PopoverContent>
+        </Popover>
+      );
+    }
+
+    return btn;
   };
 
   const renderColumn = (col: EventTableRow[]) => (
-    <div className="flex flex-col gap-px">
+    <div className="flex flex-col gap-0.5">
       {col.map(renderTable)}
     </div>
   );
 
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-2">
       {/* Title + Legend inline */}
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h2 className="text-sm font-bold text-primary tracking-wide">🏟️ Ginásio Principal</h2>
         <div className="flex flex-wrap gap-2 text-[10px]">
           <div className="flex items-center gap-1">
-            <div className="w-2.5 h-2.5 rounded bg-emerald-500 border border-emerald-400" />
+            <div className="w-3 h-3 rounded bg-emerald-500 border border-emerald-400" />
             <span className="text-muted-foreground">Disponível</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-2.5 h-2.5 rounded bg-red-500 border border-red-400" />
+            <div className="w-3 h-3 rounded bg-red-500 border border-red-400" />
             <span className="text-muted-foreground">Reservado</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-2.5 h-2.5 rounded bg-muted-foreground/40 border border-muted-foreground/30" />
+            <div className="w-3 h-3 rounded bg-muted-foreground/40 border border-muted-foreground/30" />
             <span className="text-muted-foreground">Bloqueado</span>
           </div>
           <div className="border-l border-border pl-2 flex gap-1.5">
@@ -151,39 +180,39 @@ export function TableMapASPOM({ tables, seats, eventId, selectedTables, onToggle
         </div>
       </div>
 
-      {/* Map Container - Compact */}
-      <div className="relative bg-card border border-border rounded-xl p-2">
-        <div className="flex flex-col gap-1">
+      {/* Map Container */}
+      <div className="relative bg-card border border-border rounded-xl p-3 overflow-x-auto">
+        <div className="min-w-[700px] flex flex-col gap-1.5">
 
           {/* TOP ROW: Tables 89-123 centered + Bar/WC top-right */}
           <div className="flex items-start">
             <div className="flex-1" />
             <div className="flex flex-col items-center">
-              <div className="text-[8px] text-muted-foreground mb-0.5">Mesas 89-123</div>
-              <div className="flex flex-col gap-px items-center">
+              <div className="text-[9px] text-muted-foreground font-medium mb-0.5">Mesas 89-123</div>
+              <div className="flex flex-col gap-0.5 items-center">
                 {topRows.map((row, i) => (
-                  <div key={`tr-${i}`} className="flex gap-px">
+                  <div key={`tr-${i}`} className="flex gap-0.5">
                     {row.map(renderTable)}
                   </div>
                 ))}
               </div>
             </div>
-            <div className="flex-1 flex justify-end gap-1.5 pt-1">
-              <div className="animate-pulse bg-secondary/60 rounded px-2 py-1 text-[9px] text-muted-foreground flex items-center gap-0.5 border border-border">
+            <div className="flex-1 flex justify-end gap-2 pt-1">
+              <div className="animate-pulse bg-secondary/60 rounded-lg px-2.5 py-1.5 text-[10px] text-muted-foreground flex items-center gap-1 border border-border shadow-sm">
                 🍺 <span className="font-semibold">Bar</span>
               </div>
-              <div className="animate-pulse bg-secondary/60 rounded px-2 py-1 text-[9px] text-muted-foreground flex items-center gap-0.5 border border-border">
+              <div className="animate-pulse bg-secondary/60 rounded-lg px-2.5 py-1.5 text-[10px] text-muted-foreground flex items-center gap-1 border border-border shadow-sm">
                 🚹 <span className="font-semibold">WC</span>
               </div>
             </div>
           </div>
 
           {/* MIDDLE ROW: Left tables 01-40 | PISTA DE DANÇA (center) | Tables 41-88 (right) */}
-          <div className="flex gap-1.5 items-stretch">
+          <div className="flex gap-2 items-stretch">
             {/* Tables 01-40 */}
             <div className="flex flex-col items-center shrink-0">
-              <div className="text-[8px] text-muted-foreground mb-0.5">01-40</div>
-              <div className="flex gap-px">
+              <div className="text-[9px] text-muted-foreground font-medium mb-0.5">Mesas 01-40</div>
+              <div className="flex gap-0.5">
                 {entranceCols.map((col, i) => (
                   <div key={`ecol-${i}`}>{renderColumn(col)}</div>
                 ))}
@@ -191,18 +220,18 @@ export function TableMapASPOM({ tables, seats, eventId, selectedTables, onToggle
             </div>
 
             {/* PISTA DE DANÇA (center) */}
-            <div className="flex-1 flex items-center justify-center min-w-[120px]">
-              <div className="border-2 border-dashed border-primary/30 rounded-xl px-3 py-4 flex items-center justify-center w-full max-w-[180px] min-h-[160px] animate-[pulse_3s_ease-in-out_infinite] bg-primary/5">
-                <span className="text-xs font-bold text-primary/70 tracking-widest">
-                  💃 PISTA
+            <div className="flex-1 flex items-center justify-center">
+              <div className="border-2 border-dashed border-primary/30 rounded-2xl px-4 py-6 flex items-center justify-center w-full max-w-[220px] min-h-[180px] animate-[pulse_3s_ease-in-out_infinite] bg-primary/5">
+                <span className="text-sm font-bold text-primary/70 tracking-widest">
+                  💃 PISTA DE DANÇA
                 </span>
               </div>
             </div>
 
             {/* Tables 41-88 */}
             <div className="flex flex-col items-center shrink-0">
-              <div className="text-[8px] text-muted-foreground mb-0.5">41-88</div>
-              <div className="flex gap-px">
+              <div className="text-[9px] text-muted-foreground font-medium mb-0.5">Mesas 41-88</div>
+              <div className="flex gap-0.5">
                 {rightCols.map((col, i) => (
                   <div key={`rcol-${i}`}>{renderColumn(col)}</div>
                 ))}
@@ -211,15 +240,15 @@ export function TableMapASPOM({ tables, seats, eventId, selectedTables, onToggle
           </div>
 
           {/* BOTTOM ROW: Entrance + PALCO */}
-          <div className="flex items-end justify-center gap-0.5">
+          <div className="flex items-end justify-center gap-1 mt-1">
             <div className="shrink-0">
-              <div className="animate-bounce bg-secondary/80 border-[1.5px] border-primary/50 rounded-lg px-2 py-1 shadow-sm">
-                <span className="text-[9px] font-bold text-primary">🚪 ENTRADA</span>
+              <div className="animate-bounce bg-secondary/80 border-2 border-primary/50 rounded-xl px-3 py-1.5 shadow-md">
+                <span className="text-[10px] font-bold text-primary">🚪 ENTRADA</span>
               </div>
             </div>
             <div className="shrink-0">
-              <div className="bg-secondary border-[1.5px] border-primary/40 rounded-lg px-10 py-1.5 text-center shadow-sm animate-[pulse_4s_ease-in-out_infinite]">
-                <span className="text-xs font-bold text-primary tracking-widest">🎵 PALCO</span>
+              <div className="bg-secondary border-2 border-primary/40 rounded-xl px-14 py-2 text-center shadow-md animate-[pulse_4s_ease-in-out_infinite]">
+                <span className="text-sm font-bold text-primary tracking-widest">🎵 PALCO</span>
               </div>
             </div>
           </div>
