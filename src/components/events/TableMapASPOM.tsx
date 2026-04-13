@@ -46,13 +46,14 @@ export function TableMapASPOM({ tables, seats, eventId, selectedTables, onToggle
     return map;
   }, [seats]);
 
-  // LEFT: Tables 01-40, 4 cols x 10 rows. Numbering bottom-to-top (01 at bottom, 10 at top per col)
-  // We reverse each column so index 0 renders at top = highest number, bottom = lowest (01)
+  // LEFT: Tables 01-40, 4 cols x 10 rows.
+  // Column order: rightmost (near pista) = 01-10, leftmost = 31-40
+  // Each column: top = highest number, bottom = lowest (nearest entrance/palco)
   const entranceCols = useMemo(() => [
-    Array.from({ length: 10 }, (_, i) => byNumber.get(10 - i)).filter(Boolean) as EventTableRow[],
-    Array.from({ length: 10 }, (_, i) => byNumber.get(20 - i)).filter(Boolean) as EventTableRow[],
-    Array.from({ length: 10 }, (_, i) => byNumber.get(30 - i)).filter(Boolean) as EventTableRow[],
     Array.from({ length: 10 }, (_, i) => byNumber.get(40 - i)).filter(Boolean) as EventTableRow[],
+    Array.from({ length: 10 }, (_, i) => byNumber.get(30 - i)).filter(Boolean) as EventTableRow[],
+    Array.from({ length: 10 }, (_, i) => byNumber.get(20 - i)).filter(Boolean) as EventTableRow[],
+    Array.from({ length: 10 }, (_, i) => byNumber.get(10 - i)).filter(Boolean) as EventTableRow[],
   ], [byNumber]);
 
   // RIGHT: Tables 41-88, 4 cols x 12 rows (top to bottom)
@@ -64,9 +65,10 @@ export function TableMapASPOM({ tables, seats, eventId, selectedTables, onToggle
   ], [byNumber]);
 
   // TOP CENTER: Tables 89-123 (35 tables) - 7 rows x 5 cols
+  // Row closest to pista (bottom) = 89-93, top row = 119-123
   const topRows = useMemo(() => {
     const rows: EventTableRow[][] = [];
-    for (let r = 0; r < 7; r++) {
+    for (let r = 6; r >= 0; r--) {
       const row: EventTableRow[] = [];
       for (let c = 0; c < 5; c++) {
         const num = 89 + r * 5 + c;
@@ -210,23 +212,21 @@ export function TableMapASPOM({ tables, seats, eventId, selectedTables, onToggle
             </div>
           </div>
 
-          {/* BOTTOM ROW: Entrance (left) + PALCO (center) */}
-          <div className="flex items-end gap-3 mt-1">
-            {/* Entrance icon - bottom left next to palco */}
-            <div className="shrink-0 flex flex-col items-center">
-              <div className="animate-bounce bg-secondary/80 border-2 border-primary/50 rounded-xl px-4 py-2 text-center shadow-lg">
-                <span className="text-sm font-bold text-primary tracking-wide">🚪 ENTRADA</span>
+          {/* BOTTOM ROW: Entrance (left, tight to palco) + PALCO (center) */}
+          <div className="flex items-end mt-1 justify-center gap-1">
+            {/* Entrance icon - immediately left of palco */}
+            <div className="shrink-0 flex items-end">
+              <div className="animate-bounce bg-secondary/80 border-2 border-primary/50 rounded-xl px-3 py-2 text-center shadow-lg">
+                <span className="text-xs font-bold text-primary tracking-wide">🚪 ENTRADA</span>
               </div>
             </div>
 
             {/* PALCO - Bottom center */}
-            <div className="flex-1 flex justify-center">
+            <div className="shrink-0">
               <div className="bg-secondary border-2 border-primary/40 rounded-xl px-16 py-3 text-center shadow-lg animate-[pulse_4s_ease-in-out_infinite]">
                 <span className="text-sm font-bold text-primary tracking-widest">🎵 PALCO</span>
               </div>
             </div>
-
-            <div className="shrink-0 w-[80px]" />
           </div>
         </div>
       </div>
