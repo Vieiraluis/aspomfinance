@@ -102,90 +102,88 @@ export function TableMapASPOM({ tables, seats, eventId, selectedTables, onToggle
           }
         }}
         className={cn(
-          'relative w-8 h-8 md:w-10 md:h-10 rounded-lg border-2 flex flex-col items-center justify-center text-xs font-bold transition-all duration-200 shadow-md',
+          'relative w-7 h-7 rounded border-[1.5px] flex flex-col items-center justify-center font-bold transition-all duration-150 shadow-sm',
           STATUS_COLORS[table.status] || STATUS_COLORS.available,
-          isSelected && 'ring-2 ring-primary ring-offset-2 ring-offset-background scale-110 z-10',
+          isSelected && 'ring-2 ring-primary ring-offset-1 ring-offset-background scale-110 z-10',
           table.status === 'blocked' && 'cursor-not-allowed opacity-60',
         )}
         title={`Mesa ${table.table_number} - ${AREA_LABELS[table.area]} - ${formatCurrency(table.price)}`}
       >
-        <span className="text-[8px] md:text-[10px] font-bold leading-none text-foreground drop-shadow-sm">
+        <span className="text-[8px] font-bold leading-none text-foreground drop-shadow-sm">
           {String(table.table_number).padStart(2, '0')}
         </span>
         {table.status === 'available' && (
-          <span className="text-[6px] leading-none opacity-80">{availableSeats}</span>
+          <span className="text-[5px] leading-none opacity-80">{availableSeats}</span>
         )}
       </button>
     );
   };
 
   const renderColumn = (col: EventTableRow[]) => (
-    <div className="flex flex-col gap-0.5">
+    <div className="flex flex-col gap-px">
       {col.map(renderTable)}
     </div>
   );
 
   return (
-    <div className="space-y-3">
-      {/* Title */}
-      <div className="text-center">
-        <h2 className="text-lg font-bold text-primary tracking-wide">🏟️ Ginásio Principal</h2>
-      </div>
-
-      {/* Legend */}
-      <div className="flex flex-wrap gap-3 text-xs justify-center">
-        <div className="flex items-center gap-1.5">
-          <div className="w-3.5 h-3.5 rounded bg-emerald-500 border border-emerald-400" />
-          <span className="text-muted-foreground">Disponível</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-3.5 h-3.5 rounded bg-red-500 border border-red-400" />
-          <span className="text-muted-foreground">Reservado</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-3.5 h-3.5 rounded bg-muted-foreground/40 border border-muted-foreground/30" />
-          <span className="text-muted-foreground">Bloqueado</span>
-        </div>
-        <div className="border-l border-border pl-3 flex gap-2">
-          {Object.entries(AREA_LABELS).map(([key, label]) => (
-            <span key={key} className={cn('font-medium', AREA_BADGE[key])}>{label}</span>
-          ))}
+    <div className="space-y-1.5">
+      {/* Title + Legend inline */}
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <h2 className="text-sm font-bold text-primary tracking-wide">🏟️ Ginásio Principal</h2>
+        <div className="flex flex-wrap gap-2 text-[10px]">
+          <div className="flex items-center gap-1">
+            <div className="w-2.5 h-2.5 rounded bg-emerald-500 border border-emerald-400" />
+            <span className="text-muted-foreground">Disponível</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-2.5 h-2.5 rounded bg-red-500 border border-red-400" />
+            <span className="text-muted-foreground">Reservado</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-2.5 h-2.5 rounded bg-muted-foreground/40 border border-muted-foreground/30" />
+            <span className="text-muted-foreground">Bloqueado</span>
+          </div>
+          <div className="border-l border-border pl-2 flex gap-1.5">
+            {Object.entries(AREA_LABELS).map(([key, label]) => (
+              <span key={key} className={cn('font-medium', AREA_BADGE[key])}>{label}</span>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Map Container - Landscape */}
-      <div className="relative bg-card border border-border rounded-xl p-3 overflow-auto">
-        <div className="min-w-[900px] flex flex-col gap-2">
+      {/* Map Container - Compact */}
+      <div className="relative bg-card border border-border rounded-xl p-2">
+        <div className="flex flex-col gap-1">
 
           {/* TOP ROW: Tables 89-123 centered + Bar/WC top-right */}
           <div className="flex items-start">
             <div className="flex-1" />
-            <div className="flex flex-col items-center gap-1">
-              <div className="text-[9px] text-muted-foreground">Mesas 89-123</div>
-              <div className="flex flex-col gap-0.5 items-center">
+            <div className="flex flex-col items-center">
+              <div className="text-[8px] text-muted-foreground mb-0.5">Mesas 89-123</div>
+              <div className="flex flex-col gap-px items-center">
                 {topRows.map((row, i) => (
-                  <div key={`tr-${i}`} className="flex gap-0.5">
+                  <div key={`tr-${i}`} className="flex gap-px">
                     {row.map(renderTable)}
                   </div>
                 ))}
               </div>
             </div>
-            <div className="flex-1 flex justify-end gap-3">
-              <div className="animate-pulse bg-secondary/60 rounded-lg px-3 py-1.5 text-[11px] text-muted-foreground text-center flex items-center gap-1 border border-border shadow-sm">
+            <div className="flex-1 flex justify-end gap-1.5 pt-1">
+              <div className="animate-pulse bg-secondary/60 rounded px-2 py-1 text-[9px] text-muted-foreground flex items-center gap-0.5 border border-border">
                 🍺 <span className="font-semibold">Bar</span>
               </div>
-              <div className="animate-pulse bg-secondary/60 rounded-lg px-3 py-1.5 text-[11px] text-muted-foreground text-center flex items-center gap-1 border border-border shadow-sm">
+              <div className="animate-pulse bg-secondary/60 rounded px-2 py-1 text-[9px] text-muted-foreground flex items-center gap-0.5 border border-border">
                 🚹 <span className="font-semibold">WC</span>
               </div>
             </div>
           </div>
 
           {/* MIDDLE ROW: Left tables 01-40 | PISTA DE DANÇA (center) | Tables 41-88 (right) */}
-          <div className="flex gap-3 items-stretch">
-            {/* Tables 01-40 (4 cols x 10 rows, 01 at bottom) */}
-            <div className="flex flex-col items-center gap-1 shrink-0">
-              <div className="text-[9px] text-muted-foreground mb-0.5">Mesas 01-40</div>
-              <div className="flex gap-0.5">
+          <div className="flex gap-1.5 items-stretch">
+            {/* Tables 01-40 */}
+            <div className="flex flex-col items-center shrink-0">
+              <div className="text-[8px] text-muted-foreground mb-0.5">01-40</div>
+              <div className="flex gap-px">
                 {entranceCols.map((col, i) => (
                   <div key={`ecol-${i}`}>{renderColumn(col)}</div>
                 ))}
@@ -193,18 +191,18 @@ export function TableMapASPOM({ tables, seats, eventId, selectedTables, onToggle
             </div>
 
             {/* PISTA DE DANÇA (center) */}
-            <div className="flex-1 flex items-center justify-center">
-              <div className="border-2 border-dashed border-primary/30 rounded-2xl px-4 py-8 flex items-center justify-center w-full max-w-[240px] min-h-[220px] animate-[pulse_3s_ease-in-out_infinite] bg-primary/5">
-                <span className="text-sm font-bold text-primary/70 tracking-widest animate-[pulse_2s_ease-in-out_infinite]">
-                  💃 PISTA DE DANÇA
+            <div className="flex-1 flex items-center justify-center min-w-[120px]">
+              <div className="border-2 border-dashed border-primary/30 rounded-xl px-3 py-4 flex items-center justify-center w-full max-w-[180px] min-h-[160px] animate-[pulse_3s_ease-in-out_infinite] bg-primary/5">
+                <span className="text-xs font-bold text-primary/70 tracking-widest">
+                  💃 PISTA
                 </span>
               </div>
             </div>
 
-            {/* Tables 41-88 (right side, 4 cols x 12 rows) */}
-            <div className="flex flex-col items-center gap-1 shrink-0">
-              <div className="text-[9px] text-muted-foreground mb-0.5">Mesas 41-88</div>
-              <div className="flex gap-0.5">
+            {/* Tables 41-88 */}
+            <div className="flex flex-col items-center shrink-0">
+              <div className="text-[8px] text-muted-foreground mb-0.5">41-88</div>
+              <div className="flex gap-px">
                 {rightCols.map((col, i) => (
                   <div key={`rcol-${i}`}>{renderColumn(col)}</div>
                 ))}
@@ -212,19 +210,16 @@ export function TableMapASPOM({ tables, seats, eventId, selectedTables, onToggle
             </div>
           </div>
 
-          {/* BOTTOM ROW: Entrance (left, tight to palco) + PALCO (center) */}
-          <div className="flex items-end mt-1 justify-center gap-1">
-            {/* Entrance icon - immediately left of palco */}
-            <div className="shrink-0 flex items-end">
-              <div className="animate-bounce bg-secondary/80 border-2 border-primary/50 rounded-xl px-3 py-2 text-center shadow-lg">
-                <span className="text-xs font-bold text-primary tracking-wide">🚪 ENTRADA</span>
+          {/* BOTTOM ROW: Entrance + PALCO */}
+          <div className="flex items-end justify-center gap-0.5">
+            <div className="shrink-0">
+              <div className="animate-bounce bg-secondary/80 border-[1.5px] border-primary/50 rounded-lg px-2 py-1 shadow-sm">
+                <span className="text-[9px] font-bold text-primary">🚪 ENTRADA</span>
               </div>
             </div>
-
-            {/* PALCO - Bottom center */}
             <div className="shrink-0">
-              <div className="bg-secondary border-2 border-primary/40 rounded-xl px-16 py-3 text-center shadow-lg animate-[pulse_4s_ease-in-out_infinite]">
-                <span className="text-sm font-bold text-primary tracking-widest">🎵 PALCO</span>
+              <div className="bg-secondary border-[1.5px] border-primary/40 rounded-lg px-10 py-1.5 text-center shadow-sm animate-[pulse_4s_ease-in-out_infinite]">
+                <span className="text-xs font-bold text-primary tracking-widest">🎵 PALCO</span>
               </div>
             </div>
           </div>
