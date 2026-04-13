@@ -46,17 +46,16 @@ export function TableMapASPOM({ tables, seats, eventId, selectedTables, onToggle
     return map;
   }, [seats]);
 
-  // LEFT: Entrance corridor - Tables 01-40 in 4 columns x 10 rows
-  // Numbering starts from bottom: row 0 (bottom) = 1,11,21,31 ... row 9 (top) = 10,20,30,40
-  // Col1(leftmost): 01-10 (bottom to top), Col2: 11-20, Col3: 21-30, Col4: 31-40
+  // LEFT: Tables 01-40, 4 cols x 10 rows. Numbering bottom-to-top (01 at bottom, 10 at top per col)
+  // We reverse each column so index 0 renders at top = highest number, bottom = lowest (01)
   const entranceCols = useMemo(() => [
-    Array.from({ length: 10 }, (_, i) => byNumber.get(1 + i)).filter(Boolean) as EventTableRow[],
-    Array.from({ length: 10 }, (_, i) => byNumber.get(11 + i)).filter(Boolean) as EventTableRow[],
-    Array.from({ length: 10 }, (_, i) => byNumber.get(21 + i)).filter(Boolean) as EventTableRow[],
-    Array.from({ length: 10 }, (_, i) => byNumber.get(31 + i)).filter(Boolean) as EventTableRow[],
+    Array.from({ length: 10 }, (_, i) => byNumber.get(10 - i)).filter(Boolean) as EventTableRow[],
+    Array.from({ length: 10 }, (_, i) => byNumber.get(20 - i)).filter(Boolean) as EventTableRow[],
+    Array.from({ length: 10 }, (_, i) => byNumber.get(30 - i)).filter(Boolean) as EventTableRow[],
+    Array.from({ length: 10 }, (_, i) => byNumber.get(40 - i)).filter(Boolean) as EventTableRow[],
   ], [byNumber]);
 
-  // RIGHT of pista/palco: Tables 41-88 (48 tables) - 4 columns x 12 rows
+  // RIGHT: Tables 41-88, 4 cols x 12 rows (top to bottom)
   const rightCols = useMemo(() => [
     Array.from({ length: 12 }, (_, i) => byNumber.get(41 + i)).filter(Boolean) as EventTableRow[],
     Array.from({ length: 12 }, (_, i) => byNumber.get(53 + i)).filter(Boolean) as EventTableRow[],
@@ -64,8 +63,8 @@ export function TableMapASPOM({ tables, seats, eventId, selectedTables, onToggle
     Array.from({ length: 12 }, (_, i) => byNumber.get(77 + i)).filter(Boolean) as EventTableRow[],
   ], [byNumber]);
 
-  // In front of palco: Tables 89-123 (35 tables) - 7 rows x 5 cols
-  const frontRows = useMemo(() => {
+  // TOP CENTER: Tables 89-123 (35 tables) - 7 rows x 5 cols
+  const topRows = useMemo(() => {
     const rows: EventTableRow[][] = [];
     for (let r = 0; r < 7; r++) {
       const row: EventTableRow[] = [];
@@ -155,23 +154,34 @@ export function TableMapASPOM({ tables, seats, eventId, selectedTables, onToggle
       {/* Map Container - Landscape */}
       <div className="relative bg-card border border-border rounded-xl p-3 overflow-auto">
         <div className="min-w-[900px] flex flex-col gap-2">
-          {/* Icons: Bar + WC - top right */}
-          <div className="flex justify-end gap-3 mb-1">
-            <div className="bg-secondary/40 rounded px-2 py-1 text-[10px] text-muted-foreground text-center flex items-center gap-1">
-              🍺 Bar
+
+          {/* TOP ROW: Tables 89-123 centered + Bar/WC top-right */}
+          <div className="flex items-start">
+            <div className="flex-1" />
+            <div className="flex flex-col items-center gap-1">
+              <div className="text-[9px] text-muted-foreground">Mesas 89-123</div>
+              <div className="flex flex-col gap-0.5 items-center">
+                {topRows.map((row, i) => (
+                  <div key={`tr-${i}`} className="flex gap-0.5">
+                    {row.map(renderTable)}
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="bg-secondary/40 rounded px-2 py-1 text-[10px] text-muted-foreground text-center flex items-center gap-1">
-              🚹 WC
+            <div className="flex-1 flex justify-end gap-3">
+              <div className="animate-pulse bg-secondary/60 rounded-lg px-3 py-1.5 text-[11px] text-muted-foreground text-center flex items-center gap-1 border border-border shadow-sm">
+                🍺 <span className="font-semibold">Bar</span>
+              </div>
+              <div className="animate-pulse bg-secondary/60 rounded-lg px-3 py-1.5 text-[11px] text-muted-foreground text-center flex items-center gap-1 border border-border shadow-sm">
+                🚹 <span className="font-semibold">WC</span>
+              </div>
             </div>
           </div>
 
-          {/* MAIN ROW: Left entrance | Pista de Dança (center) | Tables 41-88 (right) */}
+          {/* MIDDLE ROW: Left tables 01-40 | PISTA DE DANÇA (center) | Tables 41-88 (right) */}
           <div className="flex gap-3 items-stretch">
-            {/* Entrance corridor: tables 01-40 (4 cols x 10 rows) */}
+            {/* Tables 01-40 (4 cols x 10 rows, 01 at bottom) */}
             <div className="flex flex-col items-center gap-1 shrink-0">
-              <div className="text-[10px] font-bold text-muted-foreground bg-secondary/60 rounded px-2 py-0.5 mb-1">
-                🚪 ENTRADA
-              </div>
               <div className="text-[9px] text-muted-foreground mb-0.5">Mesas 01-40</div>
               <div className="flex gap-0.5">
                 {entranceCols.map((col, i) => (
@@ -182,8 +192,8 @@ export function TableMapASPOM({ tables, seats, eventId, selectedTables, onToggle
 
             {/* PISTA DE DANÇA (center) */}
             <div className="flex-1 flex items-center justify-center">
-              <div className="border-2 border-dashed border-primary/30 rounded-2xl px-4 py-8 flex items-center justify-center w-full max-w-[220px] min-h-[200px]">
-                <span className="text-sm font-bold text-primary/60 tracking-widest">
+              <div className="border-2 border-dashed border-primary/30 rounded-2xl px-4 py-8 flex items-center justify-center w-full max-w-[240px] min-h-[220px] animate-[pulse_3s_ease-in-out_infinite] bg-primary/5">
+                <span className="text-sm font-bold text-primary/70 tracking-widest animate-[pulse_2s_ease-in-out_infinite]">
                   💃 PISTA DE DANÇA
                 </span>
               </div>
@@ -200,23 +210,23 @@ export function TableMapASPOM({ tables, seats, eventId, selectedTables, onToggle
             </div>
           </div>
 
-          {/* Tables 89-123 (in front of palco, centered) */}
-          <div className="flex flex-col items-center gap-1 mt-1">
-            <div className="text-[9px] text-muted-foreground">Mesas 89-123</div>
-            <div className="flex flex-col gap-0.5 items-center">
-              {frontRows.map((row, i) => (
-                <div key={`fr-${i}`} className="flex gap-0.5">
-                  {row.map(renderTable)}
-                </div>
-              ))}
+          {/* BOTTOM ROW: Entrance (left) + PALCO (center) */}
+          <div className="flex items-end gap-3 mt-1">
+            {/* Entrance icon - bottom left next to palco */}
+            <div className="shrink-0 flex flex-col items-center">
+              <div className="animate-bounce bg-secondary/80 border-2 border-primary/50 rounded-xl px-4 py-2 text-center shadow-lg">
+                <span className="text-sm font-bold text-primary tracking-wide">🚪 ENTRADA</span>
+              </div>
             </div>
-          </div>
 
-          {/* PALCO - Bottom center */}
-          <div className="flex justify-center mt-1">
-            <div className="bg-secondary border-2 border-primary/40 rounded-xl px-16 py-2.5 text-center">
-              <span className="text-sm font-bold text-primary tracking-widest">🎵 PALCO</span>
+            {/* PALCO - Bottom center */}
+            <div className="flex-1 flex justify-center">
+              <div className="bg-secondary border-2 border-primary/40 rounded-xl px-16 py-3 text-center shadow-lg animate-[pulse_4s_ease-in-out_infinite]">
+                <span className="text-sm font-bold text-primary tracking-widest">🎵 PALCO</span>
+              </div>
             </div>
+
+            <div className="shrink-0 w-[80px]" />
           </div>
         </div>
       </div>
