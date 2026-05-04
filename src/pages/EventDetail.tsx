@@ -21,7 +21,8 @@ import { EventDashboard } from '@/components/events/EventDashboard';
 import { CheckoutDialog } from '@/components/events/CheckoutDialog';
 import { ReservationsList } from '@/components/events/ReservationsList';
 import { BulkPriceEditor } from '@/components/events/BulkPriceEditor';
-import { ArrowLeft, Loader2, LayoutGrid, Calendar, MapPin, Users, Play, Ticket } from 'lucide-react';
+import { ArrowLeft, Loader2, LayoutGrid, Calendar, MapPin, Users, Play, Ticket, Building2 } from 'lucide-react';
+import { LocacaoEspacosPanel } from '@/components/events/LocacaoEspacosPanel';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
