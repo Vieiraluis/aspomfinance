@@ -469,6 +469,42 @@ export type Database = {
         }
         Relationships: []
       }
+      espacos_locacao: {
+        Row: {
+          capacidade_maxima: number
+          created_at: string
+          descricao: string | null
+          id: string
+          is_active: boolean
+          nome: string
+          preco_base: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          capacidade_maxima?: number
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          is_active?: boolean
+          nome: string
+          preco_base?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          capacidade_maxima?: number
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          is_active?: boolean
+          nome?: string
+          preco_base?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       event_reservation_items: {
         Row: {
           created_at: string
@@ -709,6 +745,92 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      locacao_reservas: {
+        Row: {
+          cliente_documento: string | null
+          cliente_email: string | null
+          cliente_nome: string
+          cliente_telefone: string | null
+          contrato_assinado_url: string | null
+          contrato_modelo_url: string | null
+          created_at: string
+          data_evento: string
+          espaco_id: string
+          event_id: string | null
+          hora_fim: string | null
+          hora_inicio: string | null
+          id: string
+          observacoes: string | null
+          protocolo: string | null
+          status: string
+          tipo_evento: string | null
+          total_lugares: number
+          turno: string
+          updated_at: string
+          user_id: string
+          valor_total: number
+          whatsapp_enviado_at: string | null
+        }
+        Insert: {
+          cliente_documento?: string | null
+          cliente_email?: string | null
+          cliente_nome: string
+          cliente_telefone?: string | null
+          contrato_assinado_url?: string | null
+          contrato_modelo_url?: string | null
+          created_at?: string
+          data_evento: string
+          espaco_id: string
+          event_id?: string | null
+          hora_fim?: string | null
+          hora_inicio?: string | null
+          id?: string
+          observacoes?: string | null
+          protocolo?: string | null
+          status?: string
+          tipo_evento?: string | null
+          total_lugares?: number
+          turno: string
+          updated_at?: string
+          user_id: string
+          valor_total?: number
+          whatsapp_enviado_at?: string | null
+        }
+        Update: {
+          cliente_documento?: string | null
+          cliente_email?: string | null
+          cliente_nome?: string
+          cliente_telefone?: string | null
+          contrato_assinado_url?: string | null
+          contrato_modelo_url?: string | null
+          created_at?: string
+          data_evento?: string
+          espaco_id?: string
+          event_id?: string | null
+          hora_fim?: string | null
+          hora_inicio?: string | null
+          id?: string
+          observacoes?: string | null
+          protocolo?: string | null
+          status?: string
+          tipo_evento?: string | null
+          total_lugares?: number
+          turno?: string
+          updated_at?: string
+          user_id?: string
+          valor_total?: number
+          whatsapp_enviado_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "locacao_reservas_espaco_id_fkey"
+            columns: ["espaco_id"]
+            isOneToOne: false
+            referencedRelation: "espacos_locacao"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       payments: {
         Row: {
