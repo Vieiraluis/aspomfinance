@@ -154,6 +154,7 @@ export default function EventDetail() {
             <TabsList>
               <TabsTrigger value="map">Mapa de Mesas</TabsTrigger>
               <TabsTrigger value="reservations">Reservas ({reservations.length})</TabsTrigger>
+              <TabsTrigger value="locacao"><Building2 className="w-3.5 h-3.5 mr-1" /> Locação de Espaço</TabsTrigger>
               <TabsTrigger value="settings">Configurações</TabsTrigger>
             </TabsList>
 
@@ -184,6 +185,10 @@ export default function EventDetail() {
                 tables={tables}
                 eventId={eventId!}
               />
+            </TabsContent>
+
+            <TabsContent value="locacao" className="mt-4">
+              <LocacaoEspacosPanel />
             </TabsContent>
 
             <TabsContent value="settings" className="mt-4">
