@@ -90,8 +90,8 @@ function EspacosView({ espacos }: { espacos: EspacoLocacao[] }) {
             </div>
             <div>
               <Label>Preço base</Label>
-              <CurrencyInput value={draft.preco_base}
-                onChange={(v) => setDraft(d => ({ ...d, preco_base: v }))} />
+              <CurrencyInput value={String(draft.preco_base || '')}
+                onValueChange={(v) => setDraft(d => ({ ...d, preco_base: parseFloat(v) || 0 }))} />
             </div>
           </div>
           <div>
@@ -239,7 +239,7 @@ function ReservasView({ reservas, espacos }: { reservas: LocacaoReserva[]; espac
             </div>
             <div>
               <Label>Valor total</Label>
-              <CurrencyInput value={draft.valor_total} onChange={(v) => setDraft({ ...draft, valor_total: v })} />
+              <CurrencyInput value={String(draft.valor_total || '')} onValueChange={(v) => setDraft({ ...draft, valor_total: parseFloat(v) || 0 })} />
             </div>
           </div>
           {conflito && (
