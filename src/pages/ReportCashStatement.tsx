@@ -69,7 +69,7 @@ const ReportCashStatement = () => {
         date: new Date(a.paidAt!),
         description: a.description + (a.supplierName ? ` — ${a.supplierName}` : ''),
         amount: a.amount,
-        type: a.type === 'receivable' ? 'in' : 'out',
+        type: (a.type === 'receivable' ? 'in' : 'out') as 'in' | 'out',
       })).sort((x, y) => x.date.getTime() - y.date.getTime());
 
       const entries = txs.filter(t => t.type === 'in').reduce((s, t) => s + t.amount, 0);
@@ -99,7 +99,7 @@ const ReportCashStatement = () => {
           date: new Date(a.paidAt!),
           description: a.description + (a.supplierName ? ` — ${a.supplierName}` : ''),
           amount: a.amount,
-          type: a.type === 'receivable' ? 'in' : 'out',
+          type: (a.type === 'receivable' ? 'in' : 'out') as 'in' | 'out',
         })).sort((x, y) => x.date.getTime() - y.date.getTime());
         const entries = txs.filter(t => t.type === 'in').reduce((s, t) => s + t.amount, 0);
         const exits = txs.filter(t => t.type === 'out').reduce((s, t) => s + t.amount, 0);
