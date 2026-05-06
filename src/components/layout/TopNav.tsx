@@ -52,6 +52,7 @@ const eventosItem: NavItem = { name: 'Eventos', href: '/events', icon: CalendarD
 const reportsItems: NavItem[] = [
   { name: 'Visão Geral', href: '/reports', icon: BarChart3 },
   { name: 'Consolidado Mensal', href: '/reports/consolidated', icon: BarChart3 },
+  { name: 'Extrato Entradas/Saídas', href: '/reports/cash-statement', icon: FileSpreadsheet },
   { name: 'Rel. Contas a Pagar', href: '/reports/payables', icon: FileSpreadsheet },
   { name: 'Rel. Contas a Receber', href: '/reports/receivables', icon: FileSpreadsheet },
   { name: 'Contas Pagas', href: '/reports/paid-payables', icon: FileSpreadsheet },
