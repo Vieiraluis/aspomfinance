@@ -39,7 +39,8 @@ const ReportCashStatement = () => {
   const today = new Date();
   const [startDate, setStartDate] = useState<Date | undefined>(startOfMonth(today));
   const [endDate, setEndDate] = useState<Date | undefined>(endOfMonth(today));
-  const [selectedBank, setSelectedBank] = useState<string>('all');
+  const [selectedBankIds, setSelectedBankIds] = useState<string[] | null>(null); // null = all
+  const [includeNoBank, setIncludeNoBank] = useState<boolean>(true);
 
   const groups = useMemo<AccountGroup[]>(() => {
     if (!startDate || !endDate) return [];
