@@ -86,8 +86,8 @@ const ReportCashStatement = () => {
       };
     });
 
-    // Also include "Sem conta vinculada" group if showing all
-    if (selectedBank === 'all') {
+    // Also include "Sem conta vinculada" group when allowed
+    if (includeNoBank && selectedBankIds === null) {
       const noBank = paid.filter((a) => !a.bankAccountId);
       if (noBank.length > 0) {
         const prevSigned = noBank
