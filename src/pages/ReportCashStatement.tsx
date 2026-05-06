@@ -49,9 +49,9 @@ const ReportCashStatement = () => {
 
     const paid = accounts.filter((a) => a.status === 'paid' && a.paidAt);
 
-    const banksToShow = selectedBank === 'all'
+    const banksToShow = selectedBankIds === null
       ? bankAccounts.filter(b => b.isActive)
-      : bankAccounts.filter(b => b.id === selectedBank);
+      : bankAccounts.filter(b => b.isActive && selectedBankIds.includes(b.id));
 
     const result: AccountGroup[] = banksToShow.map((bank) => {
       const accountTxs = paid.filter((a) => a.bankAccountId === bank.id);
