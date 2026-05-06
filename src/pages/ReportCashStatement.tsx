@@ -264,17 +264,73 @@ const ReportCashStatement = () => {
                 <X className="w-4 h-4" />
               </Button>
             )}
-            <Select value={selectedBank} onValueChange={setSelectedBank}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas as Contas</SelectItem>
-                {bankAccounts.filter(b => b.isActive).map(b => (
-                  <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-[240px] justify-between">
+                  <span className="truncate">
+                    {selectedBankIds === null
+                      ? 'Todas as Contas'
+                      : selectedBankIds.length === 0
+                        ? 'Nenhuma conta'
+                        : selectedBankIds.length === 1
+                          ? bankAccounts.find(b => b.id === selectedBankIds[0])?.name ?? '1 conta'
+                          : `${selectedBankIds.length} contas selecionadas`}
+                  </span>
+                  <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50 shrink-0" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[280px] p-0" align="end">
+                <div className="p-2 border-b border-border flex items-center justify-between gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={() => { setSelectedBankIds(null); setIncludeNoBank(true); }}
+                  >
+                    Selecionar todas
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={() => { setSelectedBankIds([]); setIncludeNoBank(false); }}
+                  >
+                    Limpar
+                  </Button>
+                </div>
+                <div className="max-h-[260px] overflow-y-auto p-1">
+                  {bankAccounts.filter(b => b.isActive).map((b) => {
+                    const checked = selectedBankIds === null || selectedBankIds.includes(b.id);
+                    return (
+                      <label
+                        key={b.id}
+                        className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-accent cursor-pointer text-sm"
+                      >
+                        <Checkbox
+                          checked={checked}
+                          onCheckedChange={(v) => {
+                            const allIds = bankAccounts.filter(x => x.isActive).map(x => x.id);
+                            const current = selectedBankIds === null ? allIds : selectedBankIds;
+                            const next = v
+                              ? Array.from(new Set([...current, b.id]))
+                              : current.filter(id => id !== b.id);
+                            setSelectedBankIds(next);
+                          }}
+                        />
+                        <span className="truncate">{b.name}</span>
+                      </label>
+                    );
+                  })}
+                  <label className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-accent cursor-pointer text-sm border-t border-border mt-1 pt-2">
+                    <Checkbox
+                      checked={includeNoBank}
+                      onCheckedChange={(v) => setIncludeNoBank(!!v)}
+                    />
+                    <span className="truncate italic text-muted-foreground">Sem conta vinculada</span>
+                  </label>
+                </div>
+              </PopoverContent>
+            </Popover>
             <Button variant="outline" onClick={() => handlePrint()}>
               <Printer className="w-4 h-4 mr-2" />Imprimir
             </Button>
