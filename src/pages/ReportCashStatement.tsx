@@ -5,8 +5,8 @@ import { formatCurrency, formatDate } from '@/lib/format';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CalendarIcon, FileDown, Printer, Loader2, X } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { CalendarIcon, FileDown, Printer, Loader2, X, ChevronsUpDown, Check } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, isWithinInterval, isBefore } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -39,7 +39,8 @@ const ReportCashStatement = () => {
   const today = new Date();
   const [startDate, setStartDate] = useState<Date | undefined>(startOfMonth(today));
   const [endDate, setEndDate] = useState<Date | undefined>(endOfMonth(today));
-  const [selectedBank, setSelectedBank] = useState<string>('all');
+  const [selectedBankIds, setSelectedBankIds] = useState<string[] | null>(null); // null = all
+  const [includeNoBank, setIncludeNoBank] = useState<boolean>(true);
 
   const groups = useMemo<AccountGroup[]>(() => {
     if (!startDate || !endDate) return [];
@@ -48,9 +49,9 @@ const ReportCashStatement = () => {
 
     const paid = accounts.filter((a) => a.status === 'paid' && a.paidAt);
 
-    const banksToShow = selectedBank === 'all'
+    const banksToShow = selectedBankIds === null
       ? bankAccounts.filter(b => b.isActive)
-      : bankAccounts.filter(b => b.id === selectedBank);
+      : bankAccounts.filter(b => b.isActive && selectedBankIds.includes(b.id));
 
     const result: AccountGroup[] = banksToShow.map((bank) => {
       const accountTxs = paid.filter((a) => a.bankAccountId === bank.id);
@@ -85,8 +86,8 @@ const ReportCashStatement = () => {
       };
     });
 
-    // Also include "Sem conta vinculada" group if showing all
-    if (selectedBank === 'all') {
+    // Also include "Sem conta vinculada" group when allowed
+    if (includeNoBank) {
       const noBank = paid.filter((a) => !a.bankAccountId);
       if (noBank.length > 0) {
         const prevSigned = noBank
@@ -117,7 +118,7 @@ const ReportCashStatement = () => {
     }
 
     return result;
-  }, [accounts, bankAccounts, startDate, endDate, selectedBank]);
+  }, [accounts, bankAccounts, startDate, endDate, selectedBankIds, includeNoBank]);
 
   const totals = useMemo(() => ({
     previous: groups.reduce((s, g) => s + g.previousBalance, 0),
@@ -263,17 +264,73 @@ const ReportCashStatement = () => {
                 <X className="w-4 h-4" />
               </Button>
             )}
-            <Select value={selectedBank} onValueChange={setSelectedBank}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas as Contas</SelectItem>
-                {bankAccounts.filter(b => b.isActive).map(b => (
-                  <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-[240px] justify-between">
+                  <span className="truncate">
+                    {selectedBankIds === null
+                      ? 'Todas as Contas'
+                      : selectedBankIds.length === 0
+                        ? 'Nenhuma conta'
+                        : selectedBankIds.length === 1
+                          ? bankAccounts.find(b => b.id === selectedBankIds[0])?.name ?? '1 conta'
+                          : `${selectedBankIds.length} contas selecionadas`}
+                  </span>
+                  <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50 shrink-0" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[280px] p-0" align="end">
+                <div className="p-2 border-b border-border flex items-center justify-between gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={() => { setSelectedBankIds(null); setIncludeNoBank(true); }}
+                  >
+                    Selecionar todas
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={() => { setSelectedBankIds([]); setIncludeNoBank(false); }}
+                  >
+                    Limpar
+                  </Button>
+                </div>
+                <div className="max-h-[260px] overflow-y-auto p-1">
+                  {bankAccounts.filter(b => b.isActive).map((b) => {
+                    const checked = selectedBankIds === null || selectedBankIds.includes(b.id);
+                    return (
+                      <label
+                        key={b.id}
+                        className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-accent cursor-pointer text-sm"
+                      >
+                        <Checkbox
+                          checked={checked}
+                          onCheckedChange={(v) => {
+                            const allIds = bankAccounts.filter(x => x.isActive).map(x => x.id);
+                            const current = selectedBankIds === null ? allIds : selectedBankIds;
+                            const next = v
+                              ? Array.from(new Set([...current, b.id]))
+                              : current.filter(id => id !== b.id);
+                            setSelectedBankIds(next);
+                          }}
+                        />
+                        <span className="truncate">{b.name}</span>
+                      </label>
+                    );
+                  })}
+                  <label className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-accent cursor-pointer text-sm border-t border-border mt-1 pt-2">
+                    <Checkbox
+                      checked={includeNoBank}
+                      onCheckedChange={(v) => setIncludeNoBank(!!v)}
+                    />
+                    <span className="truncate italic text-muted-foreground">Sem conta vinculada</span>
+                  </label>
+                </div>
+              </PopoverContent>
+            </Popover>
             <Button variant="outline" onClick={() => handlePrint()}>
               <Printer className="w-4 h-4 mr-2" />Imprimir
             </Button>
