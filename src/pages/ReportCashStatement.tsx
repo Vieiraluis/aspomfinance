@@ -6,7 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
-import { CalendarIcon, FileDown, Printer, Loader2, X, ChevronsUpDown, Check } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { CalendarIcon, FileDown, Printer, Loader2, X, ChevronsUpDown } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, isWithinInterval, isBefore } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -41,6 +43,7 @@ const ReportCashStatement = () => {
   const [endDate, setEndDate] = useState<Date | undefined>(endOfMonth(today));
   const [selectedBankIds, setSelectedBankIds] = useState<string[] | null>(null); // null = all
   const [includeNoBank, setIncludeNoBank] = useState<boolean>(true);
+  const [includePreviousBalance, setIncludePreviousBalance] = useState<boolean>(true);
 
   const groups = useMemo<AccountGroup[]>(() => {
     if (!startDate || !endDate) return [];
@@ -60,7 +63,7 @@ const ReportCashStatement = () => {
       const prevSigned = accountTxs
         .filter((a) => a.paidAt && isBefore(new Date(a.paidAt), start))
         .reduce((sum, a) => sum + (a.type === 'receivable' ? a.amount : -a.amount), 0);
-      const previousBalance = bank.initialBalance + prevSigned;
+      const previousBalance = includePreviousBalance ? bank.initialBalance + prevSigned : 0;
 
       const inRange = accountTxs.filter((a) =>
         a.paidAt && isWithinInterval(new Date(a.paidAt), { start, end })
@@ -93,6 +96,7 @@ const ReportCashStatement = () => {
         const prevSigned = noBank
           .filter((a) => a.paidAt && isBefore(new Date(a.paidAt), start))
           .reduce((s, a) => s + (a.type === 'receivable' ? a.amount : -a.amount), 0);
+        const previousBalance = includePreviousBalance ? prevSigned : 0;
         const inRange = noBank.filter((a) =>
           a.paidAt && isWithinInterval(new Date(a.paidAt), { start, end })
         );
@@ -104,21 +108,21 @@ const ReportCashStatement = () => {
         })).sort((x, y) => x.date.getTime() - y.date.getTime());
         const entries = txs.filter(t => t.type === 'in').reduce((s, t) => s + t.amount, 0);
         const exits = txs.filter(t => t.type === 'out').reduce((s, t) => s + t.amount, 0);
-        if (txs.length > 0 || prevSigned !== 0) {
+        if (txs.length > 0 || previousBalance !== 0) {
           result.push({
             bankAccount: { id: 'no-bank', name: 'Sem conta vinculada', initialBalance: 0 },
-            previousBalance: prevSigned,
+            previousBalance,
             transactions: txs,
             entries,
             exits,
-            finalBalance: prevSigned + entries - exits,
+            finalBalance: previousBalance + entries - exits,
           });
         }
       }
     }
 
     return result;
-  }, [accounts, bankAccounts, startDate, endDate, selectedBankIds, includeNoBank]);
+  }, [accounts, bankAccounts, startDate, endDate, selectedBankIds, includeNoBank, includePreviousBalance]);
 
   const totals = useMemo(() => ({
     previous: groups.reduce((s, g) => s + g.previousBalance, 0),
@@ -331,6 +335,16 @@ const ReportCashStatement = () => {
                 </div>
               </PopoverContent>
             </Popover>
+            <div className="flex items-center gap-2 border rounded-md px-3 py-1.5 bg-background">
+              <Switch
+                id="prev-balance"
+                checked={includePreviousBalance}
+                onCheckedChange={setIncludePreviousBalance}
+              />
+              <Label htmlFor="prev-balance" className="text-sm cursor-pointer">
+                Considerar saldo anterior
+              </Label>
+            </div>
             <Button variant="outline" onClick={() => handlePrint()}>
               <Printer className="w-4 h-4 mr-2" />Imprimir
             </Button>
