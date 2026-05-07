@@ -335,6 +335,16 @@ const ReportCashStatement = () => {
                 </div>
               </PopoverContent>
             </Popover>
+            <div className="flex items-center gap-2 border rounded-md px-3 py-1.5 bg-background">
+              <Switch
+                id="prev-balance"
+                checked={includePreviousBalance}
+                onCheckedChange={setIncludePreviousBalance}
+              />
+              <Label htmlFor="prev-balance" className="text-sm cursor-pointer">
+                Considerar saldo anterior
+              </Label>
+            </div>
             <Button variant="outline" onClick={() => handlePrint()}>
               <Printer className="w-4 h-4 mr-2" />Imprimir
             </Button>
