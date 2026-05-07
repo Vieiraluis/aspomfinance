@@ -122,7 +122,7 @@ const ReportCashStatement = () => {
     }
 
     return result;
-  }, [accounts, bankAccounts, startDate, endDate, selectedBankIds, includeNoBank]);
+  }, [accounts, bankAccounts, startDate, endDate, selectedBankIds, includeNoBank, includePreviousBalance]);
 
   const totals = useMemo(() => ({
     previous: groups.reduce((s, g) => s + g.previousBalance, 0),
