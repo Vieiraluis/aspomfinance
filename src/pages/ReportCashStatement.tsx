@@ -96,6 +96,7 @@ const ReportCashStatement = () => {
         const prevSigned = noBank
           .filter((a) => a.paidAt && isBefore(new Date(a.paidAt), start))
           .reduce((s, a) => s + (a.type === 'receivable' ? a.amount : -a.amount), 0);
+        const previousBalance = includePreviousBalance ? prevSigned : 0;
         const inRange = noBank.filter((a) =>
           a.paidAt && isWithinInterval(new Date(a.paidAt), { start, end })
         );
@@ -107,14 +108,14 @@ const ReportCashStatement = () => {
         })).sort((x, y) => x.date.getTime() - y.date.getTime());
         const entries = txs.filter(t => t.type === 'in').reduce((s, t) => s + t.amount, 0);
         const exits = txs.filter(t => t.type === 'out').reduce((s, t) => s + t.amount, 0);
-        if (txs.length > 0 || prevSigned !== 0) {
+        if (txs.length > 0 || previousBalance !== 0) {
           result.push({
             bankAccount: { id: 'no-bank', name: 'Sem conta vinculada', initialBalance: 0 },
-            previousBalance: prevSigned,
+            previousBalance,
             transactions: txs,
             entries,
             exits,
-            finalBalance: prevSigned + entries - exits,
+            finalBalance: previousBalance + entries - exits,
           });
         }
       }
