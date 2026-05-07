@@ -63,7 +63,7 @@ const ReportCashStatement = () => {
       const prevSigned = accountTxs
         .filter((a) => a.paidAt && isBefore(new Date(a.paidAt), start))
         .reduce((sum, a) => sum + (a.type === 'receivable' ? a.amount : -a.amount), 0);
-      const previousBalance = bank.initialBalance + prevSigned;
+      const previousBalance = includePreviousBalance ? bank.initialBalance + prevSigned : 0;
 
       const inRange = accountTxs.filter((a) =>
         a.paidAt && isWithinInterval(new Date(a.paidAt), { start, end })
