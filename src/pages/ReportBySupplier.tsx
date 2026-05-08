@@ -530,9 +530,6 @@ const ReportBySupplier = () => {
               <span>Registros: <strong>{summary.count}</strong></span>
             </div>
 
-            {/* Monthly summary at top of print */}
-            <MonthlySummarySection forPrint />
-
             <table className="w-full text-xs border-collapse">
               <thead>
                 <tr className="border-b-2 border-gray-400">
