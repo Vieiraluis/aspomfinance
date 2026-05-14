@@ -84,6 +84,9 @@ function AppRoutes() {
       <Route path="/hr" element={<ProtectedRoute><HR /></ProtectedRoute>} />
       <Route path="/events" element={<ProtectedRoute><Events /></ProtectedRoute>} />
       <Route path="/events/:eventId" element={<ProtectedRoute><EventDetail /></ProtectedRoute>} />
+      <Route path="/associados" element={<ProtectedRoute><Associados /></ProtectedRoute>} />
+      <Route path="/associados/dashboard" element={<ProtectedRoute><AssociadosDashboard /></ProtectedRoute>} />
+      <Route path="/associados/mensalidades" element={<ProtectedRoute><Mensalidades /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
       <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
       <Route path="/reports/payables" element={<ProtectedRoute><ReportPayables /></ProtectedRoute>} />
