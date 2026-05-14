@@ -105,6 +105,102 @@ export type Database = {
           },
         ]
       }
+      associados: {
+        Row: {
+          agencia: string | null
+          banco: string | null
+          conta: string | null
+          cpf: string | null
+          created_at: string
+          data_adesao: string | null
+          dia_vencimento: number
+          email: string | null
+          endereco_bairro: string | null
+          endereco_cep: string | null
+          endereco_cidade: string | null
+          endereco_complemento: string | null
+          endereco_estado: string | null
+          endereco_numero: string | null
+          endereco_rua: string | null
+          id: string
+          identidade: string | null
+          matricula_associacao: string | null
+          nome: string
+          observacoes: string | null
+          photo_url: string | null
+          pix_chave: string | null
+          posto_graduacao: string | null
+          rg_pmerj: string | null
+          status: string
+          telefone: string | null
+          updated_at: string
+          user_id: string
+          valor_mensalidade: number
+        }
+        Insert: {
+          agencia?: string | null
+          banco?: string | null
+          conta?: string | null
+          cpf?: string | null
+          created_at?: string
+          data_adesao?: string | null
+          dia_vencimento?: number
+          email?: string | null
+          endereco_bairro?: string | null
+          endereco_cep?: string | null
+          endereco_cidade?: string | null
+          endereco_complemento?: string | null
+          endereco_estado?: string | null
+          endereco_numero?: string | null
+          endereco_rua?: string | null
+          id?: string
+          identidade?: string | null
+          matricula_associacao?: string | null
+          nome: string
+          observacoes?: string | null
+          photo_url?: string | null
+          pix_chave?: string | null
+          posto_graduacao?: string | null
+          rg_pmerj?: string | null
+          status?: string
+          telefone?: string | null
+          updated_at?: string
+          user_id: string
+          valor_mensalidade?: number
+        }
+        Update: {
+          agencia?: string | null
+          banco?: string | null
+          conta?: string | null
+          cpf?: string | null
+          created_at?: string
+          data_adesao?: string | null
+          dia_vencimento?: number
+          email?: string | null
+          endereco_bairro?: string | null
+          endereco_cep?: string | null
+          endereco_cidade?: string | null
+          endereco_complemento?: string | null
+          endereco_estado?: string | null
+          endereco_numero?: string | null
+          endereco_rua?: string | null
+          id?: string
+          identidade?: string | null
+          matricula_associacao?: string | null
+          nome?: string
+          observacoes?: string | null
+          photo_url?: string | null
+          pix_chave?: string | null
+          posto_graduacao?: string | null
+          rg_pmerj?: string | null
+          status?: string
+          telefone?: string | null
+          updated_at?: string
+          user_id?: string
+          valor_mensalidade?: number
+        }
+        Relationships: []
+      }
       bank_accounts: {
         Row: {
           account_number: string | null
@@ -832,6 +928,71 @@ export type Database = {
           },
         ]
       }
+      mensalidades: {
+        Row: {
+          associado_id: string
+          bank_account_id: string | null
+          competencia: string
+          created_at: string
+          forma_pagamento: string | null
+          id: string
+          linha_digitavel: string | null
+          observacoes: string | null
+          pago_em: string | null
+          pix_payload: string | null
+          pix_txid: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          valor: number
+          vencimento: string
+        }
+        Insert: {
+          associado_id: string
+          bank_account_id?: string | null
+          competencia: string
+          created_at?: string
+          forma_pagamento?: string | null
+          id?: string
+          linha_digitavel?: string | null
+          observacoes?: string | null
+          pago_em?: string | null
+          pix_payload?: string | null
+          pix_txid?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          valor?: number
+          vencimento: string
+        }
+        Update: {
+          associado_id?: string
+          bank_account_id?: string | null
+          competencia?: string
+          created_at?: string
+          forma_pagamento?: string | null
+          id?: string
+          linha_digitavel?: string | null
+          observacoes?: string | null
+          pago_em?: string | null
+          pix_payload?: string | null
+          pix_txid?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          valor?: number
+          vencimento?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mensalidades_associado_id_fkey"
+            columns: ["associado_id"]
+            isOneToOne: false
+            referencedRelation: "associados"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           account_id: string
@@ -939,6 +1100,8 @@ export type Database = {
       }
       receipt_settings: {
         Row: {
+          beneficiario_cidade: string | null
+          beneficiario_nome: string | null
           city: string | null
           company_address: string | null
           company_document: string | null
@@ -950,10 +1113,14 @@ export type Database = {
           header_text: string | null
           id: string
           logo_url: string | null
+          pix_key: string | null
+          pix_key_type: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          beneficiario_cidade?: string | null
+          beneficiario_nome?: string | null
           city?: string | null
           company_address?: string | null
           company_document?: string | null
@@ -965,10 +1132,14 @@ export type Database = {
           header_text?: string | null
           id?: string
           logo_url?: string | null
+          pix_key?: string | null
+          pix_key_type?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          beneficiario_cidade?: string | null
+          beneficiario_nome?: string | null
           city?: string | null
           company_address?: string | null
           company_document?: string | null
@@ -980,6 +1151,8 @@ export type Database = {
           header_text?: string | null
           id?: string
           logo_url?: string | null
+          pix_key?: string | null
+          pix_key_type?: string | null
           updated_at?: string
           user_id?: string
         }
