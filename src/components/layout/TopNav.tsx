@@ -17,6 +17,7 @@ import {
   UserCog,
   CalendarDays,
   Building2,
+  Shield,
   User as UserIcon,
 } from 'lucide-react';
 import { DueDateNotifications } from '@/components/notifications/DueDateNotifications';
@@ -48,6 +49,12 @@ const financeiroItems: NavItem[] = [
 
 const rhItem: NavItem = { name: 'Gestão de RH', href: '/hr', icon: UserCog };
 const eventosItem: NavItem = { name: 'Eventos', href: '/events', icon: CalendarDays };
+
+const associadosItems: NavItem[] = [
+  { name: 'Painel', href: '/associados/dashboard', icon: BarChart3 },
+  { name: 'Associados', href: '/associados', icon: Users },
+  { name: 'Mensalidades', href: '/associados/mensalidades', icon: CreditCard },
+];
 
 const reportsItems: NavItem[] = [
   { name: 'Visão Geral', href: '/reports', icon: BarChart3 },
@@ -158,6 +165,7 @@ export function TopNav() {
 
   const financeiroActive = financeiroItems.some((i) => location.pathname.startsWith(i.href));
   const reportsActive = location.pathname.startsWith('/reports');
+  const associadosActive = location.pathname.startsWith('/associados');
 
   const handleLogout = async () => {
     await signOut();
@@ -189,6 +197,12 @@ export function TopNav() {
         />
         <SimpleLink item={rhItem} />
         <SimpleLink item={eventosItem} />
+        <HoverDropdown
+          label="Associados"
+          icon={Shield}
+          items={associadosItems}
+          isGroupActive={associadosActive}
+        />
         <HoverDropdown
           label="Relatórios"
           icon={BarChart3}

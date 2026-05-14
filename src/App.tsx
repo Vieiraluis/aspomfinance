@@ -25,6 +25,9 @@ import Auth from "./pages/Auth";
 import HR from "./pages/HR";
 import Events from "./pages/Events";
 import EventDetail from "./pages/EventDetail";
+import Associados from "./pages/Associados";
+import Mensalidades from "./pages/Mensalidades";
+import AssociadosDashboard from "./pages/AssociadosDashboard";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
 
