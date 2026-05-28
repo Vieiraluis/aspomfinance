@@ -123,7 +123,6 @@ export default function Mensalidades() {
         </div>
 
         <div className="glass-card overflow-hidden">
-        <div className="glass-card overflow-hidden">
           {isLoading ? (
             <TableSkeleton columns={8} rows={8} />
           ) : filtered.length === 0 ? (
