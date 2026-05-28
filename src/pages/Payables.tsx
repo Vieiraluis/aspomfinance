@@ -511,7 +511,9 @@ const Payables = () => {
         
         {/* Table */}
         <div className="glass-card overflow-hidden">
-          {filteredPayables.length === 0 ? (
+          {isLoading ? (
+            <TableSkeleton columns={8} rows={8} />
+          ) : filteredPayables.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
               <TrendingDown className="w-12 h-12 mb-3 opacity-50" />
               <p>Nenhuma conta a pagar encontrada</p>
@@ -539,7 +541,7 @@ const Payables = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredPayables.map((account) => (
+                {pagination.paged.map((account) => (
                   <TableRow key={account.id}>
                     {paidPayables.length > 0 && (
                       <TableCell>
@@ -609,6 +611,19 @@ const Payables = () => {
             </Table>
           )}
         </div>
+
+        {!isLoading && (
+          <TablePagination
+            page={pagination.page}
+            pageSize={pagination.pageSize}
+            total={pagination.total}
+            totalPages={pagination.totalPages}
+            onPageChange={pagination.setPage}
+            onPageSizeChange={pagination.setPageSize}
+            itemLabel="contas"
+          />
+        )}
+
         
         {/* Edit Dialog */}
         <EditAccountDialog
