@@ -42,6 +42,8 @@ import { SupplierSelect } from '@/components/suppliers/SupplierSelect';
 import { ReceiptDialog } from '@/components/receipts/ReceiptDialog';
 import { AccountFilters } from '@/components/accounts/AccountFilters';
 import { EditAccountDialog } from '@/components/accounts/EditAccountDialog';
+import { TableSkeleton } from '@/components/ui/table-skeleton';
+import { TablePagination, usePagination } from '@/components/ui/table-pagination';
 
 const statusLabels = {
   pending: 'Pendente',
@@ -282,15 +284,9 @@ const Receivables = () => {
     }
   };
 
-  if (isLoading) {
-    return (
-      <MainLayout>
-        <div className="flex items-center justify-center h-64">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        </div>
-      </MainLayout>
-    );
-  }
+  const pagination = usePagination(filteredReceivables, 50);
+
+
   
   return (
     <MainLayout>
@@ -535,7 +531,9 @@ const Receivables = () => {
         
         {/* Table */}
         <div className="glass-card overflow-hidden">
-          {filteredReceivables.length === 0 ? (
+          {isLoading ? (
+            <TableSkeleton columns={9} rows={8} />
+          ) : filteredReceivables.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
               <TrendingUp className="w-12 h-12 mb-3 opacity-50" />
               <p>Nenhuma conta a receber encontrada</p>
@@ -564,7 +562,7 @@ const Receivables = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredReceivables.map((account) => (
+                {pagination.paged.map((account) => (
                   <TableRow key={account.id}>
                     {paidReceivables.length > 0 && (
                       <TableCell>
@@ -643,6 +641,19 @@ const Receivables = () => {
             </Table>
           )}
         </div>
+
+        {!isLoading && (
+          <TablePagination
+            page={pagination.page}
+            pageSize={pagination.pageSize}
+            total={pagination.total}
+            totalPages={pagination.totalPages}
+            onPageChange={pagination.setPage}
+            onPageSizeChange={pagination.setPageSize}
+            itemLabel="contas"
+          />
+        )}
+
         
         {/* Edit Dialog */}
         <EditAccountDialog

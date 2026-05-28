@@ -176,7 +176,9 @@ export const useAccounts = () => {
         .from('accounts')
         .select('*')
         .eq('user_id', user.id)
-        .order('due_date');
+        .order('due_date')
+        .range(0, 49999);
+      
       
       if (error) throw error;
       return (data || []).map(mapAccountFromDB);
