@@ -41,6 +41,8 @@ import { SupplierSelect } from '@/components/suppliers/SupplierSelect';
 import { ReceiptDialog } from '@/components/receipts/ReceiptDialog';
 import { AccountFilters } from '@/components/accounts/AccountFilters';
 import { EditAccountDialog } from '@/components/accounts/EditAccountDialog';
+import { TableSkeleton } from '@/components/ui/table-skeleton';
+import { TablePagination, usePagination } from '@/components/ui/table-pagination';
 
 const statusLabels = {
   pending: 'Pendente',
@@ -268,15 +270,9 @@ const Payables = () => {
     }
   };
 
-  if (isLoading) {
-    return (
-      <MainLayout>
-        <div className="flex items-center justify-center h-64">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        </div>
-      </MainLayout>
-    );
-  }
+  const pagination = usePagination(filteredPayables, 50);
+
+
   
   return (
     <MainLayout>
