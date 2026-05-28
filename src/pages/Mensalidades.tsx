@@ -11,6 +11,9 @@ import { formatCurrency } from '@/lib/format';
 import { MensalidadeStatusBadge } from '@/components/associados/StatusBadge';
 import { BoletoBatchDialog } from '@/components/associados/BoletoBatchDialog';
 import { toast } from '@/hooks/use-toast';
+import { TableSkeleton } from '@/components/ui/table-skeleton';
+import { TablePagination, usePagination } from '@/components/ui/table-pagination';
+
 
 const currentMM_YYYY = () => {
   const d = new Date();

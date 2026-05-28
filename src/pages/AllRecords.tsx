@@ -46,6 +46,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Account } from '@/types/financial';
 import { toast } from '@/hooks/use-toast';
+import { TableSkeleton } from '@/components/ui/table-skeleton';
+import { TablePagination, usePagination } from '@/components/ui/table-pagination';
 
 const statusLabels: Record<string, string> = {
   pending: 'Pendente',
