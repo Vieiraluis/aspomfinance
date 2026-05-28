@@ -179,6 +179,8 @@ const AllRecords = () => {
       });
   }, [accounts, search, typeFilter, statusFilter, dueDateFilter, dateRange]);
 
+  const pagination = usePagination(filteredAccounts, 50);
+
   const getDueDateBadge = (account: Account) => {
     if (account.status === 'paid' || account.status === 'cancelled') return null;
     
@@ -414,110 +416,122 @@ const AllRecords = () => {
         </div>
 
         {/* Table */}
-        <div className="glass-card overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-muted/50">
-                <TableHead className="w-[80px]">Tipo</TableHead>
-                <TableHead>Descrição</TableHead>
-                <TableHead>Categoria</TableHead>
-                <TableHead>Vencimento</TableHead>
-                <TableHead>Valor</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Anexos</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredAccounts.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-12">
-                    <div className="flex flex-col items-center gap-2">
-                      <FileText className="h-12 w-12 text-muted-foreground/50" />
-                      <p className="text-muted-foreground">Nenhum registro encontrado</p>
-                      <p className="text-sm text-muted-foreground">Tente ajustar os filtros</p>
-                    </div>
-                  </TableCell>
+        {isLoading ? (
+          <TableSkeleton columns={7} rows={8} />
+        ) : (
+          <div className="glass-card overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="w-[80px]">Tipo</TableHead>
+                  <TableHead>Descrição</TableHead>
+                  <TableHead>Categoria</TableHead>
+                  <TableHead>Vencimento</TableHead>
+                  <TableHead>Valor</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Anexos</TableHead>
                 </TableRow>
-              ) : (
-                filteredAccounts.map((account) => {
-                  const effectiveStatus = getEffectiveStatus(account);
-                  const dueBadge = getDueDateBadge(account);
-                  
-                  return (
-                    <TableRow 
-                      key={account.id}
-                      className={cn(
-                        "transition-colors",
-                        effectiveStatus === 'overdue' && "bg-destructive/5"
-                      )}
-                    >
-                      <TableCell>
-                        {account.type === 'payable' ? (
-                          <div className="flex items-center gap-1">
-                            <TrendingDown className="h-4 w-4 text-destructive" />
-                            <span className="text-xs text-muted-foreground">Pagar</span>
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-1">
-                            <TrendingUp className="h-4 w-4 text-success" />
-                            <span className="text-xs text-muted-foreground">Receber</span>
-                          </div>
+              </TableHeader>
+              <TableBody>
+                {pagination.paged.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-12">
+                      <div className="flex flex-col items-center gap-2">
+                        <FileText className="h-12 w-12 text-muted-foreground/50" />
+                        <p className="text-muted-foreground">Nenhum registro encontrado</p>
+                        <p className="text-sm text-muted-foreground">Tente ajustar os filtros</p>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  pagination.paged.map((account) => {
+                    const effectiveStatus = getEffectiveStatus(account);
+                    const dueBadge = getDueDateBadge(account);
+                    
+                    return (
+                      <TableRow 
+                        key={account.id}
+                        className={cn(
+                          "transition-colors",
+                          effectiveStatus === 'overdue' && "bg-destructive/5"
                         )}
-                      </TableCell>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium">{account.description}</p>
-                          {account.supplierName && (
-                            <p className="text-xs text-muted-foreground">{account.supplierName}</p>
+                      >
+                        <TableCell>
+                          {account.type === 'payable' ? (
+                            <div className="flex items-center gap-1">
+                              <TrendingDown className="h-4 w-4 text-destructive" />
+                              <span className="text-xs text-muted-foreground">Pagar</span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1">
+                              <TrendingUp className="h-4 w-4 text-success" />
+                              <span className="text-xs text-muted-foreground">Receber</span>
+                            </div>
                           )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {account.category}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <span>{formatDate(account.dueDate)}</span>
-                          {dueBadge}
-                        </div>
-                      </TableCell>
-                      <TableCell className="font-semibold">
-                        {formatCurrency(account.amount)}
-                      </TableCell>
-                      <TableCell>
-                        <Badge 
-                          variant="outline" 
-                          className={cn("border", statusStyles[effectiveStatus])}
-                        >
-                          {statusLabels[effectiveStatus]}
-                        </Badge>
-                        {account.paidAt && (
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Baixa: {formatDate(account.paidAt)}
-                          </p>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <AttachmentButtons
-                          billingSlipUrl={account.billingSlipUrl}
-                          paymentReceiptUrl={account.paymentReceiptUrl}
-                          onBillingSlipChange={(url) => updateAccountMutation.mutate({ id: account.id, billingSlipUrl: url })}
-                          onPaymentReceiptChange={(url) => updateAccountMutation.mutate({ id: account.id, paymentReceiptUrl: url })}
-                          compact
-                        />
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              )}
-            </TableBody>
-          </Table>
-        </div>
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium">{account.description}</p>
+                            {account.supplierName && (
+                              <p className="text-xs text-muted-foreground">{account.supplierName}</p>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {account.category}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <span>{formatDate(account.dueDate)}</span>
+                            {dueBadge}
+                          </div>
+                        </TableCell>
+                        <TableCell className="font-semibold">
+                          {formatCurrency(account.amount)}
+                        </TableCell>
+                        <TableCell>
+                          <Badge 
+                            variant="outline" 
+                            className={cn("border", statusStyles[effectiveStatus])}
+                          >
+                            {statusLabels[effectiveStatus]}
+                          </Badge>
+                          {account.paidAt && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Baixa: {formatDate(account.paidAt)}
+                            </p>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <AttachmentButtons
+                            billingSlipUrl={account.billingSlipUrl}
+                            paymentReceiptUrl={account.paymentReceiptUrl}
+                            onBillingSlipChange={(url) => updateAccountMutation.mutate({ id: account.id, billingSlipUrl: url })}
+                            onPaymentReceiptChange={(url) => updateAccountMutation.mutate({ id: account.id, paymentReceiptUrl: url })}
+                            compact
+                          />
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        )}
 
-        {/* Results count */}
-        <div className="text-sm text-muted-foreground text-center">
-          Exibindo {filteredAccounts.length} de {accounts.length} registros
-        </div>
+        {!isLoading && (
+          <TablePagination
+            page={pagination.page}
+            pageSize={pagination.pageSize}
+            total={pagination.total}
+            totalPages={pagination.totalPages}
+            onPageChange={pagination.setPage}
+            onPageSizeChange={pagination.setPageSize}
+            itemLabel={`de ${accounts.length} registros totais`}
+          />
+        )}
+
       </div>
     </MainLayout>
   );
