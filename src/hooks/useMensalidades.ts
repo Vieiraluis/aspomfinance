@@ -12,7 +12,8 @@ export function useMensalidades() {
       const { data, error } = await supabase
         .from('mensalidades')
         .select('*')
-        .order('vencimento', { ascending: false });
+        .order('vencimento', { ascending: false })
+        .range(0, 49999);
       if (error) throw error;
       return (data || []) as Mensalidade[];
     },
