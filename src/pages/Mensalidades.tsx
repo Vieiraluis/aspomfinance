@@ -45,6 +45,9 @@ export default function Mensalidades() {
     });
   }, [mensalidades, associados, competencia, statusFilter, search]);
 
+  const pagination = usePagination(filtered, 50);
+
+
   const competencias = useMemo(() => {
     const set = new Set(mensalidades.map((m) => m.competencia));
     set.add(currentMM_YYYY());
@@ -120,8 +123,9 @@ export default function Mensalidades() {
         </div>
 
         <div className="glass-card overflow-hidden">
+        <div className="glass-card overflow-hidden">
           {isLoading ? (
-            <div className="flex items-center justify-center py-16"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
+            <TableSkeleton columns={8} rows={8} />
           ) : filtered.length === 0 ? (
             <div className="text-center py-16 text-muted-foreground">Nenhuma mensalidade encontrada para o filtro selecionado.</div>
           ) : (
@@ -139,7 +143,7 @@ export default function Mensalidades() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((m) => {
+                {pagination.paged.map((m) => {
                   const a = associados.find((x) => x.id === m.associado_id);
                   return (
                     <TableRow key={m.id}>
@@ -167,6 +171,18 @@ export default function Mensalidades() {
             </Table>
           )}
         </div>
+
+        {!isLoading && (
+          <TablePagination
+            page={pagination.page}
+            pageSize={pagination.pageSize}
+            total={pagination.total}
+            totalPages={pagination.totalPages}
+            onPageChange={pagination.setPage}
+            onPageSizeChange={pagination.setPageSize}
+            itemLabel="mensalidades"
+          />
+        )}
       </div>
 
       <BoletoBatchDialog open={batchOpen} onOpenChange={setBatchOpen} mensalidades={filtered} associados={associados} />
