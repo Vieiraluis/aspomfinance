@@ -16,7 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { cn } from '@/lib/utils';
 import { Calendar as CalendarIcon, FileSpreadsheet, FileText, Printer, Loader2, TrendingUp, TrendingDown, BarChart3, Hash, Search, X } from 'lucide-react';
 import { paymentMethodLabels } from '@/types/financial';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 
 const ITEMS_PER_PAGE = 20;
 
@@ -195,21 +195,37 @@ const ReportBySupplier = () => {
     });
   };
 
-  const handleExportExcel = () => {
-    const data = sortedAccounts.map(a => ({
-      'Código': a.code || '-',
-      'Vencimento': formatDate(a.dueDate),
-      'Descrição': a.description,
-      'Data Baixa': a.paidAt ? formatDate(a.paidAt) : '-',
-      'Valor Recebido': a.type === 'receivable' ? a.amount : 0,
-      'Valor Pago': a.type === 'payable' ? a.amount : 0,
-      'Status': getStatusLabel(a.status),
-    }));
-
-    const ws = XLSX.utils.json_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Relatório');
-    XLSX.writeFile(wb, `relatorio-cadastro-${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+  const handleExportExcel = async () => {
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('Relatório');
+    ws.columns = [
+      { header: 'Código', key: 'codigo', width: 20 },
+      { header: 'Vencimento', key: 'vencimento', width: 14 },
+      { header: 'Descrição', key: 'descricao', width: 40 },
+      { header: 'Data Baixa', key: 'dataBaixa', width: 14 },
+      { header: 'Valor Recebido', key: 'recebido', width: 16 },
+      { header: 'Valor Pago', key: 'pago', width: 16 },
+      { header: 'Status', key: 'status', width: 14 },
+    ];
+    sortedAccounts.forEach(a => {
+      ws.addRow({
+        codigo: a.code || '-',
+        vencimento: formatDate(a.dueDate),
+        descricao: a.description,
+        dataBaixa: a.paidAt ? formatDate(a.paidAt) : '-',
+        recebido: a.type === 'receivable' ? a.amount : 0,
+        pago: a.type === 'payable' ? a.amount : 0,
+        status: getStatusLabel(a.status),
+      });
+    });
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `relatorio-cadastro-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   // Monthly summary component (reused in screen and print)
