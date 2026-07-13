@@ -3,6 +3,7 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { useAssociados } from '@/hooks/useAssociados';
 import { useMensalidades } from '@/hooks/useMensalidades';
 import { formatCurrency } from '@/lib/format';
+import { sumMoney, addMoney } from '@/lib/money';
 import { Users, TrendingUp, AlertTriangle, Wallet } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
 import { Link } from 'react-router-dom';
