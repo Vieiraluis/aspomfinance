@@ -45,8 +45,8 @@ export default function AssociadosDashboard() {
       const a = associados.find((x) => x.id === m.associado_id);
       const k = a?.posto_graduacao || 'Não informado';
       const cur = map.get(k) || { posto: k, previsto: 0, recebido: 0 };
-      cur.previsto += Number(m.valor);
-      if (m.status === 'pago') cur.recebido += Number(m.valor);
+      cur.previsto = addMoney(cur.previsto, Number(m.valor));
+      if (m.status === 'pago') cur.recebido = addMoney(cur.recebido, Number(m.valor));
       map.set(k, cur);
     }
     return Array.from(map.values());
