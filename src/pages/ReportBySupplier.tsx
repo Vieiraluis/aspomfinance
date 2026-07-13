@@ -4,6 +4,7 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { useAccounts, useSuppliers, useBankAccounts } from '@/hooks/useSupabaseData';
 import { exportToPdf } from '@/lib/exportPdf';
 import { formatCurrency, formatDate } from '@/lib/format';
+import { sumMoney, subMoney } from '@/lib/money';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
@@ -143,18 +144,18 @@ const ReportBySupplier = () => {
 
   // Summary - now includes ALL values (paid + pending)
   const summary = useMemo(() => {
-    const totalReceived = filteredAccounts.filter(a => a.type === 'receivable').reduce((s, a) => s + a.amount, 0);
-    const totalReceivedPaid = filteredAccounts.filter(a => a.type === 'receivable' && a.status === 'paid').reduce((s, a) => s + a.amount, 0);
-    const totalPaid = filteredAccounts.filter(a => a.type === 'payable').reduce((s, a) => s + a.amount, 0);
-    const totalPaidConfirmed = filteredAccounts.filter(a => a.type === 'payable' && a.status === 'paid').reduce((s, a) => s + a.amount, 0);
-    const totalPending = filteredAccounts.filter(a => a.status === 'pending' || a.status === 'overdue').reduce((s, a) => s + a.amount, 0);
+    const totalReceived = sumMoney(filteredAccounts.filter(a => a.type === 'receivable'), (a) => a.amount);
+    const totalReceivedPaid = sumMoney(filteredAccounts.filter(a => a.type === 'receivable' && a.status === 'paid'), (a) => a.amount);
+    const totalPaid = sumMoney(filteredAccounts.filter(a => a.type === 'payable'), (a) => a.amount);
+    const totalPaidConfirmed = sumMoney(filteredAccounts.filter(a => a.type === 'payable' && a.status === 'paid'), (a) => a.amount);
+    const totalPending = sumMoney(filteredAccounts.filter(a => a.status === 'pending' || a.status === 'overdue'), (a) => a.amount);
     return {
       totalReceived,
       totalReceivedPaid,
       totalPaid,
       totalPaidConfirmed,
       totalPending,
-      balance: totalReceivedPaid - totalPaidConfirmed,
+      balance: subMoney(totalReceivedPaid, totalPaidConfirmed),
       count: filteredAccounts.length,
     };
   }, [filteredAccounts]);
@@ -236,9 +237,9 @@ const ReportBySupplier = () => {
         <h3 className={forPrint ? 'font-bold text-sm mb-2' : 'font-display font-semibold text-lg mb-4'}>Resumo Mensal</h3>
         <div className={forPrint ? 'grid grid-cols-3 gap-2' : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3'}>
           {monthlyGroups.map(([key, items]) => {
-            const received = items.filter(a => a.type === 'receivable').reduce((s, a) => s + a.amount, 0);
-            const paid = items.filter(a => a.type === 'payable').reduce((s, a) => s + a.amount, 0);
-            const pending = items.filter(a => a.status === 'pending' || a.status === 'overdue').reduce((s, a) => s + a.amount, 0);
+            const received = sumMoney(items.filter(a => a.type === 'receivable'), (a) => a.amount);
+            const paid = sumMoney(items.filter(a => a.type === 'payable'), (a) => a.amount);
+            const pending = sumMoney(items.filter(a => a.status === 'pending' || a.status === 'overdue'), (a) => a.amount);
             const [y, m] = key.split('-');
             const monthLabel = format(new Date(Number(y), Number(m) - 1, 1), 'MMMM yyyy', { locale: ptBR });
             return (

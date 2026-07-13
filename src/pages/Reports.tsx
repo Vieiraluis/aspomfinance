@@ -3,6 +3,7 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { useAccounts } from '@/hooks/useSupabaseData';
 import { categoryLabels, AccountCategory } from '@/types/financial';
 import { formatCurrency } from '@/lib/format';
+import { sumMoney, subMoney } from '@/lib/money';
 import { 
   BarChart, 
   Bar, 
@@ -47,23 +48,25 @@ const Reports = () => {
       (a) => a.type === 'receivable' && a.status === 'pending'
     );
     
-    const totalPayable = pendingPayable.reduce((sum, a) => sum + a.amount, 0);
-    const totalReceivable = pendingReceivable.reduce((sum, a) => sum + a.amount, 0);
-    
-    const overduePayable = pendingPayable
-      .filter((a) => isBefore(new Date(a.dueDate), today))
-      .reduce((sum, a) => sum + a.amount, 0);
-      
-    const overdueReceivable = pendingReceivable
-      .filter((a) => isBefore(new Date(a.dueDate), today))
-      .reduce((sum, a) => sum + a.amount, 0);
-      
+    const totalPayable = sumMoney(pendingPayable, (a) => a.amount);
+    const totalReceivable = sumMoney(pendingReceivable, (a) => a.amount);
+
+    const overduePayable = sumMoney(
+      pendingPayable.filter((a) => isBefore(new Date(a.dueDate), today)),
+      (a) => a.amount,
+    );
+
+    const overdueReceivable = sumMoney(
+      pendingReceivable.filter((a) => isBefore(new Date(a.dueDate), today)),
+      (a) => a.amount,
+    );
+
     return {
       totalPayable,
       totalReceivable,
       overduePayable,
       overdueReceivable,
-      balance: totalReceivable - totalPayable,
+      balance: subMoney(totalReceivable, totalPayable),
     };
   }, [accounts]);
   
@@ -79,13 +82,15 @@ const Reports = () => {
       isWithinInterval(new Date(a.paidAt), { start: monthStart, end: monthEnd })
     );
     
-    const received = monthAccounts
-      .filter((a) => a.type === 'receivable')
-      .reduce((sum, a) => sum + a.amount, 0);
-      
-    const paid = monthAccounts
-      .filter((a) => a.type === 'payable')
-      .reduce((sum, a) => sum + a.amount, 0);
+    const received = sumMoney(
+      monthAccounts.filter((a) => a.type === 'receivable'),
+      (a) => a.amount,
+    );
+
+    const paid = sumMoney(
+      monthAccounts.filter((a) => a.type === 'payable'),
+      (a) => a.amount,
+    );
     
     return {
       month: format(date, 'MMM', { locale: ptBR }),
@@ -96,9 +101,10 @@ const Reports = () => {
   
   // Category breakdown for payables
   const categoryData = Object.keys(categoryLabels).map((key) => {
-    const total = accounts
-      .filter((a) => a.type === 'payable' && a.category === key)
-      .reduce((sum, a) => sum + a.amount, 0);
+    const total = sumMoney(
+      accounts.filter((a) => a.type === 'payable' && a.category === key),
+      (a) => a.amount,
+    );
     
     return {
       name: categoryLabels[key as AccountCategory],

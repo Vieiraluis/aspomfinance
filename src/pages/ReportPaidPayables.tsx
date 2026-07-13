@@ -12,6 +12,7 @@ import { Receipt, Loader2 } from 'lucide-react';
 import { ReceiptDialog } from '@/components/receipts/ReceiptDialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { formatCurrency, formatDate } from '@/lib/format';
+import { sumMoney } from '@/lib/money';
 
 const ReportPaidPayables = () => {
   const { data: accounts = [], isLoading } = useAccounts();
@@ -80,7 +81,7 @@ const ReportPaidPayables = () => {
           const dateB = b.paidAt ? new Date(b.paidAt).getTime() : 0;
           return dateA - dateB;
         }),
-        total: group.accounts.reduce((sum, a) => sum + a.amount, 0),
+        total: sumMoney(group.accounts, (a) => a.amount),
       }));
   }, [paidPayables, bankAccounts]);
 
@@ -231,7 +232,7 @@ const ReportPaidPayables = () => {
             <div className="glass-card p-4 flex justify-between items-center">
               <span className="font-semibold">Total Geral ({paidPayables.length} contas)</span>
               <span className="text-lg font-bold text-destructive">
-                {formatCurrency(paidPayables.reduce((sum, a) => sum + a.amount, 0))}
+                {formatCurrency(sumMoney(paidPayables, (a) => a.amount))}
               </span>
             </div>
           </>

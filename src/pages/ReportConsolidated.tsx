@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { useAccounts } from '@/hooks/useSupabaseData';
 import { formatCurrency, formatDate } from '@/lib/format';
+import { sumMoney, subMoney } from '@/lib/money';
 import { 
   BarChart, 
   Bar, 
@@ -66,9 +67,9 @@ const ReportConsolidated = () => {
       isWithinInterval(new Date(a.paidAt), { start: monthStart, end: monthEnd })
     );
 
-    const entries = paidReceivables.reduce((sum, a) => sum + a.amount, 0);
-    const exits = paidPayables.reduce((sum, a) => sum + a.amount, 0);
-    const balance = entries - exits;
+    const entries = sumMoney(paidReceivables, (a) => a.amount);
+    const exits = sumMoney(paidPayables, (a) => a.amount);
+    const balance = subMoney(entries, exits);
 
     return {
       month: format(date, 'MMM/yy', { locale: ptBR }),
@@ -82,9 +83,9 @@ const ReportConsolidated = () => {
   });
 
   // Totals
-  const totalEntries = monthlyData.reduce((sum, m) => sum + m.entries, 0);
-  const totalExits = monthlyData.reduce((sum, m) => sum + m.exits, 0);
-  const totalBalance = totalEntries - totalExits;
+  const totalEntries = sumMoney(monthlyData, (m) => m.entries);
+  const totalExits = sumMoney(monthlyData, (m) => m.exits);
+  const totalBalance = subMoney(totalEntries, totalExits);
 
   // Averages
   const avgEntries = totalEntries / periodMonths;
@@ -93,9 +94,10 @@ const ReportConsolidated = () => {
 
   // Cumulative balance
   const cumulativeData = monthlyData.map((item, index) => {
-    const cumulativeBalance = monthlyData
-      .slice(0, index + 1)
-      .reduce((sum, m) => sum + m.balance, 0);
+    const cumulativeBalance = sumMoney(
+      monthlyData.slice(0, index + 1),
+      (m) => m.balance,
+    );
     return { ...item, cumulativeBalance };
   });
 

@@ -2,6 +2,7 @@ import { useState, useRef, useMemo } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { useAccounts, useBankAccounts } from '@/hooks/useSupabaseData';
 import { formatCurrency, formatDate } from '@/lib/format';
+import { sumMoney, addMoney, subMoney, roundMoney } from '@/lib/money';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -60,10 +61,12 @@ const ReportCashStatement = () => {
       const accountTxs = paid.filter((a) => a.bankAccountId === bank.id);
 
       // previous balance: initial + signed (receivable - payable) before start
-      const prevSigned = accountTxs
-        .filter((a) => a.paidAt && isBefore(new Date(a.paidAt), start))
-        .reduce((sum, a) => sum + (a.type === 'receivable' ? a.amount : -a.amount), 0);
-      const previousBalance = includePreviousBalance ? bank.initialBalance + prevSigned : 0;
+      const prevBefore = accountTxs.filter((a) => a.paidAt && isBefore(new Date(a.paidAt), start));
+      const prevIn = sumMoney(prevBefore.filter((a) => a.type === 'receivable'), (a) => a.amount);
+      const prevOut = sumMoney(prevBefore.filter((a) => a.type === 'payable'), (a) => a.amount);
+      const previousBalance = includePreviousBalance
+        ? addMoney(bank.initialBalance, subMoney(prevIn, prevOut))
+        : 0;
 
       const inRange = accountTxs.filter((a) =>
         a.paidAt && isWithinInterval(new Date(a.paidAt), { start, end })
@@ -72,12 +75,12 @@ const ReportCashStatement = () => {
       const txs: Transaction[] = inRange.map((a) => ({
         date: new Date(a.paidAt!),
         description: a.description + (a.supplierName ? ` — ${a.supplierName}` : ''),
-        amount: a.amount,
+        amount: roundMoney(a.amount),
         type: (a.type === 'receivable' ? 'in' : 'out') as 'in' | 'out',
       })).sort((x, y) => x.date.getTime() - y.date.getTime());
 
-      const entries = txs.filter(t => t.type === 'in').reduce((s, t) => s + t.amount, 0);
-      const exits = txs.filter(t => t.type === 'out').reduce((s, t) => s + t.amount, 0);
+      const entries = sumMoney(txs.filter(t => t.type === 'in'), (t) => t.amount);
+      const exits = sumMoney(txs.filter(t => t.type === 'out'), (t) => t.amount);
 
       return {
         bankAccount: bank,
@@ -85,7 +88,7 @@ const ReportCashStatement = () => {
         transactions: txs,
         entries,
         exits,
-        finalBalance: previousBalance + entries - exits,
+        finalBalance: subMoney(addMoney(previousBalance, entries), exits),
       };
     });
 
@@ -93,21 +96,21 @@ const ReportCashStatement = () => {
     if (includeNoBank) {
       const noBank = paid.filter((a) => !a.bankAccountId);
       if (noBank.length > 0) {
-        const prevSigned = noBank
-          .filter((a) => a.paidAt && isBefore(new Date(a.paidAt), start))
-          .reduce((s, a) => s + (a.type === 'receivable' ? a.amount : -a.amount), 0);
-        const previousBalance = includePreviousBalance ? prevSigned : 0;
+        const prevBefore = noBank.filter((a) => a.paidAt && isBefore(new Date(a.paidAt), start));
+        const prevIn = sumMoney(prevBefore.filter((a) => a.type === 'receivable'), (a) => a.amount);
+        const prevOut = sumMoney(prevBefore.filter((a) => a.type === 'payable'), (a) => a.amount);
+        const previousBalance = includePreviousBalance ? subMoney(prevIn, prevOut) : 0;
         const inRange = noBank.filter((a) =>
           a.paidAt && isWithinInterval(new Date(a.paidAt), { start, end })
         );
         const txs: Transaction[] = inRange.map((a) => ({
           date: new Date(a.paidAt!),
           description: a.description + (a.supplierName ? ` — ${a.supplierName}` : ''),
-          amount: a.amount,
+          amount: roundMoney(a.amount),
           type: (a.type === 'receivable' ? 'in' : 'out') as 'in' | 'out',
         })).sort((x, y) => x.date.getTime() - y.date.getTime());
-        const entries = txs.filter(t => t.type === 'in').reduce((s, t) => s + t.amount, 0);
-        const exits = txs.filter(t => t.type === 'out').reduce((s, t) => s + t.amount, 0);
+        const entries = sumMoney(txs.filter(t => t.type === 'in'), (t) => t.amount);
+        const exits = sumMoney(txs.filter(t => t.type === 'out'), (t) => t.amount);
         if (txs.length > 0 || previousBalance !== 0) {
           result.push({
             bankAccount: { id: 'no-bank', name: 'Sem conta vinculada', initialBalance: 0 },
@@ -115,7 +118,7 @@ const ReportCashStatement = () => {
             transactions: txs,
             entries,
             exits,
-            finalBalance: previousBalance + entries - exits,
+            finalBalance: subMoney(addMoney(previousBalance, entries), exits),
           });
         }
       }
@@ -125,10 +128,10 @@ const ReportCashStatement = () => {
   }, [accounts, bankAccounts, startDate, endDate, selectedBankIds, includeNoBank, includePreviousBalance]);
 
   const totals = useMemo(() => ({
-    previous: groups.reduce((s, g) => s + g.previousBalance, 0),
-    entries: groups.reduce((s, g) => s + g.entries, 0),
-    exits: groups.reduce((s, g) => s + g.exits, 0),
-    final: groups.reduce((s, g) => s + g.finalBalance, 0),
+    previous: sumMoney(groups, (g) => g.previousBalance),
+    entries: sumMoney(groups, (g) => g.entries),
+    exits: sumMoney(groups, (g) => g.exits),
+    final: sumMoney(groups, (g) => g.finalBalance),
   }), [groups]);
 
   const handlePrint = useReactToPrint({

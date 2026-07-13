@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { useAccounts, useUpdateAccount } from '@/hooks/useSupabaseData';
 import { formatCurrency, formatDate } from '@/lib/format';
+import { sumMoney } from '@/lib/money';
 import { cn } from '@/lib/utils';
 import {
   Table,
@@ -100,8 +101,8 @@ const AllRecords = () => {
       totalOverdue: overduePayable.length + overdueReceivable.length,
       totalPaid: accounts.filter(a => a.status === 'paid').length,
       paidToday: paidToday.length,
-      overduePayableAmount: overduePayable.reduce((sum, a) => sum + a.amount, 0),
-      overdueReceivableAmount: overdueReceivable.reduce((sum, a) => sum + a.amount, 0),
+      overduePayableAmount: sumMoney(overduePayable, (a) => a.amount),
+      overdueReceivableAmount: sumMoney(overdueReceivable, (a) => a.amount),
     };
   }, [accounts]);
 

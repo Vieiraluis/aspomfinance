@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Account, Supplier, Payment, FinancialSummary, BankAccount } from '@/types/financial';
 import { addMonths, isBefore, startOfDay, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
+import { sumMoney, subMoney } from '@/lib/money';
 
 interface FinancialStore {
   suppliers: Supplier[];
@@ -188,37 +189,41 @@ export const useFinancialStore = create<FinancialStore>()(
           (a) => a.type === 'receivable' && a.status === 'pending'
         );
         
-        const totalPayable = pendingPayable.reduce((sum, a) => sum + a.amount, 0);
-        const totalReceivable = pendingReceivable.reduce((sum, a) => sum + a.amount, 0);
-        
-        const overduePayable = pendingPayable
-          .filter((a) => isBefore(new Date(a.dueDate), today))
-          .reduce((sum, a) => sum + a.amount, 0);
-          
-        const overdueReceivable = pendingReceivable
-          .filter((a) => isBefore(new Date(a.dueDate), today))
-          .reduce((sum, a) => sum + a.amount, 0);
-          
-        const paidThisMonth = accounts
-          .filter(
+        const totalPayable = sumMoney(pendingPayable, (a) => a.amount);
+        const totalReceivable = sumMoney(pendingReceivable, (a) => a.amount);
+
+        const overduePayable = sumMoney(
+          pendingPayable.filter((a) => isBefore(new Date(a.dueDate), today)),
+          (a) => a.amount,
+        );
+
+        const overdueReceivable = sumMoney(
+          pendingReceivable.filter((a) => isBefore(new Date(a.dueDate), today)),
+          (a) => a.amount,
+        );
+
+        const paidThisMonth = sumMoney(
+          accounts.filter(
             (a) =>
               a.type === 'payable' &&
               a.status === 'paid' &&
               a.paidAt &&
-              isWithinInterval(new Date(a.paidAt), { start: monthStart, end: monthEnd })
-          )
-          .reduce((sum, a) => sum + a.amount, 0);
-          
-        const receivedThisMonth = accounts
-          .filter(
+              isWithinInterval(new Date(a.paidAt), { start: monthStart, end: monthEnd }),
+          ),
+          (a) => a.amount,
+        );
+
+        const receivedThisMonth = sumMoney(
+          accounts.filter(
             (a) =>
               a.type === 'receivable' &&
               a.status === 'paid' &&
               a.paidAt &&
-              isWithinInterval(new Date(a.paidAt), { start: monthStart, end: monthEnd })
-          )
-          .reduce((sum, a) => sum + a.amount, 0);
-          
+              isWithinInterval(new Date(a.paidAt), { start: monthStart, end: monthEnd }),
+          ),
+          (a) => a.amount,
+        );
+
         return {
           totalPayable,
           totalReceivable,
@@ -226,7 +231,7 @@ export const useFinancialStore = create<FinancialStore>()(
           overdueReceivable,
           paidThisMonth,
           receivedThisMonth,
-          balance: totalReceivable - totalPayable,
+          balance: subMoney(totalReceivable, totalPayable),
         };
       },
       
