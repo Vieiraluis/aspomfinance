@@ -23,11 +23,11 @@ export default function AssociadosDashboard() {
   const stats = useMemo(() => {
     const today = new Date();
     const doMes = mensalidades.filter((m) => m.competencia === competencia);
-    const aReceber = doMes.filter((m) => m.status !== 'pago').reduce((s, m) => s + Number(m.valor), 0);
-    const recebido = doMes.filter((m) => m.status === 'pago').reduce((s, m) => s + Number(m.valor), 0);
+    const aReceber = sumMoney(doMes.filter((m) => m.status !== 'pago'), (m) => Number(m.valor));
+    const recebido = sumMoney(doMes.filter((m) => m.status === 'pago'), (m) => Number(m.valor));
     const inadimplentes = doMes.filter((m) => m.status === 'pendente' && new Date(m.vencimento + 'T23:59:59') < today);
-    const inadValor = inadimplentes.reduce((s, m) => s + Number(m.valor), 0);
-    const totalDoMes = doMes.reduce((s, m) => s + Number(m.valor), 0);
+    const inadValor = sumMoney(inadimplentes, (m) => Number(m.valor));
+    const totalDoMes = sumMoney(doMes, (m) => Number(m.valor));
     const inadPct = totalDoMes > 0 ? (inadValor / totalDoMes) * 100 : 0;
     return {
       aReceber,
