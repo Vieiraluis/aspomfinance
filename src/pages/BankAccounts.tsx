@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency } from '@/lib/format';
+import { sumMoney } from '@/lib/money';
 import { cn } from '@/lib/utils';
 import { Plus, Wallet, Trash2, Edit, Building2, Banknote, Loader2, ArrowLeftRight } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
@@ -137,9 +138,10 @@ const BankAccounts = () => {
     }
   };
   
-  const totalBalance = bankAccounts
-    .filter(a => a.isActive)
-    .reduce((sum, a) => sum + a.currentBalance, 0);
+  const totalBalance = sumMoney(
+    bankAccounts.filter(a => a.isActive),
+    (a) => a.currentBalance,
+  );
   
   const getAccountIcon = (type: BankAccountType) => {
     switch (type) {

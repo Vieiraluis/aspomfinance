@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { useAccounts, useBankAccounts } from '@/hooks/useSupabaseData';
 import { formatCurrency, formatDate } from '@/lib/format';
+import { sumMoney, addMoney, subMoney } from '@/lib/money';
 import { cn } from '@/lib/utils';
 import { 
   TrendingUp, 
@@ -89,7 +90,7 @@ const CashFlow = () => {
     
     // Calcula saldo acumulado
     let runningBalance = selectedBankAccount === 'all'
-      ? activeBankAccounts.reduce((sum, ba) => sum + ba.initialBalance, 0)
+      ? sumMoney(activeBankAccounts, (ba) => ba.initialBalance)
       : bankAccounts.find(ba => ba.id === selectedBankAccount)?.initialBalance || 0;
     
     // Calcula movimentações anteriores ao período para saldo inicial correto
@@ -101,35 +102,31 @@ const CashFlow = () => {
       return paidDate < start && matchesBankAccount;
     });
     
-    previousMovements.forEach(a => {
-      if (a.type === 'receivable') {
-        runningBalance += a.amount;
-      } else {
-        runningBalance -= a.amount;
-      }
-    });
+    const prevIn = sumMoney(previousMovements.filter(a => a.type === 'receivable'), (a) => a.amount);
+    const prevOut = sumMoney(previousMovements.filter(a => a.type === 'payable'), (a) => a.amount);
+    runningBalance = subMoney(addMoney(runningBalance, prevIn), prevOut);
     
     const initialBalance = runningBalance;
     
     entries.forEach(entry => {
-      if (entry.type === 'inflow') {
-        runningBalance += entry.amount;
-      } else {
-        runningBalance -= entry.amount;
-      }
+      runningBalance = entry.type === 'inflow'
+        ? addMoney(runningBalance, entry.amount)
+        : subMoney(runningBalance, entry.amount);
       entry.balance = runningBalance;
     });
     
     return { entries, initialBalance, finalBalance: runningBalance };
   }, [accounts, bankAccounts, selectedBankAccount, startDate, endDate, activeBankAccounts]);
   
-  const totalInflows = cashFlowData.entries
-    .filter(e => e.type === 'inflow')
-    .reduce((sum, e) => sum + e.amount, 0);
+  const totalInflows = sumMoney(
+    cashFlowData.entries.filter(e => e.type === 'inflow'),
+    (e) => e.amount,
+  );
     
-  const totalOutflows = cashFlowData.entries
-    .filter(e => e.type === 'outflow')
-    .reduce((sum, e) => sum + e.amount, 0);
+  const totalOutflows = sumMoney(
+    cashFlowData.entries.filter(e => e.type === 'outflow'),
+    (e) => e.amount,
+  );
 
   const isLoading = accountsLoading || bankAccountsLoading;
 

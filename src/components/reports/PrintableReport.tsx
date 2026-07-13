@@ -1,6 +1,7 @@
 import React, { forwardRef } from 'react';
 import { Account } from '@/types/financial';
 import { formatCurrency, formatDate } from '@/lib/format';
+import { sumMoney } from '@/lib/money';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
 
@@ -51,7 +52,7 @@ export const PrintableReport = forwardRef<HTMLDivElement, PrintableReportProps>(
       return sortOrder === 'asc' ? comparison : -comparison;
     });
 
-    const total = accounts.reduce((sum, a) => sum + a.amount, 0);
+    const total = sumMoney(accounts, (a) => a.amount);
     
     const periodText = startDate && endDate 
       ? `Período: ${format(startDate, 'dd/MM/yyyy')} até ${format(endDate, 'dd/MM/yyyy')}`

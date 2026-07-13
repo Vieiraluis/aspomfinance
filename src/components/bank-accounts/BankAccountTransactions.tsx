@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useAccounts, useBankAccounts } from '@/hooks/useSupabaseData';
 import { BankAccount } from '@/types/financial';
 import { formatCurrency, formatDate } from '@/lib/format';
+import { sumMoney, addMoney } from '@/lib/money';
 import { cn } from '@/lib/utils';
 import {
   Select,
@@ -66,9 +67,9 @@ export function BankAccountTransactions() {
       }
       groups[baId].entries.push(account);
       if (account.type === 'payable') {
-        groups[baId].totalPayables += account.amount;
+        groups[baId].totalPayables = addMoney(groups[baId].totalPayables, account.amount);
       } else {
-        groups[baId].totalReceivables += account.amount;
+        groups[baId].totalReceivables = addMoney(groups[baId].totalReceivables, account.amount);
       }
     });
 
@@ -77,8 +78,8 @@ export function BankAccountTransactions() {
     );
   }, [paidAccounts, bankAccounts, selectedAccountId]);
 
-  const totalPayables = grouped.reduce((s, g) => s + g.totalPayables, 0);
-  const totalReceivables = grouped.reduce((s, g) => s + g.totalReceivables, 0);
+  const totalPayables = sumMoney(grouped, (g) => g.totalPayables);
+  const totalReceivables = sumMoney(grouped, (g) => g.totalReceivables);
 
   if (loadingAccounts) {
     return (

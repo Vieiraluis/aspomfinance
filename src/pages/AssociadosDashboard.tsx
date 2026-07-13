@@ -3,6 +3,7 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { useAssociados } from '@/hooks/useAssociados';
 import { useMensalidades } from '@/hooks/useMensalidades';
 import { formatCurrency } from '@/lib/format';
+import { sumMoney, addMoney } from '@/lib/money';
 import { Users, TrendingUp, AlertTriangle, Wallet } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
 import { Link } from 'react-router-dom';
@@ -22,11 +23,11 @@ export default function AssociadosDashboard() {
   const stats = useMemo(() => {
     const today = new Date();
     const doMes = mensalidades.filter((m) => m.competencia === competencia);
-    const aReceber = doMes.filter((m) => m.status !== 'pago').reduce((s, m) => s + Number(m.valor), 0);
-    const recebido = doMes.filter((m) => m.status === 'pago').reduce((s, m) => s + Number(m.valor), 0);
+    const aReceber = sumMoney(doMes.filter((m) => m.status !== 'pago'), (m) => Number(m.valor));
+    const recebido = sumMoney(doMes.filter((m) => m.status === 'pago'), (m) => Number(m.valor));
     const inadimplentes = doMes.filter((m) => m.status === 'pendente' && new Date(m.vencimento + 'T23:59:59') < today);
-    const inadValor = inadimplentes.reduce((s, m) => s + Number(m.valor), 0);
-    const totalDoMes = doMes.reduce((s, m) => s + Number(m.valor), 0);
+    const inadValor = sumMoney(inadimplentes, (m) => Number(m.valor));
+    const totalDoMes = sumMoney(doMes, (m) => Number(m.valor));
     const inadPct = totalDoMes > 0 ? (inadValor / totalDoMes) * 100 : 0;
     return {
       aReceber,
@@ -44,8 +45,8 @@ export default function AssociadosDashboard() {
       const a = associados.find((x) => x.id === m.associado_id);
       const k = a?.posto_graduacao || 'Não informado';
       const cur = map.get(k) || { posto: k, previsto: 0, recebido: 0 };
-      cur.previsto += Number(m.valor);
-      if (m.status === 'pago') cur.recebido += Number(m.valor);
+      cur.previsto = addMoney(cur.previsto, Number(m.valor));
+      if (m.status === 'pago') cur.recebido = addMoney(cur.recebido, Number(m.valor));
       map.set(k, cur);
     }
     return Array.from(map.values());
