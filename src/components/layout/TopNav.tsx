@@ -18,6 +18,7 @@ import {
   CalendarDays,
   Building2,
   Shield,
+  Scale,
   User as UserIcon,
 } from 'lucide-react';
 import { DueDateNotifications } from '@/components/notifications/DueDateNotifications';
