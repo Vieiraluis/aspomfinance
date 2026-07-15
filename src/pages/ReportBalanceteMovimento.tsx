@@ -116,6 +116,18 @@ const ReportBalanceteMovimento = () => {
     return { previousBalance, receitas, despesas, totalReceitas, totalDespesas, resultado, saldoFinal };
   }, [accounts, bankAccounts, startDate, endDate, selectedBankIds, includeNoBank, includePreviousBalance]);
 
+  const accountsLabel = useMemo(() => {
+    const activeBanks = bankAccounts.filter((b) => b.isActive);
+    const selectedIds = selectedBankIds === null ? activeBanks.map((b) => b.id) : selectedBankIds;
+    const names = activeBanks.filter((b) => selectedIds.includes(b.id)).map((b) => b.name);
+    if (includeNoBank) names.push('Sem conta vinculada');
+    if (names.length === 0) return 'Nenhuma conta selecionada';
+    if (selectedBankIds === null && includeNoBank) return 'Todas as Contas';
+    if (names.length === 1) return names[0];
+    if (names.length <= 3) return names.join(' • ');
+    return `${names.length} contas selecionadas`;
+  }, [bankAccounts, selectedBankIds, includeNoBank]);
+
   const handlePrint = useReactToPrint({
     contentRef: printRef,
     documentTitle: 'Balancete de Movimento',
@@ -138,6 +150,13 @@ const ReportBalanceteMovimento = () => {
     doc.text(`Gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm")}`, pageWidth / 2, 26, { align: 'center' });
 
     let y = 34;
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(33, 33, 33);
+    doc.text(accountsLabel, pageWidth / 2, 32, { align: 'center' });
+
+    let y = 40;
 
     // Saldo anterior banner
     doc.setFillColor(30, 41, 59);
