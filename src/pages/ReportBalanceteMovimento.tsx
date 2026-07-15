@@ -149,8 +149,6 @@ const ReportBalanceteMovimento = () => {
     doc.text(periodText, pageWidth / 2, 21, { align: 'center' });
     doc.text(`Gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm")}`, pageWidth / 2, 26, { align: 'center' });
 
-    let y = 34;
-
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(33, 33, 33);
