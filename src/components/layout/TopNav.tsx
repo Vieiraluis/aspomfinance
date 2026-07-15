@@ -62,6 +62,7 @@ const reportsItems: NavItem[] = [
   { name: 'Consolidado Mensal', href: '/reports/consolidated', icon: BarChart3 },
   { name: 'Extrato Entradas/Saídas', href: '/reports/cash-statement', icon: FileSpreadsheet },
   { name: 'Balancete de Contas', href: '/reports/balancete', icon: Scale },
+  { name: 'Balancete de Movimento', href: '/reports/balancete-movimento', icon: Scale },
   { name: 'Rel. Contas a Pagar', href: '/reports/payables', icon: FileSpreadsheet },
   { name: 'Rel. Contas a Receber', href: '/reports/receivables', icon: FileSpreadsheet },
   { name: 'Contas Pagas', href: '/reports/paid-payables', icon: FileSpreadsheet },

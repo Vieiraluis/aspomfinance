@@ -20,6 +20,7 @@ import ReportReceivedPayments from "./pages/ReportReceivedPayments";
 import ReportBySupplier from "./pages/ReportBySupplier";
 import ReportCashStatement from "./pages/ReportCashStatement";
 import ReportBalancete from "./pages/ReportBalancete";
+import ReportBalanceteMovimento from "./pages/ReportBalanceteMovimento";
 import AllRecords from "./pages/AllRecords";
 import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
@@ -98,6 +99,7 @@ function AppRoutes() {
       <Route path="/reports/by-supplier" element={<ProtectedRoute><ReportBySupplier /></ProtectedRoute>} />
       <Route path="/reports/cash-statement" element={<ProtectedRoute><ReportCashStatement /></ProtectedRoute>} />
       <Route path="/reports/balancete" element={<ProtectedRoute><ReportBalancete /></ProtectedRoute>} />
+      <Route path="/reports/balancete-movimento" element={<ProtectedRoute><ReportBalanceteMovimento /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
