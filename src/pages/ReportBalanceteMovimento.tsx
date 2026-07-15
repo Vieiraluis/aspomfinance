@@ -357,6 +357,7 @@ const ReportBalanceteMovimento = () => {
 
           <div className="border-b-2 border-gray-800 pb-3 mb-4 text-center">
             <h2 className="text-xl font-bold">Balancete de Movimento</h2>
+            <p className="text-sm font-semibold text-gray-800 mt-0.5">{accountsLabel}</p>
             <p className="text-xs text-gray-600 mt-1">
               {startDate && endDate
                 ? `Período: ${format(startDate, 'dd/MM/yyyy')} a ${format(endDate, 'dd/MM/yyyy')}`
