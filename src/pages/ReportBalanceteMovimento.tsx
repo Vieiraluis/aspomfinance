@@ -16,6 +16,24 @@ import { cn } from '@/lib/utils';
 import { useReactToPrint } from 'react-to-print';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import aspomLogo from '@/assets/aspom-logo.png';
+
+type GroupFilter = 'receitas' | 'despesas' | 'ambos';
+
+async function loadLogoDataUrl(): Promise<string | null> {
+  try {
+    const resp = await fetch(aspomLogo);
+    const blob = await resp.blob();
+    return await new Promise<string>((resolve) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result as string);
+      r.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
 
 interface Line {
   date: Date;
@@ -36,6 +54,7 @@ const ReportBalanceteMovimento = () => {
   const [selectedBankIds, setSelectedBankIds] = useState<string[] | null>(null);
   const [includeNoBank, setIncludeNoBank] = useState<boolean>(true);
   const [includePreviousBalance, setIncludePreviousBalance] = useState<boolean>(true);
+  const [groupFilter, setGroupFilter] = useState<GroupFilter>('ambos');
 
   const { previousBalance, receitas, despesas, totalReceitas, totalDespesas, resultado, saldoFinal } = useMemo(() => {
     const empty = {
@@ -133,12 +152,18 @@ const ReportBalanceteMovimento = () => {
     documentTitle: 'Balancete de Movimento',
   });
 
-  const handleExportPdf = () => {
+  const handleExportPdf = async () => {
     const doc = new jsPDF('portrait', 'mm', 'a4');
     const pageWidth = doc.internal.pageSize.getWidth();
 
+    const logo = await loadLogoDataUrl();
+    if (logo) {
+      try { doc.addImage(logo, 'PNG', 14, 8, 20, 20); } catch {}
+    }
+
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
     doc.text('Balancete de Movimento', pageWidth / 2, 15, { align: 'center' });
 
     doc.setFontSize(9);
@@ -204,8 +229,8 @@ const ReportBalanceteMovimento = () => {
       y = (doc as any).lastAutoTable.finalY + 6;
     };
 
-    renderSection('RECEITAS (ENTRADAS)', receitas, totalReceitas, [16, 122, 87]);
-    renderSection('DESPESAS (SAÍDAS)', despesas, totalDespesas, [190, 40, 40]);
+    if (groupFilter !== 'despesas') renderSection('RECEITAS (ENTRADAS)', receitas, totalReceitas, [16, 122, 87]);
+    if (groupFilter !== 'receitas') renderSection('DESPESAS (SAÍDAS)', despesas, totalDespesas, [190, 40, 40]);
 
     if (y > 250) { doc.addPage(); y = 15; }
     doc.setDrawColor(30, 41, 59);
@@ -353,6 +378,16 @@ const ReportBalanceteMovimento = () => {
               <Switch id="prev-balance-bm" checked={includePreviousBalance} onCheckedChange={setIncludePreviousBalance} />
               <Label htmlFor="prev-balance-bm" className="text-sm cursor-pointer">Considerar saldo anterior</Label>
             </div>
+            <Select value={groupFilter} onValueChange={(v) => setGroupFilter(v as GroupFilter)}>
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder="Agrupar por" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ambos">Ambos</SelectItem>
+                <SelectItem value="receitas">Receitas</SelectItem>
+                <SelectItem value="despesas">Despesas</SelectItem>
+              </SelectContent>
+            </Select>
             <Button variant="outline" onClick={() => handlePrint()}>
               <Printer className="w-4 h-4 mr-2" />Imprimir
             </Button>
@@ -372,15 +407,22 @@ const ReportBalanceteMovimento = () => {
             }
           `}</style>
 
-          <div className="border-b-2 border-gray-800 pb-3 mb-4 text-center">
-            <h2 className="text-xl font-bold">Balancete de Movimento</h2>
-            <p className="text-sm font-semibold text-gray-800 mt-0.5">{accountsLabel}</p>
-            <p className="text-xs text-gray-600 mt-1">
-              {startDate && endDate
-                ? `Período: ${format(startDate, 'dd/MM/yyyy')} a ${format(endDate, 'dd/MM/yyyy')}`
-                : 'Todos os registros'}
-            </p>
-            <p className="text-[10px] text-gray-500">Gerado em {format(new Date(), "dd/MM/yyyy 'às' HH:mm")}</p>
+          <div className="border-b-2 border-gray-800 pb-3 mb-4 relative">
+            <img
+              src={aspomLogo}
+              alt="Logo ASPOM"
+              className="absolute left-0 top-0 h-16 w-16 object-contain"
+            />
+            <div className="text-center pl-20 pr-20">
+              <h2 className="text-xl font-bold">Balancete de Movimento</h2>
+              <p className="text-sm font-semibold text-gray-800 mt-0.5">{accountsLabel}</p>
+              <p className="text-xs text-gray-600 mt-1">
+                {startDate && endDate
+                  ? `Período: ${format(startDate, 'dd/MM/yyyy')} a ${format(endDate, 'dd/MM/yyyy')}`
+                  : 'Todos os registros'}
+              </p>
+              <p className="text-[10px] text-gray-500">Gerado em {format(new Date(), "dd/MM/yyyy 'às' HH:mm")}</p>
+            </div>
           </div>
 
           <div className="space-y-4">
@@ -391,19 +433,23 @@ const ReportBalanceteMovimento = () => {
               </header>
             </section>
 
-            <SectionBlock
-              title="RECEITAS (ENTRADAS)"
-              lines={receitas}
-              total={totalReceitas}
-              headerClass="bg-emerald-700"
-            />
+            {groupFilter !== 'despesas' && (
+              <SectionBlock
+                title="RECEITAS (ENTRADAS)"
+                lines={receitas}
+                total={totalReceitas}
+                headerClass="bg-emerald-700"
+              />
+            )}
 
-            <SectionBlock
-              title="DESPESAS (SAÍDAS)"
-              lines={despesas}
-              total={totalDespesas}
-              headerClass="bg-red-700"
-            />
+            {groupFilter !== 'receitas' && (
+              <SectionBlock
+                title="DESPESAS (SAÍDAS)"
+                lines={despesas}
+                total={totalDespesas}
+                headerClass="bg-red-700"
+              />
+            )}
 
             <section className="break-inside-avoid mt-4 border-t-2 border-gray-800 pt-3">
               <h3 className="text-sm font-bold mb-2">Balancete de Fechamento</h3>
