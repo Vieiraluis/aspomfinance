@@ -54,6 +54,7 @@ const ReportBalanceteMovimento = () => {
   const [selectedBankIds, setSelectedBankIds] = useState<string[] | null>(null);
   const [includeNoBank, setIncludeNoBank] = useState<boolean>(true);
   const [includePreviousBalance, setIncludePreviousBalance] = useState<boolean>(true);
+  const [groupFilter, setGroupFilter] = useState<GroupFilter>('ambos');
 
   const { previousBalance, receitas, despesas, totalReceitas, totalDespesas, resultado, saldoFinal } = useMemo(() => {
     const empty = {
