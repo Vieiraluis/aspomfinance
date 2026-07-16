@@ -435,18 +435,21 @@ const ReportBalanceteMovimento = () => {
 
             {groupFilter !== 'despesas' && (
               <SectionBlock
-              title="RECEITAS (ENTRADAS)"
-              lines={receitas}
-              total={totalReceitas}
-              headerClass="bg-emerald-700"
-            />
+                title="RECEITAS (ENTRADAS)"
+                lines={receitas}
+                total={totalReceitas}
+                headerClass="bg-emerald-700"
+              />
+            )}
 
-            <SectionBlock
-              title="DESPESAS (SAÍDAS)"
-              lines={despesas}
-              total={totalDespesas}
-              headerClass="bg-red-700"
-            />
+            {groupFilter !== 'receitas' && (
+              <SectionBlock
+                title="DESPESAS (SAÍDAS)"
+                lines={despesas}
+                total={totalDespesas}
+                headerClass="bg-red-700"
+              />
+            )}
 
             <section className="break-inside-avoid mt-4 border-t-2 border-gray-800 pt-3">
               <h3 className="text-sm font-bold mb-2">Balancete de Fechamento</h3>
