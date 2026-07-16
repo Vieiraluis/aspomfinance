@@ -229,8 +229,8 @@ const ReportBalanceteMovimento = () => {
       y = (doc as any).lastAutoTable.finalY + 6;
     };
 
-    renderSection('RECEITAS (ENTRADAS)', receitas, totalReceitas, [16, 122, 87]);
-    renderSection('DESPESAS (SAÍDAS)', despesas, totalDespesas, [190, 40, 40]);
+    if (groupFilter !== 'despesas') renderSection('RECEITAS (ENTRADAS)', receitas, totalReceitas, [16, 122, 87]);
+    if (groupFilter !== 'receitas') renderSection('DESPESAS (SAÍDAS)', despesas, totalDespesas, [190, 40, 40]);
 
     if (y > 250) { doc.addPage(); y = 15; }
     doc.setDrawColor(30, 41, 59);
