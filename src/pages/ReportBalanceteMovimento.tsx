@@ -378,6 +378,16 @@ const ReportBalanceteMovimento = () => {
               <Switch id="prev-balance-bm" checked={includePreviousBalance} onCheckedChange={setIncludePreviousBalance} />
               <Label htmlFor="prev-balance-bm" className="text-sm cursor-pointer">Considerar saldo anterior</Label>
             </div>
+            <Select value={groupFilter} onValueChange={(v) => setGroupFilter(v as GroupFilter)}>
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder="Agrupar por" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ambos">Ambos</SelectItem>
+                <SelectItem value="receitas">Receitas</SelectItem>
+                <SelectItem value="despesas">Despesas</SelectItem>
+              </SelectContent>
+            </Select>
             <Button variant="outline" onClick={() => handlePrint()}>
               <Printer className="w-4 h-4 mr-2" />Imprimir
             </Button>
