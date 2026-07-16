@@ -16,6 +16,24 @@ import { cn } from '@/lib/utils';
 import { useReactToPrint } from 'react-to-print';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import aspomLogo from '@/assets/aspom-logo.png';
+
+type GroupFilter = 'receitas' | 'despesas' | 'ambos';
+
+async function loadLogoDataUrl(): Promise<string | null> {
+  try {
+    const resp = await fetch(aspomLogo);
+    const blob = await resp.blob();
+    return await new Promise<string>((resolve) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result as string);
+      r.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
 
 interface Line {
   date: Date;
