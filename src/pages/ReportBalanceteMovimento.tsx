@@ -152,12 +152,18 @@ const ReportBalanceteMovimento = () => {
     documentTitle: 'Balancete de Movimento',
   });
 
-  const handleExportPdf = () => {
+  const handleExportPdf = async () => {
     const doc = new jsPDF('portrait', 'mm', 'a4');
     const pageWidth = doc.internal.pageSize.getWidth();
 
+    const logo = await loadLogoDataUrl();
+    if (logo) {
+      try { doc.addImage(logo, 'PNG', 14, 8, 20, 20); } catch {}
+    }
+
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
     doc.text('Balancete de Movimento', pageWidth / 2, 15, { align: 'center' });
 
     doc.setFontSize(9);
