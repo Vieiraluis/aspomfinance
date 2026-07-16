@@ -407,15 +407,22 @@ const ReportBalanceteMovimento = () => {
             }
           `}</style>
 
-          <div className="border-b-2 border-gray-800 pb-3 mb-4 text-center">
-            <h2 className="text-xl font-bold">Balancete de Movimento</h2>
-            <p className="text-sm font-semibold text-gray-800 mt-0.5">{accountsLabel}</p>
-            <p className="text-xs text-gray-600 mt-1">
-              {startDate && endDate
-                ? `Período: ${format(startDate, 'dd/MM/yyyy')} a ${format(endDate, 'dd/MM/yyyy')}`
-                : 'Todos os registros'}
-            </p>
-            <p className="text-[10px] text-gray-500">Gerado em {format(new Date(), "dd/MM/yyyy 'às' HH:mm")}</p>
+          <div className="border-b-2 border-gray-800 pb-3 mb-4 relative">
+            <img
+              src={aspomLogo}
+              alt="Logo ASPOM"
+              className="absolute left-0 top-0 h-16 w-16 object-contain"
+            />
+            <div className="text-center pl-20 pr-20">
+              <h2 className="text-xl font-bold">Balancete de Movimento</h2>
+              <p className="text-sm font-semibold text-gray-800 mt-0.5">{accountsLabel}</p>
+              <p className="text-xs text-gray-600 mt-1">
+                {startDate && endDate
+                  ? `Período: ${format(startDate, 'dd/MM/yyyy')} a ${format(endDate, 'dd/MM/yyyy')}`
+                  : 'Todos os registros'}
+              </p>
+              <p className="text-[10px] text-gray-500">Gerado em {format(new Date(), "dd/MM/yyyy 'às' HH:mm")}</p>
+            </div>
           </div>
 
           <div className="space-y-4">
@@ -426,7 +433,8 @@ const ReportBalanceteMovimento = () => {
               </header>
             </section>
 
-            <SectionBlock
+            {groupFilter !== 'despesas' && (
+              <SectionBlock
               title="RECEITAS (ENTRADAS)"
               lines={receitas}
               total={totalReceitas}
