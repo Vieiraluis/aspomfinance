@@ -32,7 +32,7 @@ function Calendar({
         dropdown_month: "relative",
         dropdown_year: "relative",
         dropdown:
-          "absolute inset-0 h-7 w-full cursor-pointer opacity-0",
+          "absolute inset-0 z-20 h-full w-full cursor-pointer opacity-0",
         vhidden: "hidden",
         nav: "space-x-1 flex items-center",
         nav_button: cn(
