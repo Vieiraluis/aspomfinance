@@ -600,16 +600,25 @@ const ReportBySupplier = () => {
                 </tr>
               </thead>
               <tbody>
-                {sortedAccounts.map((a, i) => (
-                  <tr key={a.id} className={i % 2 === 0 ? 'bg-gray-50' : ''}>
-                    <td className="py-1">{a.code || '-'}</td>
-                    <td className="py-1">{formatDate(a.dueDate)}</td>
-                    <td className="py-1">{a.description}</td>
-                    <td className="py-1">{a.paidAt ? formatDate(a.paidAt) : '-'}</td>
-                    <td className="py-1 text-right">{a.type === 'receivable' ? formatCurrency(a.amount) : '-'}</td>
-                    <td className="py-1 text-right">{a.type === 'payable' ? formatCurrency(a.amount) : '-'}</td>
-                    <td className="py-1">{getStatusLabel(a.status)}</td>
-                  </tr>
+                {groupByCategory(sortedAccounts).map(group => (
+                  <>
+                    <tr key={`cat-${group.category}`} className="bg-gray-200">
+                      <td colSpan={7} className="py-1 font-bold">
+                        {categoryName(group.category)} — {group.items.length} registro(s) • {formatCurrency(sumMoney(group.items, (x) => x.amount))}
+                      </td>
+                    </tr>
+                    {group.items.map((a, i) => (
+                      <tr key={a.id} className={i % 2 === 0 ? 'bg-gray-50' : ''}>
+                        <td className="py-1">{a.code || '-'}</td>
+                        <td className="py-1">{formatDate(a.dueDate)}</td>
+                        <td className="py-1">{a.description}</td>
+                        <td className="py-1">{a.paidAt ? formatDate(a.paidAt) : '-'}</td>
+                        <td className="py-1 text-right">{a.type === 'receivable' ? formatCurrency(a.amount) : '-'}</td>
+                        <td className="py-1 text-right">{a.type === 'payable' ? formatCurrency(a.amount) : '-'}</td>
+                        <td className="py-1">{getStatusLabel(a.status)}</td>
+                      </tr>
+                    ))}
+                  </>
                 ))}
               </tbody>
             </table>
