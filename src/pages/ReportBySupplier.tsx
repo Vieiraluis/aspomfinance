@@ -521,24 +521,36 @@ const ReportBySupplier = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {paginatedAccounts.map(a => (
-                    <TableRow key={a.id}>
-                      <TableCell className="font-mono text-xs">{a.code || '-'}</TableCell>
-                      <TableCell>{formatDate(a.dueDate)}</TableCell>
-                      <TableCell className="max-w-[200px] truncate">{a.description}</TableCell>
-                      <TableCell>{a.paidAt ? formatDate(a.paidAt) : '-'}</TableCell>
-                      <TableCell className="text-right text-success font-medium">
-                        {a.type === 'receivable' ? formatCurrency(a.amount) : '-'}
-                      </TableCell>
-                      <TableCell className="text-right text-destructive font-medium">
-                        {a.type === 'payable' ? formatCurrency(a.amount) : '-'}
-                      </TableCell>
-                      <TableCell>
-                        <span className={cn('text-sm font-medium', getStatusClass(a.status))}>
-                          {getStatusLabel(a.status)}
-                        </span>
-                      </TableCell>
-                    </TableRow>
+                  {groupByCategory(paginatedAccounts).map(group => (
+                    <>
+                      <TableRow key={`cat-${group.category}`} className="bg-muted/60 hover:bg-muted/60">
+                        <TableCell colSpan={7} className="font-semibold text-sm">
+                          {categoryName(group.category)}
+                          <span className="ml-2 text-xs text-muted-foreground font-normal">
+                            {group.items.length} registro(s) • {formatCurrency(sumMoney(group.items, (x) => x.amount))}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                      {group.items.map(a => (
+                        <TableRow key={a.id}>
+                          <TableCell className="font-mono text-xs">{a.code || '-'}</TableCell>
+                          <TableCell>{formatDate(a.dueDate)}</TableCell>
+                          <TableCell className="max-w-[200px] truncate">{a.description}</TableCell>
+                          <TableCell>{a.paidAt ? formatDate(a.paidAt) : '-'}</TableCell>
+                          <TableCell className="text-right text-success font-medium">
+                            {a.type === 'receivable' ? formatCurrency(a.amount) : '-'}
+                          </TableCell>
+                          <TableCell className="text-right text-destructive font-medium">
+                            {a.type === 'payable' ? formatCurrency(a.amount) : '-'}
+                          </TableCell>
+                          <TableCell>
+                            <span className={cn('text-sm font-medium', getStatusClass(a.status))}>
+                              {getStatusLabel(a.status)}
+                            </span>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </>
                   ))}
                 </TableBody>
               </Table>
