@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo, useEffect } from 'react';
+import { useState, useRef, useMemo, useEffect, Fragment } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { useAccounts, useSuppliers, useBankAccounts } from '@/hooks/useSupabaseData';
@@ -552,7 +552,7 @@ const ReportBySupplier = () => {
                 </TableHeader>
                 <TableBody>
                   {groupByCategory(paginatedAccounts).map(group => (
-                    <>
+                    <Fragment key={`g-${group.category}`}>
                       <TableRow key={`cat-${group.category}`} className="bg-muted/60 hover:bg-muted/60">
                         <TableCell colSpan={7} className="font-semibold text-sm">
                           {categoryName(group.category)}
@@ -580,7 +580,7 @@ const ReportBySupplier = () => {
                           </TableCell>
                         </TableRow>
                       ))}
-                    </>
+                    </Fragment>
                   ))}
                 </TableBody>
               </Table>
@@ -646,7 +646,7 @@ const ReportBySupplier = () => {
               </thead>
               <tbody>
                 {groupByCategory(sortedAccounts).map(group => (
-                  <>
+                  <Fragment key={`pg-${group.category}`}>
                     <tr key={`cat-${group.category}`} className="bg-gray-200">
                       <td colSpan={7} className="py-1 font-bold">
                         {categoryName(group.category)} — {group.items.length} registro(s) • {formatCurrency(sumMoney(group.items, (x) => x.amount))}
@@ -663,7 +663,7 @@ const ReportBySupplier = () => {
                         <td className="py-1">{getStatusLabel(a.status)}</td>
                       </tr>
                     ))}
-                  </>
+                  </Fragment>
                 ))}
               </tbody>
             </table>
