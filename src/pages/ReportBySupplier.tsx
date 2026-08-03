@@ -122,6 +122,9 @@ const ReportBySupplier = () => {
         }
       }
 
+      // Category filter
+      if (selectedCategories.length > 0 && !selectedCategories.includes(a.category || 'other')) return false;
+
       // Status filter
       if (statusFilter === 'paid' && a.status !== 'paid') return false;
       if (statusFilter === 'pending' && a.status !== 'pending' && a.status !== 'overdue') return false;
@@ -141,12 +144,28 @@ const ReportBySupplier = () => {
 
       return true;
     });
-  }, [accounts, matchedSupplierIds, searchText, selectedSupplierId, startDate, endDate, statusFilter, dateField]);
+  }, [accounts, matchedSupplierIds, searchText, selectedSupplierId, startDate, endDate, statusFilter, dateField, selectedCategories]);
 
-  // Sorted (newest first)
+  // Sorted: grouped by category, newest first inside each category
   const sortedAccounts = useMemo(() => {
-    return [...filteredAccounts].sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
+    return [...filteredAccounts].sort((a, b) => {
+      const catDiff = categoryName(a.category).localeCompare(categoryName(b.category));
+      if (catDiff !== 0) return catDiff;
+      return new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime();
+    });
   }, [filteredAccounts]);
+
+  // Group a list of accounts by category (preserving order)
+  const groupByCategory = (list: typeof sortedAccounts) => {
+    const groups: { category: string; items: typeof sortedAccounts }[] = [];
+    list.forEach(a => {
+      const key = a.category || 'other';
+      const last = groups[groups.length - 1];
+      if (last && last.category === key) last.items.push(a);
+      else groups.push({ category: key, items: [a] });
+    });
+    return groups;
+  };
 
   // Monthly grouping
   const monthlyGroups = useMemo(() => {
