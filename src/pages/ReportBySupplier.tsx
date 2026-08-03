@@ -430,6 +430,35 @@ const ReportBySupplier = () => {
               </PopoverContent>
             </Popover>
 
+            {/* Categories */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-[220px] justify-start font-normal">
+                  <Tags className="mr-2 h-4 w-4" />
+                  <span className="truncate">{categoriesLabel}</span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[280px] p-0" align="start" side="bottom">
+                <div className="flex items-center justify-between px-3 py-2 border-b border-border">
+                  <span className="text-sm font-medium">Categorias</span>
+                  <Button variant="ghost" size="sm" onClick={() => { setSelectedCategories([]); setCurrentPage(1); }}>
+                    Todas
+                  </Button>
+                </div>
+                <div className="max-h-[260px] overflow-y-auto p-2 space-y-1">
+                  {availableCategories.map(cat => (
+                    <label key={cat} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-accent cursor-pointer text-sm">
+                      <Checkbox
+                        checked={selectedCategories.includes(cat)}
+                        onCheckedChange={() => toggleCategory(cat)}
+                      />
+                      <span>{categoryName(cat)}</span>
+                    </label>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+
             {/* Status */}
             <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setCurrentPage(1); }}>
               <SelectTrigger className="w-[130px]">
