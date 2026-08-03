@@ -325,6 +325,7 @@ const ReportBySupplier = () => {
                 ? selectedSupplierObj.name + (selectedSupplierObj.document ? ` — ${selectedSupplierObj.document}` : '')
                 : 'Análise financeira detalhada por registro'}
             </p>
+            <p className="text-sm text-muted-foreground">Categorias: {categoriesLabel}</p>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={handlePrint} className="gap-1">
