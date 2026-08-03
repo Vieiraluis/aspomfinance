@@ -37,6 +37,26 @@ const ReportBySupplier = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [dateField, setDateField] = useState<'dueDate' | 'paidAt'>('dueDate');
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+
+  const categoryName = (c?: string) => (c && categoryLabels[c as AccountCategory]) || c || 'Sem categoria';
+
+  // Categories present in the data
+  const availableCategories = useMemo(() => {
+    const set = new Set<string>();
+    accounts.forEach(a => set.add(a.category || 'other'));
+    return Array.from(set).sort((a, b) => categoryName(a).localeCompare(categoryName(b)));
+  }, [accounts]);
+
+  const toggleCategory = (cat: string) => {
+    setSelectedCategories(prev => prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]);
+    setCurrentPage(1);
+  };
+
+  const categoriesLabel = useMemo(() => {
+    if (selectedCategories.length === 0) return 'Todas as categorias';
+    return selectedCategories.map(categoryName).join(', ');
+  }, [selectedCategories]);
 
   const isLoading = loadingAccounts || loadingSuppliers;
 
