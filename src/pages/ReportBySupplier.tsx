@@ -574,6 +574,9 @@ const ReportBySupplier = () => {
                   : searchText.trim()}
               </p>
             )}
+            <p className="text-center text-xs mb-1 font-medium">
+              Categorias: {categoriesLabel}
+            </p>
             <p className="text-center text-xs mb-4 text-gray-500">
               {startDate && endDate ? `Período: ${format(startDate, 'dd/MM/yyyy')} até ${format(endDate, 'dd/MM/yyyy')}` : 'Todos os registros'}
               {' • '}Gerado em: {formatDate(new Date())}
