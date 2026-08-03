@@ -14,9 +14,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
-import { Calendar as CalendarIcon, FileSpreadsheet, FileText, Printer, Loader2, TrendingUp, TrendingDown, BarChart3, Hash, Search, X } from 'lucide-react';
-import { paymentMethodLabels } from '@/types/financial';
+import { Calendar as CalendarIcon, FileSpreadsheet, FileText, Printer, Loader2, TrendingUp, TrendingDown, BarChart3, Hash, Search, X, Tags } from 'lucide-react';
+import { paymentMethodLabels, categoryLabels, AccountCategory } from '@/types/financial';
 import ExcelJS from 'exceljs';
 
 const ITEMS_PER_PAGE = 20;
