@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo, useEffect } from 'react';
+import { useState, useRef, useMemo, useEffect, Fragment } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { useAccounts, useSuppliers, useBankAccounts } from '@/hooks/useSupabaseData';
@@ -14,9 +14,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
-import { Calendar as CalendarIcon, FileSpreadsheet, FileText, Printer, Loader2, TrendingUp, TrendingDown, BarChart3, Hash, Search, X } from 'lucide-react';
-import { paymentMethodLabels } from '@/types/financial';
+import { Calendar as CalendarIcon, FileSpreadsheet, FileText, Printer, Loader2, TrendingUp, TrendingDown, BarChart3, Hash, Search, X, Tags } from 'lucide-react';
+import { paymentMethodLabels, categoryLabels, AccountCategory } from '@/types/financial';
 import ExcelJS from 'exceljs';
 
 const ITEMS_PER_PAGE = 20;
@@ -36,6 +37,26 @@ const ReportBySupplier = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [dateField, setDateField] = useState<'dueDate' | 'paidAt'>('dueDate');
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+
+  const categoryName = (c?: string) => (c && categoryLabels[c as AccountCategory]) || c || 'Sem categoria';
+
+  // Categories present in the data
+  const availableCategories = useMemo(() => {
+    const set = new Set<string>();
+    accounts.forEach(a => set.add(a.category || 'other'));
+    return Array.from(set).sort((a, b) => categoryName(a).localeCompare(categoryName(b)));
+  }, [accounts]);
+
+  const toggleCategory = (cat: string) => {
+    setSelectedCategories(prev => prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]);
+    setCurrentPage(1);
+  };
+
+  const categoriesLabel = useMemo(() => {
+    if (selectedCategories.length === 0) return 'Todas as categorias';
+    return selectedCategories.map(categoryName).join(', ');
+  }, [selectedCategories]);
 
   const isLoading = loadingAccounts || loadingSuppliers;
 
@@ -101,6 +122,9 @@ const ReportBySupplier = () => {
         }
       }
 
+      // Category filter
+      if (selectedCategories.length > 0 && !selectedCategories.includes(a.category || 'other')) return false;
+
       // Status filter
       if (statusFilter === 'paid' && a.status !== 'paid') return false;
       if (statusFilter === 'pending' && a.status !== 'pending' && a.status !== 'overdue') return false;
@@ -120,12 +144,28 @@ const ReportBySupplier = () => {
 
       return true;
     });
-  }, [accounts, matchedSupplierIds, searchText, selectedSupplierId, startDate, endDate, statusFilter, dateField]);
+  }, [accounts, matchedSupplierIds, searchText, selectedSupplierId, startDate, endDate, statusFilter, dateField, selectedCategories]);
 
-  // Sorted (newest first)
+  // Sorted: grouped by category, newest first inside each category
   const sortedAccounts = useMemo(() => {
-    return [...filteredAccounts].sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
+    return [...filteredAccounts].sort((a, b) => {
+      const catDiff = categoryName(a.category).localeCompare(categoryName(b.category));
+      if (catDiff !== 0) return catDiff;
+      return new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime();
+    });
   }, [filteredAccounts]);
+
+  // Group a list of accounts by category (preserving order)
+  const groupByCategory = (list: typeof sortedAccounts) => {
+    const groups: { category: string; items: typeof sortedAccounts }[] = [];
+    list.forEach(a => {
+      const key = a.category || 'other';
+      const last = groups[groups.length - 1];
+      if (last && last.category === key) last.items.push(a);
+      else groups.push({ category: key, items: [a] });
+    });
+    return groups;
+  };
 
   // Monthly grouping
   const monthlyGroups = useMemo(() => {
@@ -285,6 +325,7 @@ const ReportBySupplier = () => {
                 ? selectedSupplierObj.name + (selectedSupplierObj.document ? ` — ${selectedSupplierObj.document}` : '')
                 : 'Análise financeira detalhada por registro'}
             </p>
+            <p className="text-sm text-muted-foreground">Categorias: {categoriesLabel}</p>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={handlePrint} className="gap-1">
@@ -390,6 +431,35 @@ const ReportBySupplier = () => {
               </PopoverContent>
             </Popover>
 
+            {/* Categories */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-[220px] justify-start font-normal">
+                  <Tags className="mr-2 h-4 w-4" />
+                  <span className="truncate">{categoriesLabel}</span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[280px] p-0" align="start" side="bottom">
+                <div className="flex items-center justify-between px-3 py-2 border-b border-border">
+                  <span className="text-sm font-medium">Categorias</span>
+                  <Button variant="ghost" size="sm" onClick={() => { setSelectedCategories([]); setCurrentPage(1); }}>
+                    Todas
+                  </Button>
+                </div>
+                <div className="max-h-[260px] overflow-y-auto p-2 space-y-1">
+                  {availableCategories.map(cat => (
+                    <label key={cat} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-accent cursor-pointer text-sm">
+                      <Checkbox
+                        checked={selectedCategories.includes(cat)}
+                        onCheckedChange={() => toggleCategory(cat)}
+                      />
+                      <span>{categoryName(cat)}</span>
+                    </label>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+
             {/* Status */}
             <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setCurrentPage(1); }}>
               <SelectTrigger className="w-[130px]">
@@ -481,24 +551,36 @@ const ReportBySupplier = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {paginatedAccounts.map(a => (
-                    <TableRow key={a.id}>
-                      <TableCell className="font-mono text-xs">{a.code || '-'}</TableCell>
-                      <TableCell>{formatDate(a.dueDate)}</TableCell>
-                      <TableCell className="max-w-[200px] truncate">{a.description}</TableCell>
-                      <TableCell>{a.paidAt ? formatDate(a.paidAt) : '-'}</TableCell>
-                      <TableCell className="text-right text-success font-medium">
-                        {a.type === 'receivable' ? formatCurrency(a.amount) : '-'}
-                      </TableCell>
-                      <TableCell className="text-right text-destructive font-medium">
-                        {a.type === 'payable' ? formatCurrency(a.amount) : '-'}
-                      </TableCell>
-                      <TableCell>
-                        <span className={cn('text-sm font-medium', getStatusClass(a.status))}>
-                          {getStatusLabel(a.status)}
-                        </span>
-                      </TableCell>
-                    </TableRow>
+                  {groupByCategory(paginatedAccounts).map(group => (
+                    <Fragment key={`g-${group.category}`}>
+                      <TableRow key={`cat-${group.category}`} className="bg-muted/60 hover:bg-muted/60">
+                        <TableCell colSpan={7} className="font-semibold text-sm">
+                          {categoryName(group.category)}
+                          <span className="ml-2 text-xs text-muted-foreground font-normal">
+                            {group.items.length} registro(s) • {formatCurrency(sumMoney(group.items, (x) => x.amount))}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                      {group.items.map(a => (
+                        <TableRow key={a.id}>
+                          <TableCell className="font-mono text-xs">{a.code || '-'}</TableCell>
+                          <TableCell>{formatDate(a.dueDate)}</TableCell>
+                          <TableCell className="max-w-[200px] truncate">{a.description}</TableCell>
+                          <TableCell>{a.paidAt ? formatDate(a.paidAt) : '-'}</TableCell>
+                          <TableCell className="text-right text-success font-medium">
+                            {a.type === 'receivable' ? formatCurrency(a.amount) : '-'}
+                          </TableCell>
+                          <TableCell className="text-right text-destructive font-medium">
+                            {a.type === 'payable' ? formatCurrency(a.amount) : '-'}
+                          </TableCell>
+                          <TableCell>
+                            <span className={cn('text-sm font-medium', getStatusClass(a.status))}>
+                              {getStatusLabel(a.status)}
+                            </span>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </Fragment>
                   ))}
                 </TableBody>
               </Table>
@@ -534,6 +616,9 @@ const ReportBySupplier = () => {
                   : searchText.trim()}
               </p>
             )}
+            <p className="text-center text-xs mb-1 font-medium">
+              Categorias: {categoriesLabel}
+            </p>
             <p className="text-center text-xs mb-4 text-gray-500">
               {startDate && endDate ? `Período: ${format(startDate, 'dd/MM/yyyy')} até ${format(endDate, 'dd/MM/yyyy')}` : 'Todos os registros'}
               {' • '}Gerado em: {formatDate(new Date())}
@@ -560,16 +645,25 @@ const ReportBySupplier = () => {
                 </tr>
               </thead>
               <tbody>
-                {sortedAccounts.map((a, i) => (
-                  <tr key={a.id} className={i % 2 === 0 ? 'bg-gray-50' : ''}>
-                    <td className="py-1">{a.code || '-'}</td>
-                    <td className="py-1">{formatDate(a.dueDate)}</td>
-                    <td className="py-1">{a.description}</td>
-                    <td className="py-1">{a.paidAt ? formatDate(a.paidAt) : '-'}</td>
-                    <td className="py-1 text-right">{a.type === 'receivable' ? formatCurrency(a.amount) : '-'}</td>
-                    <td className="py-1 text-right">{a.type === 'payable' ? formatCurrency(a.amount) : '-'}</td>
-                    <td className="py-1">{getStatusLabel(a.status)}</td>
-                  </tr>
+                {groupByCategory(sortedAccounts).map(group => (
+                  <Fragment key={`pg-${group.category}`}>
+                    <tr key={`cat-${group.category}`} className="bg-gray-200">
+                      <td colSpan={7} className="py-1 font-bold">
+                        {categoryName(group.category)} — {group.items.length} registro(s) • {formatCurrency(sumMoney(group.items, (x) => x.amount))}
+                      </td>
+                    </tr>
+                    {group.items.map((a, i) => (
+                      <tr key={a.id} className={i % 2 === 0 ? 'bg-gray-50' : ''}>
+                        <td className="py-1">{a.code || '-'}</td>
+                        <td className="py-1">{formatDate(a.dueDate)}</td>
+                        <td className="py-1">{a.description}</td>
+                        <td className="py-1">{a.paidAt ? formatDate(a.paidAt) : '-'}</td>
+                        <td className="py-1 text-right">{a.type === 'receivable' ? formatCurrency(a.amount) : '-'}</td>
+                        <td className="py-1 text-right">{a.type === 'payable' ? formatCurrency(a.amount) : '-'}</td>
+                        <td className="py-1">{getStatusLabel(a.status)}</td>
+                      </tr>
+                    ))}
+                  </Fragment>
                 ))}
               </tbody>
             </table>
