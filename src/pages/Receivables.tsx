@@ -533,7 +533,7 @@ const Receivables = () => {
         {/* Table */}
         <div className="glass-card overflow-hidden">
           {isLoading ? (
-            <TableSkeleton columns={9} rows={8} />
+            <TableSkeleton columns={8} rows={8} />
           ) : filteredReceivables.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
               <TrendingUp className="w-12 h-12 mb-3 opacity-50" />
@@ -558,7 +558,6 @@ const Receivables = () => {
                   <TableHead>Vencimento</TableHead>
                   <TableHead>Valor</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Anexos</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -596,15 +595,6 @@ const Receivables = () => {
                       <Badge variant="outline" className={cn(statusStyles[account.status])}>
                         {statusLabels[account.status]}
                       </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <AttachmentButtons
-                        billingSlipUrl={account.billingSlipUrl}
-                        paymentReceiptUrl={account.paymentReceiptUrl}
-                        onBillingSlipChange={(url) => handleUpdateAccount(account.id, { billingSlipUrl: url })}
-                        onPaymentReceiptChange={(url) => handleUpdateAccount(account.id, { paymentReceiptUrl: url })}
-                        compact
-                      />
                     </TableCell>
                     <TableCell className="text-right">
                       <AccountRowActions
