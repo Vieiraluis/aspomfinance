@@ -42,6 +42,7 @@ import { SupplierSelect } from '@/components/suppliers/SupplierSelect';
 import { ReceiptDialog } from '@/components/receipts/ReceiptDialog';
 import { AccountFilters } from '@/components/accounts/AccountFilters';
 import { EditAccountDialog } from '@/components/accounts/EditAccountDialog';
+import { AccountRowActions } from '@/components/accounts/AccountRowActions';
 import { TableSkeleton } from '@/components/ui/table-skeleton';
 import { TablePagination, usePagination } from '@/components/ui/table-pagination';
 
@@ -606,34 +607,13 @@ const Receivables = () => {
                       />
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => openEditDialog(account)}
-                          title="Editar"
-                        >
-                          <Pencil className="w-4 h-4 text-primary" />
-                        </Button>
-                        {account.status === 'paid' && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => openSingleReceipt(account)}
-                            title="Gerar Recibo"
-                          >
-                            <Receipt className="w-4 h-4 text-primary" />
-                          </Button>
-                        )}
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDelete(account.id)}
-                          disabled={deleteAccountMutation.isPending}
-                        >
-                          <Trash2 className="w-4 h-4 text-destructive" />
-                        </Button>
-                      </div>
+                      <AccountRowActions
+                        account={account}
+                        onEdit={openEditDialog}
+                        onReceipt={openSingleReceipt}
+                        onDelete={handleDelete}
+                        isDeleting={deleteAccountMutation.isPending}
+                      />
                     </TableCell>
                   </TableRow>
                 ))}
