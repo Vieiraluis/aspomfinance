@@ -37,6 +37,7 @@ import { format, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 import { AttachmentButtons } from '@/components/attachments/AttachmentButtons';
 import { AccountFilters } from '@/components/accounts/AccountFilters';
 import { EditAccountDialog } from '@/components/accounts/EditAccountDialog';
+import { PaymentDialog } from '@/components/accounts/PaymentDialog';
 
 const Payments = () => {
   const { data: accounts = [], isLoading } = useAccounts();
@@ -55,14 +56,7 @@ const Payments = () => {
   
   const activeBankAccounts = bankAccounts.filter(ba => ba.isActive);
   
-  const [paymentData, setPaymentData] = useState({
-    amount: '',
-    paymentMethod: 'pix' as Payment['paymentMethod'],
-    paidAt: format(new Date(), 'yyyy-MM-dd'),
-    bankAccountId: '',
-    notes: '',
-  });
-  
+ 
   const pendingAccounts = accounts.filter(
     (a) => a.status === 'pending' || a.status === 'overdue'
   );
@@ -95,69 +89,15 @@ const Payments = () => {
   
   const openPaymentDialog = (account: Account) => {
     setSelectedAccount(account);
-    setPaymentData({
-      amount: account.amount.toString(),
-      paymentMethod: 'pix',
-      paidAt: format(new Date(), 'yyyy-MM-dd'),
-      bankAccountId: activeBankAccounts[0]?.id || '',
-      notes: '',
-    });
     setIsPaymentOpen(true);
   };
+
 
   const openEditDialog = (account: Account) => {
     setEditingAccount(account);
     setIsEditOpen(true);
   };
   
-  const handlePayment = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!selectedAccount) return;
-    
-    if (!paymentData.bankAccountId) {
-      toast({
-        title: 'Selecione uma conta',
-        description: 'É necessário selecionar uma conta bancária para a baixa.',
-        variant: 'destructive',
-      });
-      return;
-    }
-    
-    try {
-      // Create date at noon to avoid timezone issues
-      const [year, month, day] = paymentData.paidAt.split('-').map(Number);
-      const paidAt = new Date(year, month - 1, day, 12, 0, 0);
-      
-      await processPaymentMutation.mutateAsync({
-        accountId: selectedAccount.id,
-        payment: {
-          amount: parseFloat(paymentData.amount),
-          paymentMethod: paymentData.paymentMethod,
-          paidAt: paidAt,
-          bankAccountId: paymentData.bankAccountId,
-          notes: paymentData.notes || undefined,
-        },
-      });
-      
-      const bankAccount = bankAccounts.find(ba => ba.id === paymentData.bankAccountId);
-      
-      toast({
-        title: selectedAccount.type === 'payable' ? 'Pagamento registrado!' : 'Recebimento registrado!',
-        description: `${selectedAccount.description} - ${formatCurrency(parseFloat(paymentData.amount))} via ${bankAccount?.name}`,
-      });
-      
-      setIsPaymentOpen(false);
-      setSelectedAccount(null);
-    } catch (error: any) {
-      toast({
-        title: 'Erro',
-        description: error.message || 'Ocorreu um erro ao processar.',
-        variant: 'destructive',
-      });
-    }
-  };
-
   const handleUpdateAccount = async (id: string, data: Partial<Account>) => {
     try {
       await updateAccountMutation.mutateAsync({ id, ...data });
@@ -252,7 +192,7 @@ const Payments = () => {
         />
         
         {/* Table */}
-        <div className="glass-card overflow-hidden">
+        <div className="glass-card overflow-x-auto">
           {filteredAccounts.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
               <CheckCircle className="w-12 h-12 mb-3 opacity-50 text-success" />
@@ -366,118 +306,14 @@ const Payments = () => {
         />
         
         {/* Payment Dialog */}
-        <Dialog open={isPaymentOpen} onOpenChange={setIsPaymentOpen}>
-          <DialogContent className="sm:max-w-[450px]">
-            <DialogHeader>
-              <DialogTitle className="font-display">
-                {selectedAccount?.type === 'payable' ? 'Registrar Pagamento' : 'Registrar Recebimento'}
-              </DialogTitle>
-            </DialogHeader>
-            {selectedAccount && (
-              <form onSubmit={handlePayment} className="space-y-4">
-                <div className="p-4 rounded-lg bg-muted/50 border border-border">
-                  {selectedAccount.code && (
-                    <p className="text-xs font-mono text-muted-foreground mb-1">{selectedAccount.code}</p>
-                  )}
-                  <p className="text-sm text-muted-foreground">Conta:</p>
-                  <p className="font-medium">{selectedAccount.description}</p>
-                  <p className={cn(
-                    'text-lg font-semibold mt-1',
-                    selectedAccount.type === 'payable' ? 'text-destructive' : 'text-success'
-                  )}>
-                    {formatCurrency(selectedAccount.amount)}
-                  </p>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="amount">Valor Pago</Label>
-                    <CurrencyInput
-                      id="amount"
-                      value={paymentData.amount}
-                      onValueChange={(value) => setPaymentData({ ...paymentData, amount: value })}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="paidAt">Data</Label>
-                    <Input
-                      id="paidAt"
-                      type="date"
-                      value={paymentData.paidAt}
-                      onChange={(e) => setPaymentData({ ...paymentData, paidAt: e.target.value })}
-                      required
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="bankAccountId">Conta para Baixa</Label>
-                  <Select
-                    value={paymentData.bankAccountId}
-                    onValueChange={(value) => setPaymentData({ ...paymentData, bankAccountId: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione a conta" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {activeBankAccounts.map((ba) => (
-                        <SelectItem key={ba.id} value={ba.id}>
-                          <span className="flex items-center gap-2">
-                            <Wallet className="w-4 h-4" />
-                            {ba.name} ({formatCurrency(ba.currentBalance)})
-                          </span>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {activeBankAccounts.length === 0 && (
-                    <p className="text-xs text-destructive">
-                      Nenhuma conta bancária ativa. Cadastre uma conta primeiro.
-                    </p>
-                  )}
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="paymentMethod">Forma de Pagamento</Label>
-                  <Select
-                    value={paymentData.paymentMethod}
-                    onValueChange={(value) => setPaymentData({ ...paymentData, paymentMethod: value as Payment['paymentMethod'] })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(paymentMethodLabels).map(([key, label]) => (
-                        <SelectItem key={key} value={key}>{label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="notes">Observações (opcional)</Label>
-                  <Input
-                    id="notes"
-                    value={paymentData.notes}
-                    onChange={(e) => setPaymentData({ ...paymentData, notes: e.target.value })}
-                    placeholder="Notas adicionais..."
-                  />
-                </div>
-                
-                <div className="flex justify-end gap-3 pt-4">
-                  <Button type="button" variant="outline" onClick={() => setIsPaymentOpen(false)}>
-                    Cancelar
-                  </Button>
-                  <Button type="submit" disabled={processPaymentMutation.isPending}>
-                    {processPaymentMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                    Confirmar {selectedAccount.type === 'payable' ? 'Pagamento' : 'Recebimento'}
-                  </Button>
-                </div>
-              </form>
-            )}
-          </DialogContent>
-        </Dialog>
+        <PaymentDialog
+          account={selectedAccount}
+          open={isPaymentOpen}
+          onOpenChange={(open) => {
+            setIsPaymentOpen(open);
+            if (!open) setSelectedAccount(null);
+          }}
+        />
 
       </div>
     </MainLayout>

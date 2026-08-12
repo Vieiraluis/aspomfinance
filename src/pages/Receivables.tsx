@@ -42,6 +42,7 @@ import { SupplierSelect } from '@/components/suppliers/SupplierSelect';
 import { ReceiptDialog } from '@/components/receipts/ReceiptDialog';
 import { AccountFilters } from '@/components/accounts/AccountFilters';
 import { EditAccountDialog } from '@/components/accounts/EditAccountDialog';
+import { AccountRowActions } from '@/components/accounts/AccountRowActions';
 import { TableSkeleton } from '@/components/ui/table-skeleton';
 import { TablePagination, usePagination } from '@/components/ui/table-pagination';
 
@@ -532,7 +533,7 @@ const Receivables = () => {
         {/* Table */}
         <div className="glass-card overflow-hidden">
           {isLoading ? (
-            <TableSkeleton columns={9} rows={8} />
+            <TableSkeleton columns={8} rows={8} />
           ) : filteredReceivables.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
               <TrendingUp className="w-12 h-12 mb-3 opacity-50" />
@@ -557,7 +558,6 @@ const Receivables = () => {
                   <TableHead>Vencimento</TableHead>
                   <TableHead>Valor</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Anexos</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -596,44 +596,14 @@ const Receivables = () => {
                         {statusLabels[account.status]}
                       </Badge>
                     </TableCell>
-                    <TableCell>
-                      <AttachmentButtons
-                        billingSlipUrl={account.billingSlipUrl}
-                        paymentReceiptUrl={account.paymentReceiptUrl}
-                        onBillingSlipChange={(url) => handleUpdateAccount(account.id, { billingSlipUrl: url })}
-                        onPaymentReceiptChange={(url) => handleUpdateAccount(account.id, { paymentReceiptUrl: url })}
-                        compact
-                      />
-                    </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => openEditDialog(account)}
-                          title="Editar"
-                        >
-                          <Pencil className="w-4 h-4 text-primary" />
-                        </Button>
-                        {account.status === 'paid' && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => openSingleReceipt(account)}
-                            title="Gerar Recibo"
-                          >
-                            <Receipt className="w-4 h-4 text-primary" />
-                          </Button>
-                        )}
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDelete(account.id)}
-                          disabled={deleteAccountMutation.isPending}
-                        >
-                          <Trash2 className="w-4 h-4 text-destructive" />
-                        </Button>
-                      </div>
+                      <AccountRowActions
+                        account={account}
+                        onEdit={openEditDialog}
+                        onReceipt={openSingleReceipt}
+                        onDelete={handleDelete}
+                        isDeleting={deleteAccountMutation.isPending}
+                      />
                     </TableCell>
                   </TableRow>
                 ))}
