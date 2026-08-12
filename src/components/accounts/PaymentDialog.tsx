@@ -103,7 +103,7 @@ export const PaymentDialog = ({ account, open, onOpenChange }: PaymentDialogProp
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] max-w-[520px] max-h-[85vh] overflow-y-auto p-4 sm:p-5">
+      <DialogContent className="w-[96vw] max-w-[900px] max-h-[90vh] overflow-y-auto p-4 sm:p-5">
         <DialogHeader className="pb-1">
           <DialogTitle className="font-display text-lg">
             {account?.type === 'payable' ? 'Registrar Pagamento' : 'Registrar Recebimento'}
@@ -111,16 +111,20 @@ export const PaymentDialog = ({ account, open, onOpenChange }: PaymentDialogProp
         </DialogHeader>
         {account && (
           <form onSubmit={handlePayment} className="space-y-3">
-            <div className="flex items-center justify-between gap-3 p-3 rounded-lg bg-muted/50 border border-border">
+            <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,260px)_1fr] gap-4 items-start">
+            <div className="flex lg:flex-col lg:items-start items-center justify-between gap-2 p-3 rounded-lg bg-muted/50 border border-border">
               <div className="min-w-0">
                 {account.code && (
                   <p className="text-[11px] font-mono text-muted-foreground">{account.code}</p>
                 )}
-                <p className="font-medium text-sm truncate">{account.description}</p>
+                <p className="font-medium text-sm lg:whitespace-normal truncate">{account.description}</p>
+                {account.supplierName && (
+                  <p className="text-xs text-muted-foreground truncate">{account.supplierName}</p>
+                )}
               </div>
               <p
                 className={cn(
-                  'text-base font-semibold whitespace-nowrap',
+                  'text-base lg:text-xl font-semibold whitespace-nowrap',
                   account.type === 'payable' ? 'text-destructive' : 'text-success',
                 )}
               >
@@ -128,7 +132,7 @@ export const PaymentDialog = ({ account, open, onOpenChange }: PaymentDialogProp
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
               <div className="space-y-1.5">
                 <Label htmlFor="amount">Valor {account.type === 'payable' ? 'Pago' : 'Recebido'}</Label>
                 <CurrencyInput
