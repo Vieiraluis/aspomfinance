@@ -297,12 +297,12 @@ const Payables = () => {
                   Parcelar
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px]">
+              <DialogContent className="sm:max-w-[860px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle className="font-display">Gerar Parcelas</DialogTitle>
                   <DialogDescription>Divida uma conta em parcelas mensais</DialogDescription>
                 </DialogHeader>
-                <form onSubmit={handleInstallmentSubmit} className="space-y-4">
+                <form onSubmit={handleInstallmentSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="inst-description">Descrição</Label>
                     <Input
@@ -322,7 +322,7 @@ const Payables = () => {
                       placeholder="Selecione o fornecedor..."
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="contents">
                     <div className="space-y-2">
                       <Label htmlFor="inst-amount">Valor Total</Label>
                       <CurrencyInput
@@ -345,7 +345,7 @@ const Payables = () => {
                       />
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="contents">
                     <div className="space-y-2">
                       <Label htmlFor="inst-dueDate">Primeiro Vencimento</Label>
                       <Input
@@ -381,7 +381,7 @@ const Payables = () => {
                       </p>
                     </div>
                   )}
-                  <div className="flex justify-end gap-3 pt-4">
+                  <div className="flex justify-end gap-3 pt-4 md:col-span-2">
                     <Button type="button" variant="outline" onClick={() => setIsInstallmentOpen(false)}>
                       Cancelar
                     </Button>
@@ -404,12 +404,12 @@ const Payables = () => {
                   Nova Conta
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px]">
+              <DialogContent className="sm:max-w-[860px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle className="font-display">Nova Conta a Pagar</DialogTitle>
                   <DialogDescription>Registre uma nova despesa ou conta a pagar</DialogDescription>
                 </DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="description">Descrição</Label>
                     <Input
@@ -429,7 +429,7 @@ const Payables = () => {
                       placeholder="Selecione o fornecedor..."
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="contents">
                     <div className="space-y-2">
                       <Label htmlFor="amount">Valor</Label>
                       <CurrencyInput
@@ -466,7 +466,7 @@ const Payables = () => {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="flex justify-end gap-3 pt-4">
+                  <div className="flex justify-end gap-3 pt-4 md:col-span-2">
                     <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
                       Cancelar
                     </Button>

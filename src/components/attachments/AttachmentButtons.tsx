@@ -12,11 +12,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { FileText, Receipt, Paperclip, X, ExternalLink, Loader2 } from 'lucide-react';
+import { FileText, Receipt, Paperclip, X, ExternalLink, Loader2, Printer } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { isPdfFileUrl, normalizeStorageUrl } from '@/lib/storageUrl';
+import { printAttachment } from '@/lib/printAttachment';
 
 interface AttachmentButtonsProps {
   billingSlipUrl?: string;
@@ -245,7 +246,7 @@ export const AttachmentButtons = ({
                       className="w-full max-h-[60vh] object-contain rounded-lg border"
                     />
                   )}
-                  <div className="flex justify-between">
+                  <div className="flex flex-wrap justify-between gap-2">
                     <Button
                       variant="destructive"
                       size="sm"
@@ -277,6 +278,15 @@ export const AttachmentButtons = ({
                     >
                       <Paperclip className="w-4 h-4" />
                       Substituir
+                    </Button>
+                    <Button
+                      variant="default"
+                      size="sm"
+                      className="gap-2"
+                      onClick={() => printAttachment(previewUrl, previewTitle)}
+                    >
+                      <Printer className="w-4 h-4" />
+                      Imprimir
                     </Button>
                   </div>
                 </>

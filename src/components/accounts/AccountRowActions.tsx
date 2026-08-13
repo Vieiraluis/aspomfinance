@@ -5,7 +5,9 @@ import { AttachmentButtons } from '@/components/attachments/AttachmentButtons';
 import { PaymentDialog } from '@/components/accounts/PaymentDialog';
 import { useUpdateAccount } from '@/hooks/useSupabaseData';
 import { toast } from '@/hooks/use-toast';
-import { CheckCircle2, Pencil, Receipt, Trash2 } from 'lucide-react';
+import { printAttachment } from '@/lib/printAttachment';
+import { CheckCircle2, Pencil, Printer, Receipt, Trash2 } from 'lucide-react';
+
 
 interface AccountRowActionsProps {
   account: Account;
@@ -64,6 +66,31 @@ export const AccountRowActions = ({
         onPaymentReceiptChange={(url) => handleUpdate({ paymentReceiptUrl: url })}
         compact
       />
+
+      {account.billingSlipUrl && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={() => printAttachment(account.billingSlipUrl, 'Boleto')}
+          title="Imprimir boleto anexado"
+        >
+          <Printer className="w-4 h-4 text-muted-foreground" />
+        </Button>
+      )}
+
+      {account.paymentReceiptUrl && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={() => printAttachment(account.paymentReceiptUrl, 'Comprovante de Pagamento')}
+          title="Imprimir comprovante de pagamento"
+        >
+          <Printer className="w-4 h-4 text-success" />
+        </Button>
+      )}
+
 
       <Button
         variant="ghost"
