@@ -313,7 +313,7 @@ const Payables = () => {
                       required
                     />
                   </div>
-                  <div className="space-y-2 md:col-span-2">
+                  <div className="space-y-2">
                     <Label>Fornecedor</Label>
                     <SupplierSelect
                       value={installmentData.supplierId}
@@ -420,7 +420,7 @@ const Payables = () => {
                       required
                     />
                   </div>
-                  <div className="space-y-2 md:col-span-2">
+                  <div className="space-y-2">
                     <Label>Fornecedor</Label>
                     <SupplierSelect
                       value={formData.supplierId}

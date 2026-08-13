@@ -104,12 +104,12 @@ export function EditAccountDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[860px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-display">{title}</DialogTitle>
           <DialogDescription>Altere os dados da conta</DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="edit-description">Descrição</Label>
             <Input
@@ -131,7 +131,7 @@ export function EditAccountDialog({
             />
           </div>
           
-          <div className="grid grid-cols-2 gap-4">
+          <div className="contents">
             <div className="space-y-2">
               <Label htmlFor="edit-amount">Valor</Label>
               <CurrencyInput
@@ -170,7 +170,7 @@ export function EditAccountDialog({
             </Select>
           </div>
           
-          <div className="space-y-2">
+          <div className="space-y-2 md:col-span-2">
             <Label htmlFor="edit-notes">Observações</Label>
             <Textarea
               id="edit-notes"
@@ -181,7 +181,7 @@ export function EditAccountDialog({
             />
           </div>
           
-          <div className="flex justify-end gap-3 pt-4">
+          <div className="flex justify-end gap-3 pt-4 md:col-span-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
