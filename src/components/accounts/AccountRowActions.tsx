@@ -5,7 +5,9 @@ import { AttachmentButtons } from '@/components/attachments/AttachmentButtons';
 import { PaymentDialog } from '@/components/accounts/PaymentDialog';
 import { useUpdateAccount } from '@/hooks/useSupabaseData';
 import { toast } from '@/hooks/use-toast';
-import { CheckCircle2, Pencil, Receipt, Trash2 } from 'lucide-react';
+import { printAttachment } from '@/lib/printAttachment';
+import { CheckCircle2, Pencil, Printer, Receipt, Trash2 } from 'lucide-react';
+
 
 interface AccountRowActionsProps {
   account: Account;
