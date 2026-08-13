@@ -112,91 +112,92 @@ export const PaymentDialog = ({ account, open, onOpenChange }: PaymentDialogProp
         {account && (
           <form onSubmit={handlePayment} className="space-y-3">
             <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,260px)_1fr] gap-4 items-start">
-            <div className="flex lg:flex-col lg:items-start items-center justify-between gap-2 p-3 rounded-lg bg-muted/50 border border-border">
-              <div className="min-w-0">
-                {account.code && (
-                  <p className="text-[11px] font-mono text-muted-foreground">{account.code}</p>
-                )}
-                <p className="font-medium text-sm lg:whitespace-normal truncate">{account.description}</p>
-                {account.supplierName && (
-                  <p className="text-xs text-muted-foreground truncate">{account.supplierName}</p>
-                )}
+              <div className="flex lg:flex-col lg:items-start items-center justify-between gap-2 p-3 rounded-lg bg-muted/50 border border-border">
+                <div className="min-w-0">
+                  {account.code && (
+                    <p className="text-[11px] font-mono text-muted-foreground">{account.code}</p>
+                  )}
+                  <p className="font-medium text-sm lg:whitespace-normal truncate">{account.description}</p>
+                  {account.supplierName && (
+                    <p className="text-xs text-muted-foreground truncate">{account.supplierName}</p>
+                  )}
+                </div>
+                <p
+                  className={cn(
+                    'text-base lg:text-xl font-semibold whitespace-nowrap',
+                    account.type === 'payable' ? 'text-destructive' : 'text-success',
+                  )}
+                >
+                  {formatCurrency(account.amount)}
+                </p>
               </div>
-              <p
-                className={cn(
-                  'text-base lg:text-xl font-semibold whitespace-nowrap',
-                  account.type === 'payable' ? 'text-destructive' : 'text-success',
-                )}
-              >
-                {formatCurrency(account.amount)}
-              </p>
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="amount">Valor {account.type === 'payable' ? 'Pago' : 'Recebido'}</Label>
-                <CurrencyInput
-                  id="amount"
-                  value={paymentData.amount}
-                  onValueChange={(value) => setPaymentData({ ...paymentData, amount: value })}
-                  required
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="paidAt">Data</Label>
-                <Input
-                  id="paidAt"
-                  type="date"
-                  value={paymentData.paidAt}
-                  onChange={(e) => setPaymentData({ ...paymentData, paidAt: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="bankAccountId">Conta para Baixa</Label>
-                <Select
-                  value={paymentData.bankAccountId}
-                  onValueChange={(value) => setPaymentData({ ...paymentData, bankAccountId: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione a conta" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {activeBankAccounts.map((ba) => (
-                      <SelectItem key={ba.id} value={ba.id}>
-                        <span className="flex items-center gap-2">
-                          <Wallet className="w-4 h-4" />
-                          {ba.name} ({formatCurrency(ba.currentBalance)})
-                        </span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {activeBankAccounts.length === 0 && (
-                  <p className="text-xs text-destructive">
-                    Nenhuma conta bancária ativa. Cadastre uma conta primeiro.
-                  </p>
-                )}
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="paymentMethod">Forma de Pagamento</Label>
-                <Select
-                  value={paymentData.paymentMethod}
-                  onValueChange={(value) =>
-                    setPaymentData({ ...paymentData, paymentMethod: value as Payment['paymentMethod'] })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(paymentMethodLabels).map(([key, label]) => (
-                      <SelectItem key={key} value={key}>
-                        {label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="amount">Valor {account.type === 'payable' ? 'Pago' : 'Recebido'}</Label>
+                  <CurrencyInput
+                    id="amount"
+                    value={paymentData.amount}
+                    onValueChange={(value) => setPaymentData({ ...paymentData, amount: value })}
+                    required
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="paidAt">Data</Label>
+                  <Input
+                    id="paidAt"
+                    type="date"
+                    value={paymentData.paidAt}
+                    onChange={(e) => setPaymentData({ ...paymentData, paidAt: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="bankAccountId">Conta para Baixa</Label>
+                  <Select
+                    value={paymentData.bankAccountId}
+                    onValueChange={(value) => setPaymentData({ ...paymentData, bankAccountId: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a conta" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {activeBankAccounts.map((ba) => (
+                        <SelectItem key={ba.id} value={ba.id}>
+                          <span className="flex items-center gap-2">
+                            <Wallet className="w-4 h-4" />
+                            {ba.name} ({formatCurrency(ba.currentBalance)})
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {activeBankAccounts.length === 0 && (
+                    <p className="text-xs text-destructive">
+                      Nenhuma conta bancária ativa. Cadastre uma conta primeiro.
+                    </p>
+                  )}
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="paymentMethod">Forma de Pagamento</Label>
+                  <Select
+                    value={paymentData.paymentMethod}
+                    onValueChange={(value) =>
+                      setPaymentData({ ...paymentData, paymentMethod: value as Payment['paymentMethod'] })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(paymentMethodLabels).map(([key, label]) => (
+                        <SelectItem key={key} value={key}>
+                          {label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
 
