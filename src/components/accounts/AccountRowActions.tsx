@@ -67,6 +67,31 @@ export const AccountRowActions = ({
         compact
       />
 
+      {account.billingSlipUrl && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={() => printAttachment(account.billingSlipUrl, 'Boleto')}
+          title="Imprimir boleto anexado"
+        >
+          <Printer className="w-4 h-4 text-muted-foreground" />
+        </Button>
+      )}
+
+      {account.paymentReceiptUrl && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={() => printAttachment(account.paymentReceiptUrl, 'Comprovante de Pagamento')}
+          title="Imprimir comprovante de pagamento"
+        >
+          <Printer className="w-4 h-4 text-success" />
+        </Button>
+      )}
+
+
       <Button
         variant="ghost"
         size="icon"
