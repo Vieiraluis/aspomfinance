@@ -8,6 +8,7 @@ import Dashboard from "./pages/Dashboard";
 import Suppliers from "./pages/Suppliers";
 import Payables from "./pages/Payables";
 import Receivables from "./pages/Receivables";
+import Cobranca from "./pages/Cobranca";
 import Payments from "./pages/Payments";
 import BankAccounts from "./pages/BankAccounts";
 import CashFlow from "./pages/CashFlow";
@@ -79,6 +80,7 @@ function AppRoutes() {
       <Route path="/suppliers" element={<ProtectedRoute><Suppliers /></ProtectedRoute>} />
       <Route path="/payables" element={<ProtectedRoute><Payables /></ProtectedRoute>} />
       <Route path="/receivables" element={<ProtectedRoute><Receivables /></ProtectedRoute>} />
+      <Route path="/cobranca" element={<ProtectedRoute><Cobranca /></ProtectedRoute>} />
       <Route path="/payments" element={<ProtectedRoute><Payments /></ProtectedRoute>} />
       <Route path="/bank-accounts" element={<ProtectedRoute><BankAccounts /></ProtectedRoute>} />
       <Route path="/cash-flow" element={<ProtectedRoute><CashFlow /></ProtectedRoute>} />
