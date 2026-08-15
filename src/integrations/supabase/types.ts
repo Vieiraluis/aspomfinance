@@ -105,6 +105,99 @@ export type Database = {
           },
         ]
       }
+      asaas_charges: {
+        Row: {
+          account_id: string | null
+          account_ids: string[]
+          asaas_customer_id: string | null
+          asaas_payment_id: string
+          bank_slip_url: string | null
+          billing_type: string
+          created_at: string
+          description: string | null
+          due_date: string
+          id: string
+          identification_field: string | null
+          invoice_url: string | null
+          last_event: string | null
+          mensalidade_id: string | null
+          net_value: number | null
+          payment_date: string | null
+          pix_payload: string | null
+          pix_qr_image: string | null
+          raw: Json | null
+          status: string
+          updated_at: string
+          user_id: string
+          value: number
+        }
+        Insert: {
+          account_id?: string | null
+          account_ids?: string[]
+          asaas_customer_id?: string | null
+          asaas_payment_id: string
+          bank_slip_url?: string | null
+          billing_type?: string
+          created_at?: string
+          description?: string | null
+          due_date: string
+          id?: string
+          identification_field?: string | null
+          invoice_url?: string | null
+          last_event?: string | null
+          mensalidade_id?: string | null
+          net_value?: number | null
+          payment_date?: string | null
+          pix_payload?: string | null
+          pix_qr_image?: string | null
+          raw?: Json | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          value: number
+        }
+        Update: {
+          account_id?: string | null
+          account_ids?: string[]
+          asaas_customer_id?: string | null
+          asaas_payment_id?: string
+          bank_slip_url?: string | null
+          billing_type?: string
+          created_at?: string
+          description?: string | null
+          due_date?: string
+          id?: string
+          identification_field?: string | null
+          invoice_url?: string | null
+          last_event?: string | null
+          mensalidade_id?: string | null
+          net_value?: number | null
+          payment_date?: string | null
+          pix_payload?: string | null
+          pix_qr_image?: string | null
+          raw?: Json | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asaas_charges_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asaas_charges_mensalidade_id_fkey"
+            columns: ["mensalidade_id"]
+            isOneToOne: false
+            referencedRelation: "mensalidades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       associados: {
         Row: {
           agencia: string | null
