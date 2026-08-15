@@ -18,6 +18,7 @@ import {
   UserCog,
   CalendarDays,
   Building2,
+  Barcode,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
@@ -35,6 +36,7 @@ const financeiroNavigation = [
   { name: 'Contas a Pagar', href: '/payables', icon: TrendingDown },
   { name: 'Contas a Receber', href: '/receivables', icon: TrendingUp },
   { name: 'Baixa de Conciliação', href: '/payments', icon: CreditCard },
+  { name: 'Cobrança (Boleto/PIX)', href: '/cobranca', icon: Barcode },
   { name: 'Contas Bancárias', href: '/bank-accounts', icon: Building2 },
   { name: 'Fluxo de Caixa', href: '/cash-flow', icon: ArrowLeftRight },
   { name: 'Todos os Registros', href: '/all-records', icon: ListChecks },
