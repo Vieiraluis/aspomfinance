@@ -21,7 +21,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import QRCode from 'qrcode';
-import { Barcode, Copy, Download, FileText, Loader2, Mail, MessageCircle, Printer, Search, QrCode } from 'lucide-react';
+import { useCreateAsaasCharge, useAsaasCharges } from '@/hooks/useAsaasCharges';
+import { Barcode, Copy, Download, FileText, Loader2, Mail, MessageCircle, Printer, Search, QrCode, Zap, ExternalLink } from 'lucide-react';
+
 
 const Cobranca = () => {
   const { data: accounts = [], isLoading } = useAccounts();
@@ -40,6 +42,10 @@ const Cobranca = () => {
   const [generating, setGenerating] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const docRef = useRef<HTMLDivElement>(null);
+  const [billingType, setBillingType] = useState<'BOLETO' | 'PIX' | 'UNDEFINED'>('BOLETO');
+  const createAsaas = useCreateAsaasCharge();
+  const { data: asaasCharges = [] } = useAsaasCharges();
+
 
   const receivables = useMemo(
     () => accounts.filter((a) => a.type === 'receivable' && a.status !== 'paid' && a.status !== 'cancelled'),
@@ -153,6 +159,50 @@ const Cobranca = () => {
       setGenerating(false);
     }
   };
+
+  const handleRegisterAsaas = async () => {
+    if (selectedAccounts.length === 0) {
+      toast({ title: 'Selecione ao menos um lançamento', variant: 'destructive' });
+      return;
+    }
+    const pagadorIds = new Set(selectedAccounts.map((a) => a.supplierId || 'sem'));
+    if (pagadorIds.size > 1) {
+      toast({
+        title: 'Pagadores diferentes',
+        description: 'Selecione lançamentos de um único cliente.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    const supplier = suppliers.find((s) => s.id === selectedAccounts[0].supplierId);
+    if (!supplier?.document) {
+      toast({
+        title: 'Cliente sem CPF/CNPJ',
+        description: 'Cadastre o CPF/CNPJ do cliente para registrar a cobrança no Asaas.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    createAsaas.mutate({
+      accountIds: selectedAccounts.map((a) => a.id),
+      billingType,
+      dueDate,
+      description: buildDescricao(selectedAccounts).slice(0, 490),
+      juros: Number(juros) || 0,
+      multa: Number(multa) || 0,
+      notify: true,
+      customer: {
+        name: supplier.name,
+        cpfCnpj: supplier.document,
+        email: supplier.email || undefined,
+        phone: supplier.phone || undefined,
+        address: supplier.address || undefined,
+      },
+    });
+  };
+
+
 
   const copy = async (text: string, label: string) => {
     try {
@@ -329,7 +379,63 @@ const Cobranca = () => {
               {generating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileText className="w-4 h-4 mr-2" />}
               Gerar Boleto + PIX
             </Button>
+
+            <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 space-y-3">
+              <div className="flex items-center gap-2">
+                <Zap className="w-4 h-4 text-primary" />
+                <p className="text-sm font-semibold">Cobrança oficial (Asaas)</p>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Registra o boleto/Pix na API do Asaas, envia ao pagador e dá baixa automática no
+                lançamento quando o pagamento é confirmado.
+              </p>
+              <Select value={billingType} onValueChange={(v) => setBillingType(v as typeof billingType)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="BOLETO">Boleto (com Pix)</SelectItem>
+                  <SelectItem value="PIX">Somente Pix</SelectItem>
+                  <SelectItem value="UNDEFINED">Pagador escolhe</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button
+                variant="secondary"
+                className="w-full"
+                onClick={handleRegisterAsaas}
+                disabled={createAsaas.isPending || selectedAccounts.length === 0}
+              >
+                {createAsaas.isPending ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Zap className="w-4 h-4 mr-2" />
+                )}
+                Registrar e enviar via Asaas
+              </Button>
+            </div>
+
+            {asaasCharges.length > 0 && (
+              <div className="rounded-lg border border-border p-3 space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Últimas cobranças Asaas
+                </p>
+                {asaasCharges.slice(0, 5).map((c) => (
+                  <div key={c.id} className="flex items-center justify-between gap-2 text-xs">
+                    <div className="min-w-0">
+                      <p className="truncate">{formatCurrency(Number(c.value))} · {formatDate(c.due_date)}</p>
+                      <p className="text-muted-foreground truncate">{c.status}</p>
+                    </div>
+                    {c.invoice_url && (
+                      <Button variant="ghost" size="icon" onClick={() => window.open(c.invoice_url!, '_blank')}>
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </Card>
+
         </div>
       </div>
 
