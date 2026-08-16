@@ -42,6 +42,10 @@ const Cobranca = () => {
   const [generating, setGenerating] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const docRef = useRef<HTMLDivElement>(null);
+  const [billingType, setBillingType] = useState<'BOLETO' | 'PIX' | 'UNDEFINED'>('BOLETO');
+  const createAsaas = useCreateAsaasCharge();
+  const { data: asaasCharges = [] } = useAsaasCharges();
+
 
   const receivables = useMemo(
     () => accounts.filter((a) => a.type === 'receivable' && a.status !== 'paid' && a.status !== 'cancelled'),
