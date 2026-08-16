@@ -160,6 +160,50 @@ const Cobranca = () => {
     }
   };
 
+  const handleRegisterAsaas = async () => {
+    if (selectedAccounts.length === 0) {
+      toast({ title: 'Selecione ao menos um lançamento', variant: 'destructive' });
+      return;
+    }
+    const pagadorIds = new Set(selectedAccounts.map((a) => a.supplierId || 'sem'));
+    if (pagadorIds.size > 1) {
+      toast({
+        title: 'Pagadores diferentes',
+        description: 'Selecione lançamentos de um único cliente.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    const supplier = suppliers.find((s) => s.id === selectedAccounts[0].supplierId);
+    if (!supplier?.document) {
+      toast({
+        title: 'Cliente sem CPF/CNPJ',
+        description: 'Cadastre o CPF/CNPJ do cliente para registrar a cobrança no Asaas.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    createAsaas.mutate({
+      accountIds: selectedAccounts.map((a) => a.id),
+      billingType,
+      dueDate,
+      description: buildDescricao(selectedAccounts).slice(0, 490),
+      juros: Number(juros) || 0,
+      multa: Number(multa) || 0,
+      notify: true,
+      customer: {
+        name: supplier.name,
+        cpfCnpj: supplier.document,
+        email: supplier.email || undefined,
+        phone: supplier.phone || undefined,
+        address: supplier.address || undefined,
+      },
+    });
+  };
+
+
+
   const copy = async (text: string, label: string) => {
     try {
       await navigator.clipboard.writeText(text);
