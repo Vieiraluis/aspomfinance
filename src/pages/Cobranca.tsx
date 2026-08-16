@@ -21,7 +21,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import QRCode from 'qrcode';
-import { Barcode, Copy, Download, FileText, Loader2, Mail, MessageCircle, Printer, Search, QrCode } from 'lucide-react';
+import { useCreateAsaasCharge, useAsaasCharges } from '@/hooks/useAsaasCharges';
+import { Barcode, Copy, Download, FileText, Loader2, Mail, MessageCircle, Printer, Search, QrCode, Zap, ExternalLink } from 'lucide-react';
+
 
 const Cobranca = () => {
   const { data: accounts = [], isLoading } = useAccounts();
