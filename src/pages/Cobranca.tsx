@@ -379,7 +379,63 @@ const Cobranca = () => {
               {generating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileText className="w-4 h-4 mr-2" />}
               Gerar Boleto + PIX
             </Button>
+
+            <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 space-y-3">
+              <div className="flex items-center gap-2">
+                <Zap className="w-4 h-4 text-primary" />
+                <p className="text-sm font-semibold">Cobrança oficial (Asaas)</p>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Registra o boleto/Pix na API do Asaas, envia ao pagador e dá baixa automática no
+                lançamento quando o pagamento é confirmado.
+              </p>
+              <Select value={billingType} onValueChange={(v) => setBillingType(v as typeof billingType)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="BOLETO">Boleto (com Pix)</SelectItem>
+                  <SelectItem value="PIX">Somente Pix</SelectItem>
+                  <SelectItem value="UNDEFINED">Pagador escolhe</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button
+                variant="secondary"
+                className="w-full"
+                onClick={handleRegisterAsaas}
+                disabled={createAsaas.isPending || selectedAccounts.length === 0}
+              >
+                {createAsaas.isPending ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Zap className="w-4 h-4 mr-2" />
+                )}
+                Registrar e enviar via Asaas
+              </Button>
+            </div>
+
+            {asaasCharges.length > 0 && (
+              <div className="rounded-lg border border-border p-3 space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Últimas cobranças Asaas
+                </p>
+                {asaasCharges.slice(0, 5).map((c) => (
+                  <div key={c.id} className="flex items-center justify-between gap-2 text-xs">
+                    <div className="min-w-0">
+                      <p className="truncate">{formatCurrency(Number(c.value))} · {formatDate(c.due_date)}</p>
+                      <p className="text-muted-foreground truncate">{c.status}</p>
+                    </div>
+                    {c.invoice_url && (
+                      <Button variant="ghost" size="icon" onClick={() => window.open(c.invoice_url!, '_blank')}>
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </Card>
+
         </div>
       </div>
 
