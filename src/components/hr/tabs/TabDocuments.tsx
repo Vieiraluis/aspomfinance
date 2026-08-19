@@ -8,6 +8,7 @@ import { useEmployeeDocuments, useAddDocument, useDeleteDocument, useUploadHRFil
 import { Plus, Trash2, ExternalLink, FileUp } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from '@/hooks/use-toast';
+import { openStorageUrl } from '@/lib/storageUrl';
 
 interface Props { employeeId: string; }
 
@@ -93,7 +94,7 @@ export function TabDocuments({ employeeId }: Props) {
               <TableCell>{docLabels[d.doc_type] || d.doc_type}</TableCell>
               <TableCell>{d.reference_month}</TableCell>
               <TableCell>{d.notes || '—'}</TableCell>
-              <TableCell><a href={d.file_url} target="_blank" rel="noreferrer"><ExternalLink className="w-4 h-4 text-primary" /></a></TableCell>
+              <TableCell><button type="button" onClick={() => openStorageUrl(d.file_url)}><ExternalLink className="w-4 h-4 text-primary" /></button></TableCell>
               <TableCell><Button size="icon" variant="ghost" onClick={() => deleteDoc.mutate(d.id)}><Trash2 className="w-4 h-4 text-destructive" /></Button></TableCell>
             </TableRow>
           ))}
