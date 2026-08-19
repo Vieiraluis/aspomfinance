@@ -10,6 +10,7 @@ import { useAddAssociado, useUpdateAssociado, uploadAssociadoPhoto } from '@/hoo
 import { useAuthContext } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { Loader2, Upload } from 'lucide-react';
+import { StorageImage } from '@/components/ui/storage-image';
 
 interface Props {
   open: boolean;
@@ -118,7 +119,7 @@ export function AssociadoForm({ open, onOpenChange, editing }: Props) {
           <div className="flex items-center gap-4">
             <div className="w-20 h-20 rounded-full bg-muted overflow-hidden flex items-center justify-center border border-border">
               {form.photo_url ? (
-                <img src={form.photo_url as string} alt="Foto" className="w-full h-full object-cover" />
+                <StorageImage url={form.photo_url} alt="Foto" className="w-full h-full object-cover" />
               ) : (
                 <span className="text-xs text-muted-foreground">Sem foto</span>
               )}

@@ -10,6 +10,8 @@ import { Settings as SettingsIcon, Upload, Loader2, Building2, FileText } from '
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
+import { StorageImage } from '@/components/ui/storage-image';
+import { normalizeStorageUrl } from '@/lib/storageUrl';
 
 const Settings = () => {
   const { user } = useAuth();
@@ -65,10 +67,7 @@ const Settings = () => {
 
     setIsUploading(true);
     try {
-      // Create bucket if it doesn't exist (will fail silently if exists)
-      await supabase.storage.createBucket('logos', { public: true });
-      
-      const fileExt = file.name.split('.').pop();
+            const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/logo.${fileExt}`;
       
       const { error: uploadError } = await supabase.storage
@@ -81,7 +80,7 @@ const Settings = () => {
         .from('logos')
         .getPublicUrl(fileName);
 
-      setFormData(prev => ({ ...prev, logo_url: publicUrl }));
+      setFormData(prev => ({ ...prev, logo_url: normalizeStorageUrl(publicUrl) || publicUrl }));
       
       toast({
         title: 'Logo carregado!',
@@ -229,9 +228,9 @@ const Settings = () => {
               <div className="flex items-start gap-6">
                 {formData.logo_url ? (
                   <div className="border rounded-lg p-2 bg-white">
-                    <img 
-                      src={formData.logo_url} 
-                      alt="Logo preview" 
+                    <StorageImage
+                      url={formData.logo_url}
+                      alt="Logo preview"
                       className="max-h-24 max-w-xs object-contain"
                     />
                   </div>

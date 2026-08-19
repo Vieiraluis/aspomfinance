@@ -11,3 +11,16 @@ export const StorageImage = ({ url, fallback = null, alt = '', ...props }: Stora
   if (!signed) return <>{fallback}</>;
   return <img src={signed} alt={alt} {...props} />;
 };
+
+import { AvatarImage } from '@/components/ui/avatar';
+
+interface StorageAvatarImageProps {
+  url?: string | null;
+  alt?: string;
+}
+
+/** <AvatarImage> para arquivos em buckets privados. */
+export const StorageAvatarImage = ({ url, alt }: StorageAvatarImageProps) => {
+  const signed = useSignedUrl(url);
+  return <AvatarImage src={signed} alt={alt} />;
+};

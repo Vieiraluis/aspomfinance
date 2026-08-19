@@ -12,6 +12,7 @@ import { AssociadoStatusBadge } from '@/components/associados/StatusBadge';
 import { formatCurrency } from '@/lib/format';
 import { toast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
+import { StorageImage } from '@/components/ui/storage-image';
 
 export default function Associados() {
   const { data = [], isLoading } = useAssociados();
@@ -111,7 +112,7 @@ export default function Associados() {
                   <TableRow key={a.id}>
                     <TableCell>
                       <div className="w-9 h-9 rounded-full overflow-hidden bg-muted flex items-center justify-center">
-                        {a.photo_url ? <img src={a.photo_url} alt={a.nome} className="w-full h-full object-cover" /> : <Users className="w-4 h-4 text-muted-foreground" />}
+                        {a.photo_url ? <StorageImage url={a.photo_url} alt={a.nome} className="w-full h-full object-cover" fallback={<Users className="w-4 h-4 text-muted-foreground" />} /> : <Users className="w-4 h-4 text-muted-foreground" />}
                       </div>
                     </TableCell>
                     <TableCell className="font-medium">{a.nome}</TableCell>
