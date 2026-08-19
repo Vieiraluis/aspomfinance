@@ -295,9 +295,9 @@ function ReservasView({ reservas, espacos }: { reservas: LocacaoReserva[]; espac
                     <FileText className="w-3 h-3 mr-1" /> Gerar contrato
                   </Button>
                   {r.contrato_modelo_url && (
-                    <a href={r.contrato_modelo_url} target="_blank" rel="noopener noreferrer">
-                      <Button size="sm" variant="ghost">📄 Modelo</Button>
-                    </a>
+                    <Button size="sm" variant="ghost" onClick={() => openStorageUrl(r.contrato_modelo_url)}>
+                      📄 Modelo
+                    </Button>
                   )}
                   <label className="inline-block">
                     <input type="file" accept="application/pdf" hidden
