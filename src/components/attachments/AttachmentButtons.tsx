@@ -16,7 +16,7 @@ import { FileText, Receipt, Paperclip, X, ExternalLink, Loader2, Printer } from 
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { isPdfFileUrl, normalizeStorageUrl } from '@/lib/storageUrl';
+import { getSignedStorageUrl, isPdfFileUrl, normalizeStorageUrl } from '@/lib/storageUrl';
 import { printAttachment } from '@/lib/printAttachment';
 
 interface AttachmentButtonsProps {
@@ -115,9 +115,14 @@ export const AttachmentButtons = ({
     }
   };
 
-  const openPreview = (url: string, title: string) => {
-    setPreviewUrl(normalizeStorageUrl(url) || url);
+  const openPreview = async (url: string, title: string) => {
+    const signed = await getSignedStorageUrl(url);
+    if (!signed) {
+      toast({ title: 'Não foi possível abrir o anexo', variant: 'destructive' });
+      return;
+    }
     setPreviewTitle(title);
+    setPreviewUrl(signed);
   };
 
   const removeAttachment = async (type: 'billing' | 'receipt') => {
