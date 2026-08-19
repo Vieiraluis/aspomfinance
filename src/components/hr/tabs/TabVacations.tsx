@@ -8,6 +8,7 @@ import { useEmployeeVacations, useAddVacation, useUpdateVacation, useDeleteVacat
 import { Plus, Trash2, FileUp, ExternalLink, AlertTriangle } from 'lucide-react';
 import { format, differenceInDays, addYears } from 'date-fns';
 import { toast } from '@/hooks/use-toast';
+import { openStorageUrl } from '@/lib/storageUrl';
 
 interface Props { employeeId: string; }
 
@@ -107,7 +108,7 @@ export function TabVacations({ employeeId }: Props) {
                 </TableCell>
                 <TableCell>
                   {v.receipt_url ? (
-                    <a href={v.receipt_url} target="_blank" rel="noreferrer"><ExternalLink className="w-4 h-4 text-primary" /></a>
+                    <button type="button" onClick={() => openStorageUrl(v.receipt_url)}><ExternalLink className="w-4 h-4 text-primary" /></button>
                   ) : (
                     <label className="cursor-pointer text-primary hover:underline">
                       <FileUp className="w-4 h-4 inline" />
