@@ -9,6 +9,7 @@ import { Plus, Trash2, FileUp, ExternalLink } from 'lucide-react';
 import { format } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
+import { openStorageUrl } from '@/lib/storageUrl';
 
 interface Props { employeeId: string; }
 
@@ -131,7 +132,7 @@ export function TabHealthAbsences({ employeeId }: Props) {
                 <TableCell>{formatDate(a.end_date)}</TableCell>
                 <TableCell className="capitalize">{a.absence_type}</TableCell>
                 <TableCell>{a.cid_code || '—'}</TableCell>
-                <TableCell>{a.certificate_url ? <a href={a.certificate_url} target="_blank" rel="noreferrer"><ExternalLink className="w-4 h-4 text-primary" /></a> : '—'}</TableCell>
+                <TableCell>{a.certificate_url ? <button type="button" onClick={() => openStorageUrl(a.certificate_url)}><ExternalLink className="w-4 h-4 text-primary" /></button> : '—'}</TableCell>
                 <TableCell><Button size="icon" variant="ghost" onClick={() => deleteAbsence.mutate(a.id)}><Trash2 className="w-4 h-4 text-destructive" /></Button></TableCell>
               </TableRow>
             ))}
@@ -179,7 +180,7 @@ export function TabHealthAbsences({ employeeId }: Props) {
                 <TableCell>{formatDate(ex.exam_date)}</TableCell>
                 <TableCell>{formatDate(ex.next_exam_date)}</TableCell>
                 <TableCell>{ex.result || '—'}</TableCell>
-                <TableCell>{ex.file_url ? <a href={ex.file_url} target="_blank" rel="noreferrer"><ExternalLink className="w-4 h-4 text-primary" /></a> : '—'}</TableCell>
+                <TableCell>{ex.file_url ? <button type="button" onClick={() => openStorageUrl(ex.file_url)}><ExternalLink className="w-4 h-4 text-primary" /></button> : '—'}</TableCell>
                 <TableCell><Button size="icon" variant="ghost" onClick={() => deleteExam.mutate(ex.id)}><Trash2 className="w-4 h-4 text-destructive" /></Button></TableCell>
               </TableRow>
             ))}

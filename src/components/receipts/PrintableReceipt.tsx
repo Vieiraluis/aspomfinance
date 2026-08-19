@@ -5,6 +5,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import aspomLogo from '@/assets/aspom-logo.png';
 import { ReceiptSettings } from '@/hooks/useReceiptSettings';
+import { useSignedUrl } from '@/hooks/useSignedUrl';
 
 export interface ReceiptData {
   receiptNumber: string;
@@ -34,7 +35,8 @@ const SingleReceipt: React.FC<SingleReceiptProps> = ({ receipt, settings }) => {
   const amountInWords = numberToWords(receipt.amount);
   
   // Use custom logo or default ASPOM logo
-  const logoUrl = settings?.logo_url || aspomLogo;
+  const signedLogo = useSignedUrl(settings?.logo_url);
+  const logoUrl = signedLogo || aspomLogo;
   const companyName = settings?.company_name;
   const companyAddress = settings?.company_address;
   const companyDocument = settings?.company_document;

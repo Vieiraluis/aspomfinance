@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { StorageAvatarImage } from '@/components/ui/storage-image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAddEmployee, useUpdateEmployee, useUploadHRFile } from '@/hooks/useHRData';
 import { Camera, Loader2 } from 'lucide-react';
@@ -142,7 +143,7 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
           <div className="flex items-center gap-4">
             <div className="relative">
               <Avatar className="w-20 h-20">
-                <AvatarImage src={photoPreview || undefined} />
+                <StorageAvatarImage url={photoPreview} alt={form.name} />
                 <AvatarFallback className="text-lg bg-primary/10 text-primary">
                   {form.name ? form.name.charAt(0).toUpperCase() : '?'}
                 </AvatarFallback>

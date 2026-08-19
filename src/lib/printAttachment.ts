@@ -1,12 +1,12 @@
-import { isPdfFileUrl, normalizeStorageUrl } from '@/lib/storageUrl';
+import { getSignedStorageUrl, isPdfFileUrl } from '@/lib/storageUrl';
 
 /**
  * Abre o anexo (boleto ou comprovante) em uma janela e dispara a impressão.
  * PDFs são abertos em nova aba (impressão pelo visualizador nativo);
  * imagens são renderizadas em uma página A4 e impressas automaticamente.
  */
-export const printAttachment = (url?: string | null, title = 'Anexo') => {
-  const finalUrl = normalizeStorageUrl(url);
+export const printAttachment = async (url?: string | null, title = 'Anexo') => {
+  const finalUrl = await getSignedStorageUrl(url);
   if (!finalUrl) return;
 
   if (isPdfFileUrl(finalUrl)) {

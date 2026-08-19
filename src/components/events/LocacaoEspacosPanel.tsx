@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { openStorageUrl } from '@/lib/storageUrl';
 import {
   EspacoLocacao,
   LocacaoReserva,
@@ -294,9 +295,9 @@ function ReservasView({ reservas, espacos }: { reservas: LocacaoReserva[]; espac
                     <FileText className="w-3 h-3 mr-1" /> Gerar contrato
                   </Button>
                   {r.contrato_modelo_url && (
-                    <a href={r.contrato_modelo_url} target="_blank" rel="noopener noreferrer">
-                      <Button size="sm" variant="ghost">📄 Modelo</Button>
-                    </a>
+                    <Button size="sm" variant="ghost" onClick={() => openStorageUrl(r.contrato_modelo_url)}>
+                      📄 Modelo
+                    </Button>
                   )}
                   <label className="inline-block">
                     <input type="file" accept="application/pdf" hidden
@@ -309,9 +310,9 @@ function ReservasView({ reservas, espacos }: { reservas: LocacaoReserva[]; espac
                     </Button>
                   </label>
                   {r.contrato_assinado_url && (
-                    <a href={r.contrato_assinado_url} target="_blank" rel="noopener noreferrer">
-                      <Button size="sm" variant="ghost">✍️ Ver assinado</Button>
-                    </a>
+                    <Button size="sm" variant="ghost" onClick={() => openStorageUrl(r.contrato_assinado_url)}>
+                      ✍️ Ver assinado
+                    </Button>
                   )}
                   <Button size="sm" variant="ghost" className="text-destructive ml-auto" onClick={() => del.mutate(r.id)}>
                     <Trash2 className="w-3 h-3" />

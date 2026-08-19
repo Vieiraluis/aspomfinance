@@ -10,6 +10,7 @@ import { useEmployees, useDeleteEmployee } from '@/hooks/useHRData';
 import { EmployeeForm } from '@/components/hr/EmployeeForm';
 import { EmployeeDetail } from '@/components/hr/EmployeeDetail';
 import { Plus, Search, Edit, Trash2, Eye, Users } from 'lucide-react';
+import { StorageAvatarImage } from '@/components/ui/storage-image';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 const statusMap: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' }> = {
@@ -106,7 +107,7 @@ export default function HR() {
                   <CardContent className="p-4">
                     <div className="flex items-start gap-3">
                       <Avatar className="w-12 h-12">
-                        <AvatarImage src={emp.photo_url || undefined} />
+                        <StorageAvatarImage url={emp.photo_url} alt={emp.name} />
                         <AvatarFallback className="bg-primary/10 text-primary font-semibold">
                           {emp.name?.charAt(0)?.toUpperCase()}
                         </AvatarFallback>

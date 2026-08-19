@@ -8,6 +8,7 @@ import { TabHealthAbsences } from './tabs/TabHealthAbsences';
 import { TabBenefits } from './tabs/TabBenefits';
 import { TabVacations } from './tabs/TabVacations';
 import { TabDocuments } from './tabs/TabDocuments';
+import { StorageAvatarImage } from '@/components/ui/storage-image';
 
 interface EmployeeDetailProps {
   open: boolean;
@@ -31,7 +32,7 @@ export function EmployeeDetail({ open, onOpenChange, employee }: EmployeeDetailP
         <DialogHeader>
           <div className="flex items-center gap-4">
             <Avatar className="w-14 h-14">
-              <AvatarImage src={employee.photo_url || undefined} />
+              <StorageAvatarImage url={employee.photo_url} alt={employee.name} />
               <AvatarFallback className="text-lg bg-primary/10 text-primary">
                 {employee.name?.charAt(0)?.toUpperCase()}
               </AvatarFallback>
