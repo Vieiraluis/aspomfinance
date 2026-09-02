@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { useAccounts, useSuppliers, useAddAccount, useDeleteAccount, useGenerateInstallments } from '@/hooks/useSupabaseData';
 import { Account, categoryLabels, AccountCategory } from '@/types/financial';
+import { CategorySelectOptions } from '@/components/accounts/CategorySelectOptions';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { CurrencyInput } from '@/components/ui/currency-input';
@@ -366,9 +368,8 @@ const Payables = () => {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {Object.entries(categoryLabels).map(([key, label]) => (
-                            <SelectItem key={key} value={key}>{label}</SelectItem>
-                          ))}
+                          <CategorySelectOptions />
+
                         </SelectContent>
                       </Select>
                     </div>
@@ -460,9 +461,8 @@ const Payables = () => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {Object.entries(categoryLabels).map(([key, label]) => (
-                          <SelectItem key={key} value={key}>{label}</SelectItem>
-                        ))}
+                        <CategorySelectOptions />
+
                       </SelectContent>
                     </Select>
                   </div>

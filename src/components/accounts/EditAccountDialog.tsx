@@ -18,7 +18,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Account, categoryLabels, AccountCategory } from '@/types/financial';
+import { Account, AccountCategory } from '@/types/financial';
+import { CategorySelectOptions } from '@/components/accounts/CategorySelectOptions';
+
 import { useUpdateAccount, useSuppliers } from '@/hooks/useSupabaseData';
 import { SupplierSelect } from '@/components/suppliers/SupplierSelect';
 import { toast } from '@/hooks/use-toast';
@@ -163,9 +165,8 @@ export function EditAccountDialog({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {Object.entries(categoryLabels).map(([key, label]) => (
-                  <SelectItem key={key} value={key}>{label}</SelectItem>
-                ))}
+                <CategorySelectOptions />
+
               </SelectContent>
             </Select>
           </div>

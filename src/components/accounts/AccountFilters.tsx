@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Search, X, Calendar } from 'lucide-react';
-import { categoryLabels, AccountCategory } from '@/types/financial';
+import { CategorySelectOptions } from '@/components/accounts/CategorySelectOptions';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
@@ -108,9 +108,8 @@ export function AccountFilters({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas Categorias</SelectItem>
-              {Object.entries(categoryLabels).map(([key, label]) => (
-                <SelectItem key={key} value={key}>{label}</SelectItem>
-              ))}
+              <CategorySelectOptions />
+
             </SelectContent>
           </Select>
         )}
