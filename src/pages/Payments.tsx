@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { useAccounts, useBankAccounts, useProcessPayment, useUpdateAccount } from '@/hooks/useSupabaseData';
-import { Account, paymentMethodLabels, Payment } from '@/types/financial';
+import { Account, categoryGroups, categoryLabels, paymentMethodLabels, Payment } from '@/types/financial';
+import { sumMoney } from '@/lib/money';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { CurrencyInput } from '@/components/ui/currency-input';
@@ -30,7 +33,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { cn } from '@/lib/utils';
-import { CreditCard, CheckCircle, TrendingDown, TrendingUp, Wallet, Loader2, Pencil } from 'lucide-react';
+import { CreditCard, CheckCircle, TrendingDown, TrendingUp, Wallet, Loader2, Pencil, Tags } from 'lucide-react';
 
 import { toast } from '@/hooks/use-toast';
 import { format, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
@@ -47,6 +50,7 @@ const Payments = () => {
   
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
@@ -68,6 +72,8 @@ const Payments = () => {
       (a.supplierName && a.supplierName.toLowerCase().includes(searchLower)) ||
       (a.code && (a.code.toLowerCase().includes(searchLower) || a.code.toLowerCase().replace(/[-\/]/g, '').includes(searchNormalized)));
     const matchesType = typeFilter === 'all' || a.type === typeFilter;
+    const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(a.category);
+    
     
     let matchesDateRange = true;
     if (startDate || endDate) {
@@ -84,8 +90,42 @@ const Payments = () => {
       }
     }
     
-    return matchesSearch && matchesType && matchesDateRange;
+    return matchesSearch && matchesType && matchesCategory && matchesDateRange;
   });
+
+  const toggleCategory = (key: string) => {
+    setSelectedCategories((prev) =>
+      prev.includes(key) ? prev.filter((c) => c !== key) : [...prev, key]
+    );
+  };
+
+  // Agrupa por categoria quando houver seleção de categorias
+  const groupedAccounts: { category: string; accounts: Account[]; subtotal: number }[] = (() => {
+    if (selectedCategories.length === 0) return [];
+    const groups = new Map<string, Account[]>();
+    filteredAccounts.forEach((a) => {
+      const list = groups.get(a.category) || [];
+      list.push(a);
+      groups.set(a.category, list);
+    });
+    const order = categoryGroups.flatMap((g) => g.categories);
+    return Array.from(groups.entries())
+      .sort(([a], [b]) => {
+        const ia = order.indexOf(a as never);
+        const ib = order.indexOf(b as never);
+        if (ia === -1 && ib === -1) return a.localeCompare(b);
+        if (ia === -1) return 1;
+        if (ib === -1) return -1;
+        return ia - ib;
+      })
+      .map(([category, list]) => ({
+        category,
+        accounts: list,
+        subtotal: sumMoney(list, (x) => x.amount),
+      }));
+  })();
+
+  const grandTotal = sumMoney(filteredAccounts, (a) => a.amount);
   
   const openPaymentDialog = (account: Account) => {
     setSelectedAccount(account);
@@ -190,7 +230,60 @@ const Payments = () => {
             { value: 'receivable', label: 'Contas a Receber' },
           ]}
         />
-        
+
+        {/* Category selector + grouping */}
+        <div className="glass-card p-3 flex flex-wrap items-center gap-3">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="gap-2">
+                <Tags className="w-4 h-4" />
+                {selectedCategories.length === 0
+                  ? 'Todas as Categorias'
+                  : `${selectedCategories.length} categoria(s) selecionada(s)`}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80 max-h-96 overflow-y-auto" align="start" side="bottom">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium">Filtrar e agrupar por categoria</p>
+                  {selectedCategories.length > 0 && (
+                    <Button variant="ghost" size="sm" onClick={() => setSelectedCategories([])}>
+                      Limpar
+                    </Button>
+                  )}
+                </div>
+                {categoryGroups.map((group) => (
+                  <div key={group.label}>
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">
+                      {group.label}
+                    </p>
+                    <div className="space-y-1">
+                      {group.categories.map((key) => (
+                        <label
+                          key={key}
+                          className="flex items-center gap-2 text-sm cursor-pointer rounded px-1 py-0.5 hover:bg-muted/50"
+                        >
+                          <Checkbox
+                            checked={selectedCategories.includes(key)}
+                            onCheckedChange={() => toggleCategory(key)}
+                          />
+                          {categoryLabels[key]}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+          {selectedCategories.length > 0 && (
+            <p className="text-sm text-muted-foreground">
+              Agrupado por categoria · Total:{' '}
+              <span className="font-semibold text-foreground">{formatCurrency(grandTotal)}</span>
+            </p>
+          )}
+        </div>
+
         {/* Table */}
         <div className="glass-card overflow-x-auto">
           {filteredAccounts.length === 0 ? (
@@ -214,84 +307,124 @@ const Payments = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredAccounts.map((account) => (
-                  <TableRow key={account.id}>
-                    <TableCell className="font-mono text-xs text-muted-foreground">
-                      {account.code || '—'}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant="outline"
-                        className={cn(
-                          account.type === 'payable'
-                            ? 'bg-destructive/20 text-destructive border-destructive/30'
-                            : 'bg-success/20 text-success border-success/30'
-                        )}
-                      >
-                        {account.type === 'payable' ? 'Pagar' : 'Receber'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {account.description}
-                      {account.installmentNumber && (
-                        <span className="text-xs text-muted-foreground ml-2">
-                          ({account.installmentNumber}/{account.totalInstallments})
-                        </span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {account.supplierName || '—'}
-                    </TableCell>
-                    <TableCell>{formatDate(account.dueDate)}</TableCell>
-                    <TableCell className={cn(
-                      'font-semibold',
-                      account.type === 'payable' ? 'text-destructive' : 'text-success'
-                    )}>
-                      {formatCurrency(account.amount)}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant="outline"
-                        className={cn(
-                          account.status === 'overdue'
-                            ? 'bg-destructive/20 text-destructive border-destructive/30'
-                            : 'bg-warning/20 text-warning border-warning/30'
-                        )}
-                      >
-                        {account.status === 'overdue' ? 'Vencido' : 'Pendente'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <AttachmentButtons
-                        billingSlipUrl={account.billingSlipUrl}
-                        paymentReceiptUrl={account.paymentReceiptUrl}
-                        onBillingSlipChange={(url) => handleUpdateAccount(account.id, { billingSlipUrl: url })}
-                        onPaymentReceiptChange={(url) => handleUpdateAccount(account.id, { paymentReceiptUrl: url })}
-                        compact
-                      />
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => openEditDialog(account)}
-                          title="Editar"
+                {(() => {
+                  const renderRow = (account: Account) => (
+                    <TableRow key={account.id}>
+                      <TableCell className="font-mono text-xs text-muted-foreground">
+                        {account.code || '—'}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className={cn(
+                            account.type === 'payable'
+                              ? 'bg-destructive/20 text-destructive border-destructive/30'
+                              : 'bg-success/20 text-success border-success/30'
+                          )}
                         >
-                          <Pencil className="w-4 h-4 text-primary" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          onClick={() => openPaymentDialog(account)}
-                          className="gap-2"
-                        >
-                          <CheckCircle className="w-4 h-4" />
                           {account.type === 'payable' ? 'Pagar' : 'Receber'}
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {account.description}
+                        {account.installmentNumber && (
+                          <span className="text-xs text-muted-foreground ml-2">
+                            ({account.installmentNumber}/{account.totalInstallments})
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {account.supplierName || '—'}
+                      </TableCell>
+                      <TableCell>{formatDate(account.dueDate)}</TableCell>
+                      <TableCell className={cn(
+                        'font-semibold',
+                        account.type === 'payable' ? 'text-destructive' : 'text-success'
+                      )}>
+                        {formatCurrency(account.amount)}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className={cn(
+                            account.status === 'overdue'
+                              ? 'bg-destructive/20 text-destructive border-destructive/30'
+                              : 'bg-warning/20 text-warning border-warning/30'
+                          )}
+                        >
+                          {account.status === 'overdue' ? 'Vencido' : 'Pendente'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <AttachmentButtons
+                          billingSlipUrl={account.billingSlipUrl}
+                          paymentReceiptUrl={account.paymentReceiptUrl}
+                          onBillingSlipChange={(url) => handleUpdateAccount(account.id, { billingSlipUrl: url })}
+                          onPaymentReceiptChange={(url) => handleUpdateAccount(account.id, { paymentReceiptUrl: url })}
+                          compact
+                        />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => openEditDialog(account)}
+                            title="Editar"
+                          >
+                            <Pencil className="w-4 h-4 text-primary" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => openPaymentDialog(account)}
+                            className="gap-2"
+                          >
+                            <CheckCircle className="w-4 h-4" />
+                            {account.type === 'payable' ? 'Pagar' : 'Receber'}
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+
+                  if (groupedAccounts.length === 0) {
+                    return filteredAccounts.map(renderRow);
+                  }
+
+                  return (
+                    <>
+                      {groupedAccounts.map((group) => (
+                        <Fragment key={group.category}>
+                          <TableRow className="bg-muted/50 hover:bg-muted/50">
+                            <TableCell colSpan={5} className="font-semibold">
+                              <div className="flex items-center gap-2">
+                                <Tags className="w-4 h-4 text-primary" />
+                                {categoryLabels[group.category as keyof typeof categoryLabels] || group.category}
+                                <span className="text-xs font-normal text-muted-foreground">
+                                  ({group.accounts.length} lançamento(s))
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="font-bold text-foreground">
+                              {formatCurrency(group.subtotal)}
+                            </TableCell>
+                            <TableCell colSpan={3} />
+                          </TableRow>
+                          {group.accounts.map(renderRow)}
+                        </Fragment>
+                      ))}
+                      <TableRow className="bg-primary/10 hover:bg-primary/10 border-t-2 border-primary/30">
+                        <TableCell colSpan={5} className="font-bold">
+                          Total Geral ({filteredAccounts.length} lançamento(s))
+                        </TableCell>
+                        <TableCell className="font-bold text-foreground">
+                          {formatCurrency(grandTotal)}
+                        </TableCell>
+                        <TableCell colSpan={3} />
+                      </TableRow>
+                    </>
+                  );
+                })()}
               </TableBody>
             </Table>
           )}
