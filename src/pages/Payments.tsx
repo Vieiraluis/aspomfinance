@@ -307,84 +307,124 @@ const Payments = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredAccounts.map((account) => (
-                  <TableRow key={account.id}>
-                    <TableCell className="font-mono text-xs text-muted-foreground">
-                      {account.code || '—'}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant="outline"
-                        className={cn(
-                          account.type === 'payable'
-                            ? 'bg-destructive/20 text-destructive border-destructive/30'
-                            : 'bg-success/20 text-success border-success/30'
-                        )}
-                      >
-                        {account.type === 'payable' ? 'Pagar' : 'Receber'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {account.description}
-                      {account.installmentNumber && (
-                        <span className="text-xs text-muted-foreground ml-2">
-                          ({account.installmentNumber}/{account.totalInstallments})
-                        </span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {account.supplierName || '—'}
-                    </TableCell>
-                    <TableCell>{formatDate(account.dueDate)}</TableCell>
-                    <TableCell className={cn(
-                      'font-semibold',
-                      account.type === 'payable' ? 'text-destructive' : 'text-success'
-                    )}>
-                      {formatCurrency(account.amount)}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant="outline"
-                        className={cn(
-                          account.status === 'overdue'
-                            ? 'bg-destructive/20 text-destructive border-destructive/30'
-                            : 'bg-warning/20 text-warning border-warning/30'
-                        )}
-                      >
-                        {account.status === 'overdue' ? 'Vencido' : 'Pendente'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <AttachmentButtons
-                        billingSlipUrl={account.billingSlipUrl}
-                        paymentReceiptUrl={account.paymentReceiptUrl}
-                        onBillingSlipChange={(url) => handleUpdateAccount(account.id, { billingSlipUrl: url })}
-                        onPaymentReceiptChange={(url) => handleUpdateAccount(account.id, { paymentReceiptUrl: url })}
-                        compact
-                      />
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => openEditDialog(account)}
-                          title="Editar"
+                {(() => {
+                  const renderRow = (account: Account) => (
+                    <TableRow key={account.id}>
+                      <TableCell className="font-mono text-xs text-muted-foreground">
+                        {account.code || '—'}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className={cn(
+                            account.type === 'payable'
+                              ? 'bg-destructive/20 text-destructive border-destructive/30'
+                              : 'bg-success/20 text-success border-success/30'
+                          )}
                         >
-                          <Pencil className="w-4 h-4 text-primary" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          onClick={() => openPaymentDialog(account)}
-                          className="gap-2"
-                        >
-                          <CheckCircle className="w-4 h-4" />
                           {account.type === 'payable' ? 'Pagar' : 'Receber'}
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {account.description}
+                        {account.installmentNumber && (
+                          <span className="text-xs text-muted-foreground ml-2">
+                            ({account.installmentNumber}/{account.totalInstallments})
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {account.supplierName || '—'}
+                      </TableCell>
+                      <TableCell>{formatDate(account.dueDate)}</TableCell>
+                      <TableCell className={cn(
+                        'font-semibold',
+                        account.type === 'payable' ? 'text-destructive' : 'text-success'
+                      )}>
+                        {formatCurrency(account.amount)}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className={cn(
+                            account.status === 'overdue'
+                              ? 'bg-destructive/20 text-destructive border-destructive/30'
+                              : 'bg-warning/20 text-warning border-warning/30'
+                          )}
+                        >
+                          {account.status === 'overdue' ? 'Vencido' : 'Pendente'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <AttachmentButtons
+                          billingSlipUrl={account.billingSlipUrl}
+                          paymentReceiptUrl={account.paymentReceiptUrl}
+                          onBillingSlipChange={(url) => handleUpdateAccount(account.id, { billingSlipUrl: url })}
+                          onPaymentReceiptChange={(url) => handleUpdateAccount(account.id, { paymentReceiptUrl: url })}
+                          compact
+                        />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => openEditDialog(account)}
+                            title="Editar"
+                          >
+                            <Pencil className="w-4 h-4 text-primary" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => openPaymentDialog(account)}
+                            className="gap-2"
+                          >
+                            <CheckCircle className="w-4 h-4" />
+                            {account.type === 'payable' ? 'Pagar' : 'Receber'}
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+
+                  if (groupedAccounts.length === 0) {
+                    return filteredAccounts.map(renderRow);
+                  }
+
+                  return (
+                    <>
+                      {groupedAccounts.map((group) => (
+                        <Fragment key={group.category}>
+                          <TableRow className="bg-muted/50 hover:bg-muted/50">
+                            <TableCell colSpan={5} className="font-semibold">
+                              <div className="flex items-center gap-2">
+                                <Tags className="w-4 h-4 text-primary" />
+                                {categoryLabels[group.category as keyof typeof categoryLabels] || group.category}
+                                <span className="text-xs font-normal text-muted-foreground">
+                                  ({group.accounts.length} lançamento(s))
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="font-bold text-foreground">
+                              {formatCurrency(group.subtotal)}
+                            </TableCell>
+                            <TableCell colSpan={3} />
+                          </TableRow>
+                          {group.accounts.map(renderRow)}
+                        </Fragment>
+                      ))}
+                      <TableRow className="bg-primary/10 hover:bg-primary/10 border-t-2 border-primary/30">
+                        <TableCell colSpan={5} className="font-bold">
+                          Total Geral ({filteredAccounts.length} lançamento(s))
+                        </TableCell>
+                        <TableCell className="font-bold text-foreground">
+                          {formatCurrency(grandTotal)}
+                        </TableCell>
+                        <TableCell colSpan={3} />
+                      </TableRow>
+                    </>
+                  );
+                })()}
               </TableBody>
             </Table>
           )}
