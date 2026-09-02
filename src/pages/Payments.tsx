@@ -72,6 +72,8 @@ const Payments = () => {
       (a.supplierName && a.supplierName.toLowerCase().includes(searchLower)) ||
       (a.code && (a.code.toLowerCase().includes(searchLower) || a.code.toLowerCase().replace(/[-\/]/g, '').includes(searchNormalized)));
     const matchesType = typeFilter === 'all' || a.type === typeFilter;
+    const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(a.category);
+    
     
     let matchesDateRange = true;
     if (startDate || endDate) {
