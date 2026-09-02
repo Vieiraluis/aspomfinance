@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { useAccounts, useBankAccounts, useProcessPayment, useUpdateAccount } from '@/hooks/useSupabaseData';
-import { Account, paymentMethodLabels, Payment } from '@/types/financial';
+import { Account, categoryGroups, categoryLabels, paymentMethodLabels, Payment } from '@/types/financial';
+import { sumMoney } from '@/lib/money';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { CurrencyInput } from '@/components/ui/currency-input';
@@ -30,7 +33,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { cn } from '@/lib/utils';
-import { CreditCard, CheckCircle, TrendingDown, TrendingUp, Wallet, Loader2, Pencil } from 'lucide-react';
+import { CreditCard, CheckCircle, TrendingDown, TrendingUp, Wallet, Loader2, Pencil, Tags } from 'lucide-react';
 
 import { toast } from '@/hooks/use-toast';
 import { format, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
