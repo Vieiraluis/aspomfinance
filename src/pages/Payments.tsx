@@ -230,7 +230,60 @@ const Payments = () => {
             { value: 'receivable', label: 'Contas a Receber' },
           ]}
         />
-        
+
+        {/* Category selector + grouping */}
+        <div className="glass-card p-3 flex flex-wrap items-center gap-3">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="gap-2">
+                <Tags className="w-4 h-4" />
+                {selectedCategories.length === 0
+                  ? 'Todas as Categorias'
+                  : `${selectedCategories.length} categoria(s) selecionada(s)`}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80 max-h-96 overflow-y-auto" align="start" side="bottom">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium">Filtrar e agrupar por categoria</p>
+                  {selectedCategories.length > 0 && (
+                    <Button variant="ghost" size="sm" onClick={() => setSelectedCategories([])}>
+                      Limpar
+                    </Button>
+                  )}
+                </div>
+                {categoryGroups.map((group) => (
+                  <div key={group.label}>
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">
+                      {group.label}
+                    </p>
+                    <div className="space-y-1">
+                      {group.categories.map((key) => (
+                        <label
+                          key={key}
+                          className="flex items-center gap-2 text-sm cursor-pointer rounded px-1 py-0.5 hover:bg-muted/50"
+                        >
+                          <Checkbox
+                            checked={selectedCategories.includes(key)}
+                            onCheckedChange={() => toggleCategory(key)}
+                          />
+                          {categoryLabels[key]}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+          {selectedCategories.length > 0 && (
+            <p className="text-sm text-muted-foreground">
+              Agrupado por categoria · Total:{' '}
+              <span className="font-semibold text-foreground">{formatCurrency(grandTotal)}</span>
+            </p>
+          )}
+        </div>
+
         {/* Table */}
         <div className="glass-card overflow-x-auto">
           {filteredAccounts.length === 0 ? (
