@@ -90,8 +90,42 @@ const Payments = () => {
       }
     }
     
-    return matchesSearch && matchesType && matchesDateRange;
+    return matchesSearch && matchesType && matchesCategory && matchesDateRange;
   });
+
+  const toggleCategory = (key: string) => {
+    setSelectedCategories((prev) =>
+      prev.includes(key) ? prev.filter((c) => c !== key) : [...prev, key]
+    );
+  };
+
+  // Agrupa por categoria quando houver seleção de categorias
+  const groupedAccounts: { category: string; accounts: Account[]; subtotal: number }[] = (() => {
+    if (selectedCategories.length === 0) return [];
+    const groups = new Map<string, Account[]>();
+    filteredAccounts.forEach((a) => {
+      const list = groups.get(a.category) || [];
+      list.push(a);
+      groups.set(a.category, list);
+    });
+    const order = categoryGroups.flatMap((g) => g.categories);
+    return Array.from(groups.entries())
+      .sort(([a], [b]) => {
+        const ia = order.indexOf(a as never);
+        const ib = order.indexOf(b as never);
+        if (ia === -1 && ib === -1) return a.localeCompare(b);
+        if (ia === -1) return 1;
+        if (ib === -1) return -1;
+        return ia - ib;
+      })
+      .map(([category, list]) => ({
+        category,
+        accounts: list,
+        subtotal: sumMoney(list, (x) => x.amount),
+      }));
+  })();
+
+  const grandTotal = sumMoney(filteredAccounts, (a) => a.amount);
   
   const openPaymentDialog = (account: Account) => {
     setSelectedAccount(account);
