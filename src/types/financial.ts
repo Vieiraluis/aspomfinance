@@ -84,6 +84,15 @@ export type AccountCategory =
   | 'rent'
   | 'energy'
   | 'water'
+  | 'sewage'
+  | 'natural_gas'
+  | 'lpg_gas'
+  | 'public_lighting'
+  | 'waste_collection'
+  | 'mineral_water'
+  | 'internet'
+  | 'telephony'
+  | 'cable_tv'
   | 'telecom'
   | 'salary'
   | 'social_charges'
@@ -131,9 +140,18 @@ export type AccountCategory =
 
 export const categoryLabels: Record<AccountCategory, string> = {
   rent: 'Aluguel',
-  energy: 'Energia Elétrica',
-  water: 'Água e Esgoto',
-  telecom: 'Telefone/Internet',
+  energy: 'Energia Elétrica (Concessionária)',
+  water: 'Água (Concessionária)',
+  sewage: 'Esgoto / Saneamento (Concessionária)',
+  natural_gas: 'Gás Natural (Concessionária)',
+  lpg_gas: 'Gás GLP / Botijão',
+  public_lighting: 'Iluminação Pública (COSIP)',
+  waste_collection: 'Coleta de Lixo / Resíduos',
+  mineral_water: 'Água Mineral / Galões',
+  internet: 'Internet / Banda Larga',
+  telephony: 'Telefonia Fixa e Móvel',
+  cable_tv: 'TV por Assinatura',
+  telecom: 'Telecomunicações (Geral)',
   salary: 'Salários',
   social_charges: 'Encargos Sociais',
   pro_labore: 'Pró-labore',
@@ -178,6 +196,68 @@ export const categoryLabels: Record<AccountCategory, string> = {
   financial_fees: 'Taxas Bancárias/Juros',
   other: 'Outros',
 };
+
+/** Agrupamento por relatividade; itens ordenados alfabeticamente dentro de cada grupo. */
+export const categoryGroupsRaw: { label: string; categories: AccountCategory[] }[] = [
+  {
+    label: 'Concessionárias e Utilidades',
+    categories: [
+      'water', 'mineral_water', 'waste_collection', 'energy', 'sewage',
+      'natural_gas', 'lpg_gas', 'public_lighting', 'internet', 'telephony',
+      'cable_tv', 'telecom',
+    ],
+  },
+  {
+    label: 'Despesas Administrativas',
+    categories: [
+      'rent', 'office_supplies', 'cleaning_supplies', 'maintenance', 'equipment',
+      'subscriptions', 'insurance', 'freight', 'fuel', 'food', 'travel', 'marketing',
+    ],
+  },
+  {
+    label: 'Impostos, Taxas e Tarifas',
+    categories: ['taxes', 'financial_fees'],
+  },
+  {
+    label: 'Pessoal e Folha de Pagamento',
+    categories: [
+      'salary', 'pro_labore', 'thirteenth_salary', 'vacation_pay', 'vacation_bonus',
+      'termination', 'overtime', 'bonus_awards', 'social_charges', 'fgts',
+      'inss_employer', 'irrf_payroll', 'union_fees', 'transport_voucher',
+      'meal_voucher', 'food_voucher', 'health_plan', 'dental_plan', 'life_insurance',
+      'occupational_health', 'ppe_uniforms', 'training', 'interns_apprentices',
+    ],
+  },
+  {
+    label: 'Receitas',
+    categories: ['sales', 'services', 'commissions'],
+  },
+  {
+    label: 'Serviços Profissionais',
+    categories: ['accounting', 'legal', 'payroll_services'],
+  },
+  {
+    label: 'Outros',
+    categories: ['other'],
+  },
+];
+
+const collator = new Intl.Collator('pt-BR', { sensitivity: 'base' });
+
+/** Grupos em ordem alfabética (exceto "Outros" ao final) com categorias ordenadas de A-Z. */
+export const categoryGroups = categoryGroupsRaw
+  .map((g) => ({
+    label: g.label,
+    categories: [...g.categories].sort((a, b) =>
+      collator.compare(categoryLabels[a], categoryLabels[b])
+    ),
+  }))
+  .sort((a, b) => {
+    if (a.label === 'Outros') return 1;
+    if (b.label === 'Outros') return -1;
+    return collator.compare(a.label, b.label);
+  });
+
 
 export const paymentMethodLabels: Record<Payment['paymentMethod'], string> = {
   cash: 'Dinheiro',
