@@ -136,6 +136,19 @@ export type AccountCategory =
   | 'travel'
   | 'legal'
   | 'financial_fees'
+  | 'bank_transfer'
+  | 'bank_interest'
+  | 'loan'
+  | 'financing'
+  | 'bank_charges'
+  | 'check'
+  | 'credit_card_interest'
+  | 'bank_credit'
+  | 'overdraft'
+  | 'amortization'
+  | 'guarantee'
+  | 'discount_received'
+  | 'interest_income'
   | 'other';
 
 export const categoryLabels: Record<AccountCategory, string> = {
