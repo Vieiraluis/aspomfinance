@@ -241,8 +241,16 @@ export const categoryGroupsRaw: { label: string; categories: AccountCategory[] }
     ],
   },
   {
+    label: 'Bancário e Financeiro',
+    categories: [
+      'bank_transfer', 'bank_interest', 'loan', 'financing', 'bank_charges',
+      'check', 'credit_card_interest', 'bank_credit', 'overdraft', 'amortization',
+      'guarantee', 'discount_received', 'interest_income', 'financial_fees',
+    ],
+  },
+  {
     label: 'Impostos, Taxas e Tarifas',
-    categories: ['taxes', 'financial_fees'],
+    categories: ['taxes'],
   },
   {
     label: 'Pessoal e Folha de Pagamento',
