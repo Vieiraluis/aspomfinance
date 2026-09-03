@@ -136,6 +136,19 @@ export type AccountCategory =
   | 'travel'
   | 'legal'
   | 'financial_fees'
+  | 'bank_transfer'
+  | 'bank_interest'
+  | 'loan'
+  | 'financing'
+  | 'bank_charges'
+  | 'check'
+  | 'credit_card_interest'
+  | 'bank_credit'
+  | 'overdraft'
+  | 'amortization'
+  | 'guarantee'
+  | 'discount_received'
+  | 'interest_income'
   | 'other';
 
 export const categoryLabels: Record<AccountCategory, string> = {
@@ -194,6 +207,19 @@ export const categoryLabels: Record<AccountCategory, string> = {
   travel: 'Viagens/Deslocamentos',
   legal: 'Jurídico/Advocacia',
   financial_fees: 'Taxas Bancárias/Juros',
+  bank_transfer: 'Transferência Bancária',
+  bank_interest: 'Juros Bancários',
+  loan: 'Empréstimos Bancários',
+  financing: 'Financiamentos',
+  bank_charges: 'Despesas Bancárias',
+  check: 'Cheques',
+  credit_card_interest: 'Juros Cartão de Crédito',
+  bank_credit: 'Crédito Bancário',
+  overdraft: 'Cheque Especial',
+  amortization: 'Amortização de Empréstimos',
+  guarantee: 'Garantias Bancárias',
+  discount_received: 'Descontos Obtidos',
+  interest_income: 'Rendimentos/Juros Recebidos',
   other: 'Outros',
 };
 
@@ -215,8 +241,16 @@ export const categoryGroupsRaw: { label: string; categories: AccountCategory[] }
     ],
   },
   {
+    label: 'Bancário e Financeiro',
+    categories: [
+      'bank_transfer', 'bank_interest', 'loan', 'financing', 'bank_charges',
+      'check', 'credit_card_interest', 'bank_credit', 'overdraft', 'amortization',
+      'guarantee', 'discount_received', 'interest_income', 'financial_fees',
+    ],
+  },
+  {
     label: 'Impostos, Taxas e Tarifas',
-    categories: ['taxes', 'financial_fees'],
+    categories: ['taxes'],
   },
   {
     label: 'Pessoal e Folha de Pagamento',
