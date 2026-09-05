@@ -134,6 +134,10 @@ const ReportPayables = () => {
               <CheckCircle className="w-4 h-4" />
               Contas Pagas ({paidPayables.length})
             </TabsTrigger>
+            <TabsTrigger value="priority" className="flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4" />
+              Prioridades ({pendingPayables.length})
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="pending" className="space-y-6">
