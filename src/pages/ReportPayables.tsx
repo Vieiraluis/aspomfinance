@@ -72,6 +72,11 @@ const ReportPayables = () => {
     documentTitle: 'Relatorio_Contas_Pagas',
   });
 
+  const handlePrintPriority = useReactToPrint({
+    contentRef: priorityReportRef,
+    documentTitle: 'Relatorio_Prioridades_Pagamento',
+  });
+
   const handleExportPendingPdf = () => {
     exportToPdf({
       title: 'Relatório de Contas a Pagar',
