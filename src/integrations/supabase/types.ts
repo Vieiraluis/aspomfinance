@@ -1137,6 +1137,152 @@ export type Database = {
           },
         ]
       }
+      portaria_locais: {
+        Row: {
+          created_at: string
+          descricao: string | null
+          id: string
+          is_active: boolean
+          nome: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          is_active?: boolean
+          nome: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          is_active?: boolean
+          nome?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      portaria_plantoes: {
+        Row: {
+          created_at: string
+          data: string
+          employee_id: string
+          hora_fim: string
+          hora_inicio: string
+          id: string
+          observacoes: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data: string
+          employee_id: string
+          hora_fim: string
+          hora_inicio: string
+          id?: string
+          observacoes?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data?: string
+          employee_id?: string
+          hora_fim?: string
+          hora_inicio?: string
+          id?: string
+          observacoes?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portaria_plantoes_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portaria_visitas: {
+        Row: {
+          created_at: string
+          destino_nome: string | null
+          documento: string | null
+          entrada_at: string
+          foto_url: string | null
+          id: string
+          local_id: string | null
+          observacoes: string | null
+          recepcionista_employee_id: string | null
+          recepcionista_foto_url: string | null
+          recepcionista_nome: string | null
+          registrado_por: string | null
+          saida_at: string | null
+          updated_at: string
+          user_id: string
+          visitante_nome: string
+        }
+        Insert: {
+          created_at?: string
+          destino_nome?: string | null
+          documento?: string | null
+          entrada_at?: string
+          foto_url?: string | null
+          id?: string
+          local_id?: string | null
+          observacoes?: string | null
+          recepcionista_employee_id?: string | null
+          recepcionista_foto_url?: string | null
+          recepcionista_nome?: string | null
+          registrado_por?: string | null
+          saida_at?: string | null
+          updated_at?: string
+          user_id: string
+          visitante_nome: string
+        }
+        Update: {
+          created_at?: string
+          destino_nome?: string | null
+          documento?: string | null
+          entrada_at?: string
+          foto_url?: string | null
+          id?: string
+          local_id?: string | null
+          observacoes?: string | null
+          recepcionista_employee_id?: string | null
+          recepcionista_foto_url?: string | null
+          recepcionista_nome?: string | null
+          registrado_por?: string | null
+          saida_at?: string | null
+          updated_at?: string
+          user_id?: string
+          visitante_nome?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portaria_visitas_local_id_fkey"
+            columns: ["local_id"]
+            isOneToOne: false
+            referencedRelation: "portaria_locais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portaria_visitas_recepcionista_employee_id_fkey"
+            columns: ["recepcionista_employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
