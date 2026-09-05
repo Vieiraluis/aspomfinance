@@ -21,6 +21,7 @@ const ReportPayables = () => {
   
   const pendingReportRef = useRef<HTMLDivElement>(null);
   const paidReportRef = useRef<HTMLDivElement>(null);
+  const priorityReportRef = useRef<HTMLDivElement>(null);
 
   const filterByDate = (accountList: typeof accounts) => {
     if (!startDate && !endDate) return accountList;
