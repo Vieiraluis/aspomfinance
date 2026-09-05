@@ -4,8 +4,10 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { useAccounts } from '@/hooks/useSupabaseData';
 import { PrintableReport } from '@/components/reports/PrintableReport';
 import { ReportFilters } from '@/components/reports/ReportFilters';
+import { PriorityReport } from '@/components/reports/PriorityReport';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FileText, CheckCircle, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { FileText, CheckCircle, Loader2, AlertTriangle, Printer } from 'lucide-react';
 import { exportToPdf } from '@/lib/exportPdf';
 import { isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 
@@ -19,6 +21,7 @@ const ReportPayables = () => {
   
   const pendingReportRef = useRef<HTMLDivElement>(null);
   const paidReportRef = useRef<HTMLDivElement>(null);
+  const priorityReportRef = useRef<HTMLDivElement>(null);
 
   const filterByDate = (accountList: typeof accounts) => {
     if (!startDate && !endDate) return accountList;
@@ -67,6 +70,11 @@ const ReportPayables = () => {
   const handlePrintPaid = useReactToPrint({
     contentRef: paidReportRef,
     documentTitle: 'Relatorio_Contas_Pagas',
+  });
+
+  const handlePrintPriority = useReactToPrint({
+    contentRef: priorityReportRef,
+    documentTitle: 'Relatorio_Prioridades_Pagamento',
   });
 
   const handleExportPendingPdf = () => {
@@ -126,6 +134,10 @@ const ReportPayables = () => {
               <CheckCircle className="w-4 h-4" />
               Contas Pagas ({paidPayables.length})
             </TabsTrigger>
+            <TabsTrigger value="priority" className="flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4" />
+              Prioridades ({pendingPayables.length})
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="pending" className="space-y-6">
@@ -180,6 +192,28 @@ const ReportPayables = () => {
                 accounts={paidPayables}
                 sortBy={sortBy}
                 sortOrder={sortOrder}
+                startDate={startDate}
+                endDate={endDate}
+              />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="priority" className="space-y-6">
+            <div className="glass-card p-4 flex flex-wrap items-center gap-4 no-print">
+              <p className="text-sm text-muted-foreground">
+                Títulos em aberto agrupados por prioridade de pagamento, com cores distintas e plano de organização.
+              </p>
+              <Button className="ml-auto" onClick={() => handlePrintPriority()}>
+                <Printer className="w-4 h-4 mr-2" />
+                Imprimir
+              </Button>
+            </div>
+
+            <div className="overflow-auto border border-border rounded-lg">
+              <PriorityReport
+                ref={priorityReportRef}
+                title="Relatório de Prioridades de Pagamento"
+                accounts={pendingPayables}
                 startDate={startDate}
                 endDate={endDate}
               />
