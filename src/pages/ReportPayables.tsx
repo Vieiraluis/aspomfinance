@@ -197,6 +197,28 @@ const ReportPayables = () => {
               />
             </div>
           </TabsContent>
+
+          <TabsContent value="priority" className="space-y-6">
+            <div className="glass-card p-4 flex flex-wrap items-center gap-4 no-print">
+              <p className="text-sm text-muted-foreground">
+                Títulos em aberto agrupados por prioridade de pagamento, com cores distintas e plano de organização.
+              </p>
+              <Button className="ml-auto" onClick={() => handlePrintPriority()}>
+                <Printer className="w-4 h-4 mr-2" />
+                Imprimir
+              </Button>
+            </div>
+
+            <div className="overflow-auto border border-border rounded-lg">
+              <PriorityReport
+                ref={priorityReportRef}
+                title="Relatório de Prioridades de Pagamento"
+                accounts={pendingPayables}
+                startDate={startDate}
+                endDate={endDate}
+              />
+            </div>
+          </TabsContent>
         </Tabs>
       </div>
     </MainLayout>
