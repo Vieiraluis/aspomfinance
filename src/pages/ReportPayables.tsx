@@ -4,8 +4,10 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { useAccounts } from '@/hooks/useSupabaseData';
 import { PrintableReport } from '@/components/reports/PrintableReport';
 import { ReportFilters } from '@/components/reports/ReportFilters';
+import { PriorityReport } from '@/components/reports/PriorityReport';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FileText, CheckCircle, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { FileText, CheckCircle, Loader2, AlertTriangle, Printer } from 'lucide-react';
 import { exportToPdf } from '@/lib/exportPdf';
 import { isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 
