@@ -27,6 +27,7 @@ import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
 import HR from "./pages/HR";
 import Events from "./pages/Events";
+import Portaria from "./pages/Portaria";
 import EventDetail from "./pages/EventDetail";
 import Associados from "./pages/Associados";
 import Mensalidades from "./pages/Mensalidades";
@@ -87,6 +88,7 @@ function AppRoutes() {
       <Route path="/all-records" element={<ProtectedRoute><AllRecords /></ProtectedRoute>} />
       <Route path="/hr" element={<ProtectedRoute><HR /></ProtectedRoute>} />
       <Route path="/events" element={<ProtectedRoute><Events /></ProtectedRoute>} />
+      <Route path="/portaria" element={<ProtectedRoute><Portaria /></ProtectedRoute>} />
       <Route path="/events/:eventId" element={<ProtectedRoute><EventDetail /></ProtectedRoute>} />
       <Route path="/associados" element={<ProtectedRoute><Associados /></ProtectedRoute>} />
       <Route path="/associados/dashboard" element={<ProtectedRoute><AssociadosDashboard /></ProtectedRoute>} />

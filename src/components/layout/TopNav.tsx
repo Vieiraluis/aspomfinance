@@ -21,6 +21,7 @@ import {
   Scale,
   User as UserIcon,
   Barcode,
+  DoorOpen,
 } from 'lucide-react';
 import { DueDateNotifications } from '@/components/notifications/DueDateNotifications';
 import { useAuthContext } from '@/contexts/AuthContext';
@@ -52,6 +53,7 @@ const financeiroItems: NavItem[] = [
 
 const rhItem: NavItem = { name: 'Gestão de RH', href: '/hr', icon: UserCog };
 const eventosItem: NavItem = { name: 'Eventos', href: '/events', icon: CalendarDays };
+const portariaItem: NavItem = { name: 'Portaria', href: '/portaria', icon: DoorOpen };
 
 const associadosItems: NavItem[] = [
   { name: 'Painel', href: '/associados/dashboard', icon: BarChart3 },
@@ -202,6 +204,7 @@ export function TopNav() {
         />
         <SimpleLink item={rhItem} />
         <SimpleLink item={eventosItem} />
+        <SimpleLink item={portariaItem} />
         <HoverDropdown
           label="Associados"
           icon={Shield}
