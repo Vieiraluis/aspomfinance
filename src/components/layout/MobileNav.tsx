@@ -19,6 +19,7 @@ import {
   CalendarDays,
   Building2,
   Barcode,
+  DoorOpen,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
@@ -45,6 +46,7 @@ const financeiroNavigation = [
 const bottomNavigation = [
   { name: 'Gestão de RH', href: '/hr', icon: UserCog },
   { name: 'Eventos', href: '/events', icon: CalendarDays },
+  { name: 'Portaria', href: '/portaria', icon: DoorOpen },
 ];
 
 const reportsNavigation = [
