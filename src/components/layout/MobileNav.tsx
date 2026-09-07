@@ -45,6 +45,7 @@ const financeiroNavigation = [
 const bottomNavigation = [
   { name: 'Gestão de RH', href: '/hr', icon: UserCog },
   { name: 'Eventos', href: '/events', icon: CalendarDays },
+  { name: 'Portaria', href: '/portaria', icon: DoorOpen },
 ];
 
 const reportsNavigation = [
