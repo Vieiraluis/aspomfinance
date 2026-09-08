@@ -16,7 +16,20 @@ function Calendar({
   toYear = new Date().getFullYear() + 10,
   ...props
 }: CalendarProps) {
+  const handleDayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    if (target.closest('button[name="day"]')) {
+      // fecha automaticamente o popover/dialog que contém o calendário
+      setTimeout(() => {
+        document.dispatchEvent(
+          new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+        );
+      }, 80);
+    }
+  };
+
   return (
+    <div onClick={handleDayClick}>
     <DayPicker
       showOutsideDays={showOutsideDays}
       captionLayout={captionLayout}
@@ -64,6 +77,7 @@ function Calendar({
       }}
       {...props}
     />
+    </div>
   );
 }
 Calendar.displayName = "Calendar";
