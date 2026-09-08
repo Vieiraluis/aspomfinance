@@ -48,6 +48,9 @@ const Dashboard = () => {
           <UpcomingAccounts />
           <BalanceChart />
         </div>
+
+        {/* Plano de pagamentos */}
+        <PaymentPlanCard />
       </div>
     </MainLayout>
   );
