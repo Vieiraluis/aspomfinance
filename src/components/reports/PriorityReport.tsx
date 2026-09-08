@@ -99,7 +99,7 @@ export const PriorityReport = forwardRef<HTMLDivElement, PriorityReportProps>(
                     <span className="font-bold text-sm">{group.config.label}</span>
                     <span className="font-mono font-bold text-sm">{formatCurrency(group.total)}</span>
                   </div>
-                  <div className="text-[10px]">{group.config.description}</div>
+                  <div className="text-[10px] no-print">{group.config.description}</div>
                 </div>
 
                 <Table className="border border-gray-300">
