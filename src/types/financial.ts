@@ -65,7 +65,7 @@ export interface Payment {
   accountId: string;
   amount: number;
   paidAt: Date;
-  paymentMethod: 'cash' | 'transfer' | 'pix' | 'credit_card' | 'debit_card' | 'boleto';
+  paymentMethod: 'cash' | 'transfer' | 'pix' | 'credit_card' | 'debit_card' | 'boleto' | 'debit_account';
   bankAccountId?: string;
   notes?: string;
 }
@@ -300,4 +300,5 @@ export const paymentMethodLabels: Record<Payment['paymentMethod'], string> = {
   credit_card: 'Cartão de Crédito',
   debit_card: 'Cartão de Débito',
   boleto: 'Boleto',
+  debit_account: 'Débito em C/C',
 };
