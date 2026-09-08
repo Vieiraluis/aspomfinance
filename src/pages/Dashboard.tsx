@@ -3,6 +3,7 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { DashboardStats } from '@/components/dashboard/DashboardStats';
 import { UpcomingAccounts } from '@/components/dashboard/UpcomingAccounts';
 import { BalanceChart } from '@/components/dashboard/BalanceChart';
+import { PaymentPlanCard } from '@/components/dashboard/PaymentPlanCard';
 import { MigrationBanner } from '@/components/migration/MigrationBanner';
 import { useUpdateOverdueStatus } from '@/hooks/useSupabaseData';
 import { CalendarDays } from 'lucide-react';
@@ -48,6 +49,9 @@ const Dashboard = () => {
           <UpcomingAccounts />
           <BalanceChart />
         </div>
+
+        {/* Plano de pagamentos */}
+        <PaymentPlanCard />
       </div>
     </MainLayout>
   );

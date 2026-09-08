@@ -151,7 +151,7 @@ export const PriorityReport = forwardRef<HTMLDivElement, PriorityReportProps>(
 
         {/* Plano de organização */}
         {accounts.length > 0 && (
-          <div className="mt-6 border border-gray-300 p-3">
+          <div className="mt-6 border border-gray-300 p-3 no-print">
             <h2 className="font-bold text-sm mb-2">Plano de Organização dos Pagamentos</h2>
             <ol className="list-decimal list-inside text-xs space-y-1 text-gray-800">
               <li><strong>1ª onda (imediata):</strong> quitar a prioridade crítica — salários, encargos e tributos, evitando multas e passivo trabalhista.</li>
