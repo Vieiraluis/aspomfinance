@@ -52,16 +52,16 @@ import { TablePagination, usePagination } from '@/components/ui/table-pagination
 
 const statusLabels: Record<string, string> = {
   pending: 'Pendente',
-  paid: 'Baixado',
-  overdue: 'Vencida',
-  cancelled: 'Cancelada',
+  paid: 'Pago',
+  overdue: 'Pendente',
+  cancelled: 'Pendente',
 };
 
 const statusStyles: Record<string, string> = {
   pending: 'bg-warning/20 text-warning border-warning/30',
   paid: 'bg-success/20 text-success border-success/30',
-  overdue: 'bg-destructive/20 text-destructive border-destructive/30',
-  cancelled: 'bg-muted text-muted-foreground border-muted-foreground/30',
+  overdue: 'bg-warning/20 text-warning border-warning/30',
+  cancelled: 'bg-warning/20 text-warning border-warning/30',
 };
 
 const dueDateFilterOptions = [
@@ -80,7 +80,7 @@ const AllRecords = () => {
   // Filters state
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<'all' | 'payable' | 'receivable'>('all');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'paid' | 'overdue'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'paid'>('all');
   const [dueDateFilter, setDueDateFilter] = useState('all');
   const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
     from: undefined,
@@ -124,19 +124,14 @@ const AllRecords = () => {
         
         // Status filter
         if (statusFilter !== 'all') {
-          const dueDate = startOfDay(new Date(account.dueDate));
-          const isOverdue = account.status === 'pending' && isBefore(dueDate, today);
-          
-          if (statusFilter === 'overdue' && !isOverdue && account.status !== 'overdue') {
-            return false;
-          }
-          if (statusFilter === 'pending' && (isOverdue || account.status !== 'pending')) {
-            return false;
-          }
           if (statusFilter === 'paid' && account.status !== 'paid') {
             return false;
           }
+          if (statusFilter === 'pending' && account.status === 'paid') {
+            return false;
+          }
         }
+        
         
         // Due date filter
         if (dueDateFilter !== 'all' && account.status !== 'paid' && account.status !== 'cancelled') {
@@ -312,7 +307,7 @@ const AllRecords = () => {
                 variant="outline" 
                 size="sm"
                 className="border-destructive/30 text-destructive hover:bg-destructive/10"
-                onClick={() => setStatusFilter('overdue')}
+                onClick={() => { setStatusFilter('pending'); setDueDateFilter('overdue'); }}
               >
                 Ver vencidas
               </Button>
@@ -369,8 +364,7 @@ const AllRecords = () => {
               <SelectContent>
                 <SelectItem value="all">Todos os status</SelectItem>
                 <SelectItem value="pending">Pendentes</SelectItem>
-                <SelectItem value="overdue">Vencidas</SelectItem>
-                <SelectItem value="paid">Baixados</SelectItem>
+                <SelectItem value="paid">Pagos / Recebidos</SelectItem>
               </SelectContent>
             </Select>
             
@@ -495,7 +489,9 @@ const AllRecords = () => {
                             variant="outline" 
                             className={cn("border", statusStyles[effectiveStatus])}
                           >
-                            {statusLabels[effectiveStatus]}
+                            {account.status === 'paid'
+                              ? (account.type === 'receivable' ? 'Recebido' : 'Pago')
+                              : statusLabels[effectiveStatus]}
                           </Badge>
                           {account.paidAt && (
                             <p className="text-xs text-muted-foreground mt-1">

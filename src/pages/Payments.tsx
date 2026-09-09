@@ -346,13 +346,9 @@ const Payments = () => {
                       <TableCell>
                         <Badge
                           variant="outline"
-                          className={cn(
-                            account.status === 'overdue'
-                              ? 'bg-destructive/20 text-destructive border-destructive/30'
-                              : 'bg-warning/20 text-warning border-warning/30'
-                          )}
+                          className="bg-warning/20 text-warning border-warning/30"
                         >
-                          {account.status === 'overdue' ? 'Vencido' : 'Pendente'}
+                          Pendente
                         </Badge>
                       </TableCell>
                       <TableCell>

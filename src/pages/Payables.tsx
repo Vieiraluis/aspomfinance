@@ -47,18 +47,18 @@ import { AccountRowActions } from '@/components/accounts/AccountRowActions';
 import { TableSkeleton } from '@/components/ui/table-skeleton';
 import { TablePagination, usePagination } from '@/components/ui/table-pagination';
 
-const statusLabels = {
+const statusLabels: Record<string, string> = {
   pending: 'Pendente',
   paid: 'Pago',
-  overdue: 'Vencido',
-  cancelled: 'Cancelado',
+  overdue: 'Pendente',
+  cancelled: 'Pendente',
 };
 
-const statusStyles = {
+const statusStyles: Record<string, string> = {
   pending: 'bg-warning/20 text-warning border-warning/30',
   paid: 'bg-success/20 text-success border-success/30',
-  overdue: 'bg-destructive/20 text-destructive border-destructive/30',
-  cancelled: 'bg-muted text-muted-foreground border-muted',
+  overdue: 'bg-warning/20 text-warning border-warning/30',
+  cancelled: 'bg-warning/20 text-warning border-warning/30',
 };
 
 const Payables = () => {
@@ -104,7 +104,9 @@ const Payables = () => {
       a.description.toLowerCase().includes(searchLower) ||
       (a.supplierName && a.supplierName.toLowerCase().includes(searchLower)) ||
       (a.code && (a.code.toLowerCase().includes(searchLower) || a.code.toLowerCase().replace(/[-\/]/g, '').includes(searchNormalized)));
-    const matchesStatus = statusFilter === 'all' || a.status === statusFilter;
+    const matchesStatus =
+      statusFilter === 'all' ||
+      (statusFilter === 'paid' ? a.status === 'paid' : a.status !== 'paid');
     const matchesCategory = categoryFilter === 'all' || a.category === categoryFilter;
     
     let matchesDateRange = true;

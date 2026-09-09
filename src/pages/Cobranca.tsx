@@ -316,11 +316,9 @@ const Cobranca = () => {
                           {a.supplierName || 'Sem cliente'} · {a.code || '—'} · Venc. {formatDate(a.dueDate)}
                         </p>
                       </div>
-                      {a.status === 'overdue' && (
-                        <Badge variant="outline" className="bg-destructive/20 text-destructive border-destructive/30">
-                          Vencido
-                        </Badge>
-                      )}
+                      <Badge variant="outline" className="bg-warning/20 text-warning border-warning/30">
+                        Pendente
+                      </Badge>
                       <span className="text-sm font-semibold tabular-nums">{formatCurrency(a.amount)}</span>
                     </label>
                   ))}

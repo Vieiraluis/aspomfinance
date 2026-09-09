@@ -37,7 +37,7 @@ const defaultStatusOptions = [
   { value: 'all', label: 'Todos' },
   { value: 'pending', label: 'Pendentes' },
   { value: 'paid', label: 'Pagos' },
-  { value: 'overdue', label: 'Vencidos' },
+  
 ];
 
 export function AccountFilters({
