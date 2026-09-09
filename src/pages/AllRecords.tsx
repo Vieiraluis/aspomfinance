@@ -364,8 +364,7 @@ const AllRecords = () => {
               <SelectContent>
                 <SelectItem value="all">Todos os status</SelectItem>
                 <SelectItem value="pending">Pendentes</SelectItem>
-                <SelectItem value="overdue">Vencidas</SelectItem>
-                <SelectItem value="paid">Baixados</SelectItem>
+                <SelectItem value="paid">Pagos / Recebidos</SelectItem>
               </SelectContent>
             </Select>
             
