@@ -124,19 +124,14 @@ const AllRecords = () => {
         
         // Status filter
         if (statusFilter !== 'all') {
-          const dueDate = startOfDay(new Date(account.dueDate));
-          const isOverdue = account.status === 'pending' && isBefore(dueDate, today);
-          
-          if (statusFilter === 'overdue' && !isOverdue && account.status !== 'overdue') {
-            return false;
-          }
-          if (statusFilter === 'pending' && (isOverdue || account.status !== 'pending')) {
-            return false;
-          }
           if (statusFilter === 'paid' && account.status !== 'paid') {
             return false;
           }
+          if (statusFilter === 'pending' && account.status === 'paid') {
+            return false;
+          }
         }
+        
         
         // Due date filter
         if (dueDateFilter !== 'all' && account.status !== 'paid' && account.status !== 'cancelled') {
