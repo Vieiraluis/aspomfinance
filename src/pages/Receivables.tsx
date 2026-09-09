@@ -106,7 +106,9 @@ const Receivables = () => {
       a.description.toLowerCase().includes(searchLower) ||
       (a.supplierName && a.supplierName.toLowerCase().includes(searchLower)) ||
       (a.code && (a.code.toLowerCase().includes(searchLower) || a.code.toLowerCase().replace(/[-\/]/g, '').includes(searchNormalized)));
-    const matchesStatus = statusFilter === 'all' || a.status === statusFilter;
+    const matchesStatus =
+      statusFilter === 'all' ||
+      (statusFilter === 'paid' ? a.status === 'paid' : a.status !== 'paid');
     const matchesCategory = categoryFilter === 'all' || a.category === categoryFilter;
     
     let matchesDateRange = true;
