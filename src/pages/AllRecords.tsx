@@ -495,7 +495,9 @@ const AllRecords = () => {
                             variant="outline" 
                             className={cn("border", statusStyles[effectiveStatus])}
                           >
-                            {statusLabels[effectiveStatus]}
+                            {account.status === 'paid'
+                              ? (account.type === 'receivable' ? 'Recebido' : 'Pago')
+                              : statusLabels[effectiveStatus]}
                           </Badge>
                           {account.paidAt && (
                             <p className="text-xs text-muted-foreground mt-1">
