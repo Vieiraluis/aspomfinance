@@ -200,23 +200,10 @@ const ReportBySupplier = () => {
     };
   }, [filteredAccounts]);
 
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'paid': return 'Pago';
-      case 'pending': return 'Pendente';
-      case 'overdue': return 'Vencido';
-      default: return status;
-    }
-  };
+  const getStatusLabel = (status: string) => (status === 'paid' ? 'Pago' : 'Pendente');
 
-  const getStatusClass = (status: string) => {
-    switch (status) {
-      case 'paid': return 'text-success';
-      case 'pending': return 'text-warning';
-      case 'overdue': return 'text-destructive';
-      default: return '';
-    }
-  };
+  const getStatusClass = (status: string) =>
+    status === 'paid' ? 'text-success' : 'text-warning';
 
   const handlePrint = useReactToPrint({ contentRef: printRef });
 
