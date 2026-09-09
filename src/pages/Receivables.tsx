@@ -516,7 +516,7 @@ const Receivables = () => {
             { value: 'all', label: 'Todos' },
             { value: 'pending', label: 'Pendentes' },
             { value: 'paid', label: 'Recebidos' },
-            { value: 'overdue', label: 'Vencidos' },
+            
           ]}
           rightContent={
             paidReceivables.length > 0 && (
