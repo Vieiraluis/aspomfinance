@@ -307,7 +307,7 @@ const AllRecords = () => {
                 variant="outline" 
                 size="sm"
                 className="border-destructive/30 text-destructive hover:bg-destructive/10"
-                onClick={() => setStatusFilter('overdue')}
+                onClick={() => { setStatusFilter('pending'); setDueDateFilter('overdue'); }}
               >
                 Ver vencidas
               </Button>
