@@ -80,7 +80,7 @@ const AllRecords = () => {
   // Filters state
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<'all' | 'payable' | 'receivable'>('all');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'paid' | 'overdue'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'paid'>('all');
   const [dueDateFilter, setDueDateFilter] = useState('all');
   const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
     from: undefined,
