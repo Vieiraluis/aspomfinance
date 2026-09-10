@@ -41,6 +41,8 @@ export const bankAccountTypeLabels: Record<BankAccountType, string> = {
 export interface Account {
   id: string;
   code?: string;
+  documentNumber?: string;
+  paymentTerms?: string;
   type: 'payable' | 'receivable';
   description: string;
   amount: number;
