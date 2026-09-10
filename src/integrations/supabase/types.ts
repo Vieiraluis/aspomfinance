@@ -23,6 +23,7 @@ export type Database = {
           code: string | null
           created_at: string
           description: string
+          document_number: string | null
           due_date: string
           id: string
           installment_number: number | null
@@ -30,6 +31,7 @@ export type Database = {
           paid_at: string | null
           parent_id: string | null
           payment_receipt_url: string | null
+          payment_terms: string | null
           status: string
           supplier_id: string | null
           supplier_name: string | null
@@ -45,6 +47,7 @@ export type Database = {
           code?: string | null
           created_at?: string
           description: string
+          document_number?: string | null
           due_date: string
           id?: string
           installment_number?: number | null
@@ -52,6 +55,7 @@ export type Database = {
           paid_at?: string | null
           parent_id?: string | null
           payment_receipt_url?: string | null
+          payment_terms?: string | null
           status?: string
           supplier_id?: string | null
           supplier_name?: string | null
@@ -67,6 +71,7 @@ export type Database = {
           code?: string | null
           created_at?: string
           description?: string
+          document_number?: string | null
           due_date?: string
           id?: string
           installment_number?: number | null
@@ -74,6 +79,7 @@ export type Database = {
           paid_at?: string | null
           parent_id?: string | null
           payment_receipt_url?: string | null
+          payment_terms?: string | null
           status?: string
           supplier_id?: string | null
           supplier_name?: string | null
