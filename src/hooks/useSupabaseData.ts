@@ -17,6 +17,8 @@ const parseDateOnly = (dateStr: string): Date => {
 const mapAccountFromDB = (row: any): Account => ({
   id: row.id,
   code: row.code || undefined,
+  documentNumber: row.document_number || undefined,
+  paymentTerms: row.payment_terms || undefined,
   type: row.type as 'payable' | 'receivable',
   description: row.description,
   amount: Number(row.amount),
