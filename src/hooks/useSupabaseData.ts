@@ -243,6 +243,8 @@ export const useUpdateAccount = () => {
       if (account.type !== undefined) updateData.type = account.type;
       if (account.description !== undefined) updateData.description = account.description;
       if (account.amount !== undefined) updateData.amount = account.amount;
+      if (account.documentNumber !== undefined) updateData.document_number = account.documentNumber || null;
+      if (account.paymentTerms !== undefined) updateData.payment_terms = account.paymentTerms || null;
       if (account.dueDate !== undefined) updateData.due_date = account.dueDate.toISOString().split('T')[0];
       if (account.status !== undefined) updateData.status = account.status;
       if (account.supplierId !== undefined) updateData.supplier_id = account.supplierId || null;
