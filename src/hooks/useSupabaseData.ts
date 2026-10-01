@@ -17,6 +17,8 @@ const parseDateOnly = (dateStr: string): Date => {
 const mapAccountFromDB = (row: any): Account => ({
   id: row.id,
   code: row.code || undefined,
+  documentNumber: row.document_number || undefined,
+  paymentTerms: row.payment_terms || undefined,
   type: row.type as 'payable' | 'receivable',
   description: row.description,
   amount: Number(row.amount),
@@ -202,6 +204,8 @@ export const useAddAccount = () => {
           user_id: user.id,
           type: account.type,
           description: account.description,
+          document_number: account.documentNumber || null,
+          payment_terms: account.paymentTerms || null,
           amount: account.amount,
           due_date: account.dueDate.toISOString().split('T')[0],
           status: account.status,
@@ -239,6 +243,8 @@ export const useUpdateAccount = () => {
       if (account.type !== undefined) updateData.type = account.type;
       if (account.description !== undefined) updateData.description = account.description;
       if (account.amount !== undefined) updateData.amount = account.amount;
+      if (account.documentNumber !== undefined) updateData.document_number = account.documentNumber || null;
+      if (account.paymentTerms !== undefined) updateData.payment_terms = account.paymentTerms || null;
       if (account.dueDate !== undefined) updateData.due_date = account.dueDate.toISOString().split('T')[0];
       if (account.status !== undefined) updateData.status = account.status;
       if (account.supplierId !== undefined) updateData.supplier_id = account.supplierId || null;
