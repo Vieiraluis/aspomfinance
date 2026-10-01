@@ -204,6 +204,8 @@ export const useAddAccount = () => {
           user_id: user.id,
           type: account.type,
           description: account.description,
+          document_number: account.documentNumber || null,
+          payment_terms: account.paymentTerms || null,
           amount: account.amount,
           due_date: account.dueDate.toISOString().split('T')[0],
           status: account.status,
