@@ -294,6 +294,12 @@ const Payables = () => {
           </div>
           
           <div className="flex gap-3">
+            <Button asChild className="gap-2">
+              <Link to="/payables/lancamento">
+                <FilePlus2 className="w-4 h-4" />
+                Novo Lançamento
+              </Link>
+            </Button>
             <Dialog open={isInstallmentOpen} onOpenChange={setIsInstallmentOpen}>
               <DialogTrigger asChild>
                 <Button variant="outline" className="gap-2">
