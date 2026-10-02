@@ -8,6 +8,8 @@ import Dashboard from "./pages/Dashboard";
 import Suppliers from "./pages/Suppliers";
 import Payables from "./pages/Payables";
 import Receivables from "./pages/Receivables";
+import PayableEntry from "./pages/PayableEntry";
+import ReceivableEntry from "./pages/ReceivableEntry";
 import Cobranca from "./pages/Cobranca";
 import Payments from "./pages/Payments";
 import BankAccounts from "./pages/BankAccounts";
@@ -81,6 +83,8 @@ function AppRoutes() {
       <Route path="/suppliers" element={<ProtectedRoute><Suppliers /></ProtectedRoute>} />
       <Route path="/payables" element={<ProtectedRoute><Payables /></ProtectedRoute>} />
       <Route path="/receivables" element={<ProtectedRoute><Receivables /></ProtectedRoute>} />
+      <Route path="/payables/lancamento/:id?" element={<ProtectedRoute><PayableEntry /></ProtectedRoute>} />
+      <Route path="/receivables/lancamento/:id?" element={<ProtectedRoute><ReceivableEntry /></ProtectedRoute>} />
       <Route path="/cobranca" element={<ProtectedRoute><Cobranca /></ProtectedRoute>} />
       <Route path="/payments" element={<ProtectedRoute><Payments /></ProtectedRoute>} />
       <Route path="/bank-accounts" element={<ProtectedRoute><BankAccounts /></ProtectedRoute>} />

@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { FilePlus2 } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { useAccounts, useSuppliers, useAddAccount, useDeleteAccount, useGenerateInstallments } from '@/hooks/useSupabaseData';
 import { Account, categoryLabels, AccountCategory } from '@/types/financial';
@@ -294,6 +296,12 @@ const Payables = () => {
           </div>
           
           <div className="flex gap-3">
+            <Button asChild className="gap-2">
+              <Link to="/payables/lancamento">
+                <FilePlus2 className="w-4 h-4" />
+                Novo Lançamento
+              </Link>
+            </Button>
             <Dialog open={isInstallmentOpen} onOpenChange={setIsInstallmentOpen}>
               <DialogTrigger asChild>
                 <Button variant="outline" className="gap-2">
