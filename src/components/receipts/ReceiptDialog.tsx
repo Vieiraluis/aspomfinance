@@ -20,12 +20,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { Printer, Loader2 } from 'lucide-react';
 import { Account } from '@/types/financial';
+import { sumMoney } from '@/lib/money';
+import { formatCurrency, formatDate } from '@/lib/format';
 
 interface ReceiptDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   accounts: Account[];
-  mode: 'single' | 'batch';
+  mode: 'single' | 'batch' | 'grouped';
 }
 
 export const ReceiptDialog: React.FC<ReceiptDialogProps> = ({
@@ -53,6 +55,49 @@ export const ReceiptDialog: React.FC<ReceiptDialogProps> = ({
     if (!user || accounts.length === 0) return;
     
     try {
+      if (mode === 'grouped') {
+        const numberData = await generateReceiptNumber();
+        if (!numberData) throw new Error('Failed to generate receipt number');
+        const first = accounts[0];
+        const supplier = first.supplierId ? suppliers.find(s => s.id === first.supplierId) : undefined;
+        const total = sumMoney(accounts, a => a.amount);
+        const lines = accounts
+          .map(a => `${a.code ? a.code + ' ' : ''}${a.description} (venc. ${formatDate(a.dueDate)}) ${formatCurrency(a.amount)}`)
+          .join('; ');
+        const reference = `${customReference ? customReference + ' — ' : ''}Parcelas: ${lines}`;
+        const latest = accounts.reduce<Date | undefined>((acc, a) => {
+          const d = a.paidAt ? new Date(a.paidAt) : undefined;
+          return d && (!acc || d > acc) ? d : acc;
+        }, undefined) || new Date();
+        const receipt: ReceiptData = {
+          receiptNumber: numberData.receiptNumber,
+          receiverName: first.supplierName || 'Não informado',
+          receiverDocument: supplier?.document || '',
+          amount: total,
+          reference,
+          issueDate: latest,
+          accountType: first.type,
+          companyName: settings?.company_name || '',
+          companyDocument: settings?.company_document || '',
+        };
+        await supabase.from('receipts').insert({
+          user_id: user.id,
+          account_id: first.id,
+          receipt_number: receipt.receiptNumber,
+          year_month: numberData.yearMonth,
+          sequence_number: numberData.sequenceNumber,
+          receiver_name: receipt.receiverName,
+          receiver_document: receipt.receiverDocument,
+          amount: total,
+          amount_written: '',
+          reference,
+          issue_date: latest.toISOString(),
+        });
+        setReceipts([receipt]);
+        setIsReady(true);
+        toast({ title: 'Recibo agrupado gerado!', description: `${accounts.length} parcela(s) — ${formatCurrency(total)}` });
+        return;
+      }
       const receiptNumbers = await generateMultipleReceiptNumbers(accounts.length);
       
       if (receiptNumbers.length !== accounts.length) {
@@ -127,10 +172,12 @@ export const ReceiptDialog: React.FC<ReceiptDialogProps> = ({
       <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-display">
-            {mode === 'batch' ? 'Impressão em Lote de Recibos' : 'Gerar Recibo'}
+            {mode === 'grouped' ? 'Recibo Agrupado de Parcelas' : mode === 'batch' ? 'Impressão em Lote de Recibos' : 'Gerar Recibo'}
           </DialogTitle>
           <DialogDescription>
-            {mode === 'batch' 
+            {mode === 'grouped'
+              ? `${accounts.length} parcela(s) somadas em um único recibo — total ${formatCurrency(sumMoney(accounts, a => a.amount))}`
+              : mode === 'batch' 
               ? `${accounts.length} conta(s) selecionada(s) para geração de recibos`
               : 'Gere um recibo para esta conta'
             }
@@ -145,13 +192,19 @@ export const ReceiptDialog: React.FC<ReceiptDialogProps> = ({
               <div className="space-y-2 max-h-40 overflow-y-auto">
                 {accounts.map((account) => (
                   <div key={account.id} className="flex justify-between text-sm">
-                    <span>{account.supplierName || account.description}</span>
+                    <span>{mode === 'grouped' ? `${account.code ? account.code + ' — ' : ''}${account.description}` : (account.supplierName || account.description)}</span>
                     <span className="font-medium">
                       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(account.amount)}
                     </span>
                   </div>
                 ))}
               </div>
+              {mode === 'grouped' && (
+                <div className="flex justify-between text-sm font-semibold border-t border-border mt-2 pt-2">
+                  <span>Total do recibo</span>
+                  <span>{formatCurrency(sumMoney(accounts, a => a.amount))}</span>
+                </div>
+              )}
             </div>
             
             {/* Custom Reference */}
@@ -183,7 +236,7 @@ export const ReceiptDialog: React.FC<ReceiptDialogProps> = ({
                 ) : (
                   <>
                     <Printer className="w-4 h-4" />
-                    Gerar Recibos
+                    {mode === 'grouped' ? 'Gerar Recibo Agrupado' : 'Gerar Recibos'}
                   </>
                 )}
               </Button>

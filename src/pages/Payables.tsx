@@ -42,6 +42,7 @@ import { Plus, TrendingDown, Trash2, Split, Receipt, Loader2, Pencil } from 'luc
 import { toast } from '@/hooks/use-toast';
 import { format, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 import { SupplierSelect } from '@/components/suppliers/SupplierSelect';
+import { Layers } from 'lucide-react';
 import { ReceiptDialog } from '@/components/receipts/ReceiptDialog';
 import { AccountFilters } from '@/components/accounts/AccountFilters';
 import { EditAccountDialog } from '@/components/accounts/EditAccountDialog';
@@ -79,7 +80,7 @@ const Payables = () => {
   const [endDate, setEndDate] = useState<Date | undefined>();
   const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
   const [isReceiptDialogOpen, setIsReceiptDialogOpen] = useState(false);
-  const [receiptMode, setReceiptMode] = useState<'single' | 'batch'>('single');
+  const [receiptMode, setReceiptMode] = useState<'single' | 'batch' | 'grouped'>('single');
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
   
@@ -157,6 +158,19 @@ const Payables = () => {
       return;
     }
     setReceiptMode('batch');
+    setIsReceiptDialogOpen(true);
+  };
+
+  const openGroupedReceipt = () => {
+    if (selectedAccounts.length < 2) {
+      toast({
+        title: 'Selecione parcelas',
+        description: 'Selecione ao menos duas parcelas pagas para agrupar em um único recibo.',
+        variant: 'destructive'
+      });
+      return;
+    }
+    setReceiptMode('grouped');
     setIsReceiptDialogOpen(true);
   };
 
@@ -508,6 +522,7 @@ const Payables = () => {
           searchPlaceholder="Buscar por código, descrição ou fornecedor..."
           rightContent={
             paidPayables.length > 0 && (
+              <div className="flex flex-wrap gap-2">
               <Button 
                 variant="outline" 
                 className="gap-2"
@@ -516,6 +531,14 @@ const Payables = () => {
                 <Receipt className="w-4 h-4" />
                 Recibos em Lote ({selectedAccounts.length})
               </Button>
+              <Button 
+                className="gap-2"
+                onClick={openGroupedReceipt}
+              >
+                <Layers className="w-4 h-4" />
+                Agrupar em 1 Recibo ({selectedAccounts.length})
+              </Button>
+              </div>
             )
           }
         />
