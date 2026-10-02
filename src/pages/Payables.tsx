@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { FilePlus2 } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { useAccounts, useSuppliers, useAddAccount, useDeleteAccount, useGenerateInstallments } from '@/hooks/useSupabaseData';
 import { Account, categoryLabels, AccountCategory } from '@/types/financial';
