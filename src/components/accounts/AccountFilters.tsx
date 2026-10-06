@@ -79,7 +79,7 @@ export function AccountFilters({
   const controls = (
     <>
         {/* Search */}
-        <div className="relative flex-1 min-w-[200px] max-w-md">
+        <div className="filter-control relative flex-1 min-w-[200px] max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder={searchPlaceholder}
@@ -91,7 +91,7 @@ export function AccountFilters({
 
         {/* Status Filter */}
         <Select value={statusFilter} onValueChange={onStatusFilterChange}>
-          <SelectTrigger className="w-36">
+          <SelectTrigger className="filter-control w-36">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
@@ -106,7 +106,7 @@ export function AccountFilters({
         {/* Category Filter */}
         {showCategoryFilter && onCategoryFilterChange && (
           <Select value={categoryFilter || 'all'} onValueChange={onCategoryFilterChange}>
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="filter-control w-40">
               <SelectValue placeholder="Categoria" />
             </SelectTrigger>
             <SelectContent>
@@ -125,7 +125,7 @@ export function AccountFilters({
                 <Button
                   variant="outline"
                   className={cn(
-                    'w-[130px] justify-start text-left font-normal',
+                    'filter-control w-[130px] justify-start text-left font-normal',
                     !startDate && 'text-muted-foreground'
                   )}
                 >
@@ -150,7 +150,7 @@ export function AccountFilters({
                 <Button
                   variant="outline"
                   className={cn(
-                    'w-[130px] justify-start text-left font-normal',
+                    'filter-control w-[130px] justify-start text-left font-normal',
                     !endDate && 'text-muted-foreground'
                   )}
                 >
