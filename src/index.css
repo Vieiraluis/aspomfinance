@@ -3,29 +3,27 @@
 @tailwind utilities;
 
 /* Financial Management App - Dark Elegant Theme */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
-
 @layer base {
   :root {
-    --background: 222 47% 6%;
+    --background: 218 49% 8%;
     --foreground: 210 40% 98%;
 
-    --card: 222 47% 8%;
+    --card: 218 39% 14%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 222 47% 8%;
+    --popover: 218 39% 14%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 168 76% 42%;
+    --primary: 166 66% 50%;
     --primary-foreground: 222 47% 6%;
 
-    --secondary: 217 33% 17%;
+    --secondary: 218 31% 21%;
     --secondary-foreground: 210 40% 98%;
 
     --muted: 217 33% 12%;
     --muted-foreground: 215 20% 55%;
 
-    --accent: 217 33% 17%;
+    --accent: 218 31% 21%;
     --accent-foreground: 210 40% 98%;
 
     --destructive: 0 72% 51%;
@@ -46,9 +44,9 @@
     --pending: 38 92% 50%;
     --pending-foreground: 222 47% 6%;
 
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
-    --ring: 168 76% 42%;
+    --border: 218 31% 21%;
+    --input: 218 31% 21%;
+    --ring: 166 66% 50%;
 
     --radius: 0.75rem;
 
@@ -90,11 +88,11 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Manrope', system-ui, sans-serif;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-family: 'Sora', system-ui, sans-serif;
   }
 }
 
