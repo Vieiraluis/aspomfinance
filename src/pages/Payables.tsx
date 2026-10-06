@@ -1,4 +1,4 @@
-import { useState } from 'react';
+/* legacy implementation replaced by the shared compact financial list */
 import { Link } from 'react-router-dom';
 import { FilePlus2 } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
