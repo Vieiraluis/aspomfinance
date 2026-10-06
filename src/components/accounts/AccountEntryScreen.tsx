@@ -29,6 +29,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { EntryEntityCard } from '@/components/accounts/EntryEntityCard';
 import { SupplierSelect } from '@/components/suppliers/SupplierSelect';
 import { CategorySelectOptions } from '@/components/accounts/CategorySelectOptions';
 import { AttachmentButtons } from '@/components/attachments/AttachmentButtons';
@@ -311,23 +312,21 @@ export const AccountEntryScreen = ({ type }: Props) => {
       }));
 
   const readOnly = !!id && !isEditing;
+  const selectedEntity = suppliers.find((supplier) => supplier.id === header.supplierId);
 
   return (
     <MainLayout>
       <TooltipProvider>
-        <div className="space-y-6 animate-fade-in">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
+        <div className="space-y-2 animate-fade-in">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
               <Button variant="ghost" size="icon" onClick={() => navigate(basePath)}>
                 <ArrowLeft className="w-5 h-5" />
               </Button>
               <div>
-                <h1 className="text-2xl font-display font-bold text-foreground">
+                <h1 className="text-lg font-display font-bold text-foreground">
                   {isPayable ? 'Lançamento — Contas a Pagar' : 'Lançamento — Contas a Receber'}
                 </h1>
-                <p className="text-muted-foreground text-sm">
-                  Cabeçalho do título e desmembramento das parcelas
-                </p>
               </div>
             </div>
 
@@ -340,6 +339,7 @@ export const AccountEntryScreen = ({ type }: Props) => {
                       variant={item.variant ?? 'default'}
                       disabled={item.disabled}
                       onClick={item.onClick}
+                      className="h-8 w-8"
                       aria-label={item.label}
                     >
                       <item.icon className="w-4 h-4" />
@@ -352,9 +352,9 @@ export const AccountEntryScreen = ({ type }: Props) => {
           </div>
 
           {/* Cabeçalho */}
-          <div className="rounded-xl border border-border bg-card p-4 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-4">
-              <div className="space-y-2">
+          <div className="space-y-2 [&_input]:h-8 [&_input]:text-xs [&_button[role=combobox]]:h-8 [&_button[role=combobox]]:text-xs [&_label]:text-[11px]">
+            <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-3 sm:grid-cols-[minmax(0,220px)_minmax(0,1fr)]">
+              <div className="min-w-0 space-y-1">
                 <Label>Identificador</Label>
                 <Input
                   value={entry?.head.code || 'Gerado automaticamente'}
@@ -362,7 +362,7 @@ export const AccountEntryScreen = ({ type }: Props) => {
                   className="font-mono"
                 />
               </div>
-              <div className="space-y-2">
+              <div className="min-w-0 space-y-1">
                 <Label>{entityLabel}</Label>
                 <SupplierSelect
                   value={header.supplierId}
@@ -372,7 +372,12 @@ export const AccountEntryScreen = ({ type }: Props) => {
                   disabled={readOnly}
                 />
               </div>
-              <div className="space-y-2">
+            </div>
+
+            {selectedEntity && <EntryEntityCard entity={selectedEntity} label={entityLabel} />}
+
+            <div className="grid grid-cols-2 gap-x-3 gap-y-2 sm:grid-cols-4">
+              <div className="min-w-0 space-y-1">
                 <Label htmlFor="doc-number">Número do documento / NF</Label>
                 <Input
                   id="doc-number"
@@ -382,7 +387,7 @@ export const AccountEntryScreen = ({ type }: Props) => {
                   readOnly={readOnly}
                 />
               </div>
-              <div className="space-y-2">
+              <div className="min-w-0 space-y-1">
                 <Label htmlFor="entry-description">Descrição</Label>
                 <Input
                   id="entry-description"
@@ -392,7 +397,7 @@ export const AccountEntryScreen = ({ type }: Props) => {
                   readOnly={readOnly}
                 />
               </div>
-              <div className="space-y-2">
+              <div className="min-w-0 space-y-1">
                 <Label htmlFor="entry-amount">Valor total</Label>
                 <CurrencyInput
                   id="entry-amount"
@@ -401,7 +406,7 @@ export const AccountEntryScreen = ({ type }: Props) => {
                   readOnly={!!id}
                 />
               </div>
-              <div className="space-y-2">
+              <div className="min-w-0 space-y-1">
                 <Label>
                   {isPayable ? 'Condição de pagamento' : 'Condição de recebimento'}
                 </Label>
@@ -422,7 +427,7 @@ export const AccountEntryScreen = ({ type }: Props) => {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
+              <div className="min-w-0 space-y-1">
                 <Label htmlFor="entry-due">Primeiro vencimento</Label>
                 <Input
                   id="entry-due"
@@ -432,7 +437,7 @@ export const AccountEntryScreen = ({ type }: Props) => {
                   readOnly={!!id}
                 />
               </div>
-              <div className="space-y-2">
+              <div className="min-w-0 space-y-1">
                 <Label>Categoria</Label>
                 <Select
                   value={header.category}
@@ -451,23 +456,24 @@ export const AccountEntryScreen = ({ type }: Props) => {
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="min-w-0 space-y-1">
               <Label htmlFor="entry-notes">Observações</Label>
               <Textarea
                 id="entry-notes"
                 value={header.notes}
                 onChange={(e) => setHeader({ ...header, notes: e.target.value })}
-                rows={2}
+                rows={1}
+                className="min-h-8 h-8 text-xs"
                 readOnly={readOnly}
               />
             </div>
           </div>
 
           {/* Subformulário de parcelas */}
-          <div className="rounded-xl border border-border bg-card">
-            <div className="flex flex-wrap items-center justify-between gap-2 p-4 border-b border-border">
-              <h2 className="font-display font-semibold">Parcelas</h2>
-              <div className="text-sm text-muted-foreground">
+          <div className="overflow-hidden rounded-lg border border-border">
+            <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 border-b border-border">
+              <h2 className="text-sm font-display font-semibold">Parcelas</h2>
+              <div className="text-xs text-muted-foreground">
                 {id ? (
                   <>Total do lançamento: <strong>{formatCurrency(totalSaved)}</strong></>
                 ) : (
@@ -481,7 +487,7 @@ export const AccountEntryScreen = ({ type }: Props) => {
                 <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
               </div>
             ) : (
-              <Table>
+              <Table className="text-xs [&_th]:h-8 [&_th]:px-3 [&_td]:px-3 [&_td]:py-1.5">
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-10"></TableHead>
@@ -495,7 +501,7 @@ export const AccountEntryScreen = ({ type }: Props) => {
                 <TableBody>
                   {displayRows.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                      <TableCell colSpan={6} className="text-center text-muted-foreground py-3">
                         Informe o valor total e a condição para gerar as parcelas.
                       </TableCell>
                     </TableRow>
@@ -506,7 +512,7 @@ export const AccountEntryScreen = ({ type }: Props) => {
                           {row.account && row.account.status !== 'paid' && (
                             <Checkbox
                               checked={selected.includes(row.account.id)}
-                              onCheckedChange={() => toggleRow(row.account!.id)}
+                              onCheckedChange={() => { if (row.account) toggleRow(row.account.id); }}
                               aria-label={`Selecionar parcela ${row.number}`}
                             />
                           )}
@@ -544,13 +550,13 @@ export const AccountEntryScreen = ({ type }: Props) => {
                                 paymentReceiptUrl={row.account.paymentReceiptUrl}
                                 onBillingSlipChange={(url) =>
                                   updateAccountMutation.mutate({
-                                    id: row.account!.id,
+                                    id: row.key,
                                     billingSlipUrl: url,
                                   })
                                 }
                                 onPaymentReceiptChange={(url) =>
                                   updateAccountMutation.mutate({
-                                    id: row.account!.id,
+                                    id: row.key,
                                     paymentReceiptUrl: url,
                                   })
                                 }
