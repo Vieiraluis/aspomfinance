@@ -99,6 +99,7 @@ export const AccountEntryScreen = ({ type }: Props) => {
   const [selected, setSelected] = useState<string[]>([]);
   const [isEditing, setIsEditing] = useState(!id);
   const [isSettleOpen, setIsSettleOpen] = useState(false);
+  const [settleAccounts, setSettleAccounts] = useState<Account[]>([]);
 
   const saved = entry?.installments ?? [];
 
@@ -142,7 +143,7 @@ export const AccountEntryScreen = ({ type }: Props) => {
   }, [id, header.terms, header.totalAmount, header.firstDueDate]);
 
   const pendingSelected = useMemo(
-    () => saved.filter((a) => selected.includes(a.id) && a.status !== 'paid'),
+    () => saved.filter((a) => selected.includes(a.id) && (a.status === 'pending' || a.status === 'overdue')),
     [saved, selected],
   );
 
@@ -234,6 +235,7 @@ export const AccountEntryScreen = ({ type }: Props) => {
       });
       return;
     }
+    setSettleAccounts(pendingSelected);
     setIsSettleOpen(true);
   };
 
@@ -374,9 +376,11 @@ export const AccountEntryScreen = ({ type }: Props) => {
               </div>
             </div>
 
-            {selectedEntity && <EntryEntityCard entity={selectedEntity} label={entityLabel} />}
-
-            <div className="grid grid-cols-2 gap-x-3 gap-y-2 sm:grid-cols-4">
+            <div className="grid grid-cols-1 items-start gap-2 sm:grid-cols-2">
+              <div className="min-w-0">
+                {selectedEntity && <EntryEntityCard entity={selectedEntity} label={entityLabel} />}
+              </div>
+              <div className="grid min-w-0 grid-cols-1 gap-1.5">
               <div className="min-w-0 space-y-1">
                 <Label htmlFor="doc-number">Número do documento / NF</Label>
                 <Input
@@ -397,6 +401,10 @@ export const AccountEntryScreen = ({ type }: Props) => {
                   readOnly={readOnly}
                 />
               </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               <div className="min-w-0 space-y-1">
                 <Label htmlFor="entry-amount">Valor total</Label>
                 <CurrencyInput
@@ -577,7 +585,7 @@ export const AccountEntryScreen = ({ type }: Props) => {
       <SettleInstallmentsDialog
         open={isSettleOpen}
         onOpenChange={setIsSettleOpen}
-        accounts={pendingSelected}
+        accounts={settleAccounts}
         headId={id}
         onSettled={() => setSelected([])}
       />
