@@ -21,6 +21,7 @@ import { toast } from '@/hooks/use-toast';
 import { Printer, Loader2 } from 'lucide-react';
 import { Account } from '@/types/financial';
 import { sumMoney } from '@/lib/money';
+import { cleanReceiptDescription } from '@/lib/settlement';
 import { formatCurrency, formatDate } from '@/lib/format';
 
 interface ReceiptDialogProps {
@@ -64,7 +65,9 @@ export const ReceiptDialog: React.FC<ReceiptDialogProps> = ({
         const lines = accounts
           .map(a => `${a.code ? a.code + ' ' : ''}${a.description} (venc. ${formatDate(a.dueDate)}) ${formatCurrency(a.amount)}`)
           .join('; ');
-        const reference = `${customReference ? customReference + ' — ' : ''}Parcelas: ${lines}`;
+        const reference = first.type === 'receivable'
+          ? customReference || [...new Set(accounts.map(a => cleanReceiptDescription(a.description)))].join('; ')
+          : `${customReference ? customReference + ' — ' : ''}Parcelas: ${lines}`;
         const latest = accounts.reduce<Date | undefined>((acc, a) => {
           const d = a.paidAt ? new Date(a.paidAt) : undefined;
           return d && (!acc || d > acc) ? d : acc;
@@ -115,7 +118,7 @@ export const ReceiptDialog: React.FC<ReceiptDialogProps> = ({
           receiverName: account.supplierName || 'Não informado',
           receiverDocument: supplier?.document || '',
           amount: account.amount,
-          reference: customReference || account.description,
+          reference: customReference || (account.type === 'receivable' ? cleanReceiptDescription(account.description) : account.description),
           issueDate: account.paidAt ? new Date(account.paidAt) : new Date(),
           accountType: account.type,
           companyName: settings?.company_name || '',

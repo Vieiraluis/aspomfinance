@@ -21,7 +21,8 @@ import {
 } from '@/components/ui/select';
 import { Account, Payment, paymentMethodLabels } from '@/types/financial';
 import { formatCurrency, formatDate } from '@/lib/format';
-import { sumMoney } from '@/lib/money';
+import { subMoney, sumMoney } from '@/lib/money';
+import { cleanReceiptDescription, settlementTotals, validateSettlement } from '@/lib/settlement';
 import { useBankAccounts, useSuppliers } from '@/hooks/useSupabaseData';
 import { useSettleInstallments } from '@/hooks/useAccountEntries';
 import { useReceiptNumber } from '@/hooks/useReceiptNumber';
@@ -45,7 +46,6 @@ export const SettleInstallmentsDialog = ({
   open,
   onOpenChange,
   accounts,
-  headId,
   onSettled,
 }: SettleInstallmentsDialogProps) => {
   const { user } = useAuth();
@@ -62,12 +62,28 @@ export const SettleInstallmentsDialog = ({
 
   const [form, setForm] = useState({
     amount: '',
+    interest: '',
+    discount: '',
+    split: false,
+    secondAmount: '',
+    secondMethod: 'cash' as Payment['paymentMethod'],
+    secondBankId: '',
     paidAt: format(new Date(), 'yyyy-MM-dd'),
     paymentMethod: 'pix' as Payment['paymentMethod'],
     bankAccountId: '',
     notes: '',
     withReceipt: true,
   });
+  const [isConfirming, setIsConfirming] = useState(false);
+  const [hasSettled, setHasSettled] = useState(false);
+  const settlementId = useRef(crypto.randomUUID());
+  const [autoPrint, setAutoPrint] = useState(false);
+  const principal = Number(form.amount || 0);
+  const interest = Number(form.interest || 0);
+  const discount = Number(form.discount || 0);
+  const { net, remaining } = settlementTotals(principal, interest, discount, total);
+  const secondAmount = form.split ? Number(form.secondAmount || 0) : 0;
+  const firstAmount = subMoney(net, secondAmount);
   const [receipt, setReceipt] = useState<ReceiptData | null>(null);
 
   const handlePrint = useReactToPrint({
@@ -76,101 +92,87 @@ export const SettleInstallmentsDialog = ({
   });
 
   useEffect(() => {
+    if (receipt && autoPrint) {
+      handlePrint();
+      setAutoPrint(false);
+    }
+  }, [receipt, autoPrint, handlePrint]);
+
+  useEffect(() => {
     if (open) {
+      settlementId.current = crypto.randomUUID();
+      setHasSettled(false);
+      setAutoPrint(false);
       setReceipt(null);
       setForm((prev) => ({
         ...prev,
         amount: total.toString(),
+        interest: '',
+        discount: '',
+        split: false,
+        secondAmount: '',
+        secondMethod: 'cash',
+        secondBankId: activeBankAccounts[0]?.id || '',
+        withReceipt: true,
         paidAt: format(new Date(), 'yyyy-MM-dd'),
         bankAccountId: activeBankAccounts[0]?.id || '',
         notes: '',
       }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, total, bankAccounts.length]);
+  }, [open]);
 
-  const handleConfirm = async () => {
-    if (!user || accounts.length === 0) return;
-    if (!form.bankAccountId) {
-      toast({
-        title: 'Selecione uma conta',
-        description: 'Escolha a conta bancária da quitação.',
-        variant: 'destructive',
-      });
+  const handleConfirm = async (printImmediately = false) => {
+    if (!user || accounts.length === 0 || isConfirming || hasSettled) return;
+    const parts = [
+      { amount: firstAmount, paymentMethod: form.paymentMethod, bankAccountId: form.bankAccountId },
+      ...(form.split ? [{ amount: secondAmount, paymentMethod: form.secondMethod, bankAccountId: form.secondBankId }] : []),
+    ];
+    const validationError = validateSettlement(principal, interest, discount, total, parts);
+    if (validationError) {
+      toast({ title: 'Confira a baixa', description: validationError, variant: 'destructive' });
       return;
     }
-
-    const amount = parseFloat(form.amount || '0');
-    if (!amount || amount <= 0) {
-      toast({ title: 'Informe o valor da quitação', variant: 'destructive' });
-      return;
-    }
-
+    setIsConfirming(true);
+    let completed = false;
     try {
       const [y, m, d] = form.paidAt.split('-').map(Number);
       const paidAt = new Date(y, m - 1, d, 12, 0, 0);
-
-      await settleMutation.mutateAsync({
-        accounts,
-        paidAt,
-        paymentMethod: form.paymentMethod,
-        bankAccountId: form.bankAccountId,
-        notes: form.notes || undefined,
-        amount,
-        headId,
-      });
-
-      toast({
-        title: isPayable ? 'Pagamento registrado!' : 'Recebimento registrado!',
-        description: `${accounts.length} parcela(s) — ${formatCurrency(amount)}`,
-      });
-
-      if (form.withReceipt) {
+      if (!Number.isFinite(paidAt.getTime())) throw new Error('Informe uma data válida.');
+      await settleMutation.mutateAsync({ accounts, paidAt, amount: principal, interest, discount, parts,
+        notes: form.notes || undefined, settlementId: settlementId.current });
+      completed = true;
+      setHasSettled(true);
+      toast({ title: isPayable ? 'Pagamento registrado!' : 'Recebimento registrado!',
+        description: `${formatCurrency(net)} — saldo pendente ${formatCurrency(remaining)}` });
+      if (form.withReceipt || printImmediately) {
         const numberData = await generateReceiptNumber();
-        if (numberData) {
-          const supplier = accounts[0].supplierId
-            ? suppliers.find((s) => s.id === accounts[0].supplierId)
-            : undefined;
-          const reference = `${accounts[0].description.replace(/\s*\(\d+\/\d+\)$/, '')} — parcelas ${accounts
-            .map((a) => a.code || a.description)
-            .join(', ')}`;
-
-          await supabase.from('receipts').insert({
-            user_id: user.id,
-            account_id: accounts[0].id,
-            receipt_number: numberData.receiptNumber,
-            year_month: numberData.yearMonth,
-            sequence_number: numberData.sequenceNumber,
-            receiver_name: accounts[0].supplierName || 'Não informado',
-            receiver_document: supplier?.document || '',
-            amount,
-            amount_written: '',
-            reference,
-            issue_date: paidAt.toISOString(),
-          });
-
-          setReceipt({
-            receiptNumber: numberData.receiptNumber,
-            receiverName: accounts[0].supplierName || 'Não informado',
-            receiverDocument: supplier?.document || '',
-            amount,
-            reference,
-            issueDate: paidAt,
-            accountType: accounts[0].type,
-            companyName: settings?.company_name || '',
-            companyDocument: settings?.company_document || '',
-          });
-        }
-      }
-
-      onSettled?.();
-      if (!form.withReceipt) onOpenChange(false);
-    } catch (error: any) {
-      toast({
-        title: 'Erro',
-        description: error.message || 'Não foi possível concluir a quitação.',
-        variant: 'destructive',
-      });
+        if (!numberData) throw new Error('Não foi possível gerar o número do recibo.');
+        const first = accounts[0];
+        const supplier = suppliers.find(s => s.id === first.supplierId);
+        const description = [...new Set(accounts.map(a => cleanReceiptDescription(a.description)))].join('; ');
+        const reference = isPayable
+          ? `${description} — parcelas ${accounts.map(a => a.code || a.description).join(', ')}`
+          : description;
+        const { error } = await supabase.from('receipts').insert({
+          user_id: user.id, account_id: first.id, receipt_number: numberData.receiptNumber,
+          year_month: numberData.yearMonth, sequence_number: numberData.sequenceNumber,
+          receiver_name: first.supplierName || 'Não informado', receiver_document: supplier?.document || '',
+          amount: net, amount_written: '', reference, issue_date: paidAt.toISOString(),
+        });
+        if (error) throw error;
+        setAutoPrint(printImmediately);
+        setReceipt({ receiptNumber: numberData.receiptNumber, receiverName: first.supplierName || 'Não informado',
+          receiverDocument: supplier?.document || '', amount: net, reference, issueDate: paidAt,
+          accountType: first.type, companyName: settings?.company_name || '', companyDocument: settings?.company_document || '' });
+      } else onOpenChange(false);
+    } catch (error: unknown) {
+      toast({ title: completed ? 'Baixa registrada; recibo não gerado' : 'Erro na baixa',
+        description: error instanceof Error ? error.message : 'Não foi possível concluir.', variant: 'destructive' });
+      if (completed) onOpenChange(false);
+    } finally {
+      if (completed) onSettled?.();
+      setIsConfirming(false);
     }
   };
 
@@ -187,7 +189,7 @@ export const SettleInstallmentsDialog = ({
         </DialogHeader>
 
         {!receipt ? (
-          <div className="space-y-4">
+          <div className="space-y-3 [&_input]:h-8 [&_button[role=combobox]]:h-8 [&_label]:text-xs">
             <div className="rounded-lg border border-border bg-muted/40 p-3 space-y-1 max-h-40 overflow-y-auto">
               {accounts.map((a) => (
                 <div key={a.id} className="flex justify-between text-sm">
@@ -202,7 +204,7 @@ export const SettleInstallmentsDialog = ({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
               <div className="space-y-1.5">
-                <Label htmlFor="settle-amount">Valor da quitação</Label>
+                <Label htmlFor="settle-amount">Valor da baixa (sem ajustes)</Label>
                 <CurrencyInput
                   id="settle-amount"
                   value={form.amount}
@@ -261,6 +263,43 @@ export const SettleInstallmentsDialog = ({
               </div>
             </div>
 
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div className="space-y-1">
+                <Label htmlFor="settle-interest">Juros</Label>
+                <CurrencyInput id="settle-interest" value={form.interest} onValueChange={value => setForm({ ...form, interest: value })} />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="settle-discount">Desconto</Label>
+                <CurrencyInput id="settle-discount" value={form.discount} onValueChange={value => setForm({ ...form, discount: value })} />
+              </div>
+              <div className="space-y-1"><Label>Valor líquido</Label><p className="text-sm font-semibold text-primary">{formatCurrency(net)}</p></div>
+              <div className="space-y-1"><Label>Saldo pendente</Label><p className="text-sm font-semibold">{formatCurrency(remaining)}</p></div>
+            </div>
+
+            <label className="flex items-center gap-2 text-sm">
+              <Checkbox checked={form.split} onCheckedChange={checked => setForm({ ...form, split: checked === true })} />
+              Duas formas de {isPayable ? 'pagamento' : 'recebimento'}
+            </label>
+            {form.split && (
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <div className="space-y-1"><Label>Valor da primeira forma</Label><p className="text-sm font-semibold">{formatCurrency(firstAmount)}</p></div>
+                <div className="space-y-1"><Label htmlFor="settle-second-amount">Valor da segunda forma</Label>
+                  <CurrencyInput id="settle-second-amount" value={form.secondAmount} onValueChange={value => setForm({ ...form, secondAmount: value })} /></div>
+                <div className="space-y-1"><Label>Segunda forma</Label>
+                  <Select value={form.secondMethod} onValueChange={value => setForm({ ...form, secondMethod: value as Payment['paymentMethod'] })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger><SelectContent>
+                      {Object.entries(paymentMethodLabels).map(([key, label]) => <SelectItem key={key} value={key}>{label}</SelectItem>)}
+                    </SelectContent>
+                  </Select></div>
+                <div className="space-y-1"><Label>Conta da segunda forma</Label>
+                  <Select value={form.secondBankId} onValueChange={value => setForm({ ...form, secondBankId: value })}>
+                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger><SelectContent>
+                      {activeBankAccounts.map(ba => <SelectItem key={ba.id} value={ba.id}>{ba.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select></div>
+              </div>
+            )}
+
             <div className="space-y-1.5">
               <Label htmlFor="settle-notes">Observações</Label>
               <Input
@@ -279,24 +318,22 @@ export const SettleInstallmentsDialog = ({
               Gerar recibo único consolidado
             </label>
 
-            <p className="text-xs text-muted-foreground">
-              Se o valor informado for menor que o total selecionado, o sistema gera
-              automaticamente uma nova parcela com o saldo restante.
-            </p>
-
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => onOpenChange(false)}>
                 Cancelar
               </Button>
-              <Button onClick={handleConfirm} disabled={settleMutation.isPending}>
-                {settleMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                Confirmar quitação
+              <Button variant="outline" onClick={() => handleConfirm(true)} disabled={isConfirming || hasSettled} className="gap-2">
+                <Printer className="h-4 w-4" /> Confirmar e imprimir
+              </Button>
+              <Button onClick={() => handleConfirm()} disabled={isConfirming || hasSettled}>
+                {isConfirming && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                Confirmar {isPayable ? 'pagamento' : 'recebimento'}
               </Button>
             </div>
           </div>
         ) : (
-          <div className="space-y-4">
-            <div className="border rounded-lg overflow-hidden max-h-[50vh] overflow-y-auto bg-gray-100">
+          <div className="space-y-3 [&_input]:h-8 [&_button[role=combobox]]:h-8 [&_label]:text-xs">
+            <div className="border rounded-lg overflow-hidden max-h-[50vh] overflow-y-auto bg-muted">
               <PrintableReceipt ref={printRef} receipts={[receipt]} settings={settings} />
             </div>
             <div className="flex justify-end gap-2">

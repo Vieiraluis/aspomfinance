@@ -23,10 +23,12 @@ export type Database = {
           code: string | null
           created_at: string
           description: string
+          discount_amount: number
           document_number: string | null
           due_date: string
           id: string
           installment_number: number | null
+          interest_amount: number
           notes: string | null
           paid_at: string | null
           parent_id: string | null
@@ -47,10 +49,12 @@ export type Database = {
           code?: string | null
           created_at?: string
           description: string
+          discount_amount?: number
           document_number?: string | null
           due_date: string
           id?: string
           installment_number?: number | null
+          interest_amount?: number
           notes?: string | null
           paid_at?: string | null
           parent_id?: string | null
@@ -71,10 +75,12 @@ export type Database = {
           code?: string | null
           created_at?: string
           description?: string
+          discount_amount?: number
           document_number?: string | null
           due_date?: string
           id?: string
           installment_number?: number | null
+          interest_amount?: number
           notes?: string | null
           paid_at?: string | null
           parent_id?: string | null
@@ -1098,10 +1104,14 @@ export type Database = {
           amount: number
           bank_account_id: string | null
           created_at: string
+          discount_amount: number
           id: string
+          interest_amount: number
           notes: string | null
           paid_at: string
           payment_method: string
+          principal_amount: number | null
+          settlement_id: string | null
           user_id: string
         }
         Insert: {
@@ -1109,10 +1119,14 @@ export type Database = {
           amount: number
           bank_account_id?: string | null
           created_at?: string
+          discount_amount?: number
           id?: string
+          interest_amount?: number
           notes?: string | null
           paid_at: string
           payment_method: string
+          principal_amount?: number | null
+          settlement_id?: string | null
           user_id: string
         }
         Update: {
@@ -1120,10 +1134,14 @@ export type Database = {
           amount?: number
           bank_account_id?: string | null
           created_at?: string
+          discount_amount?: number
           id?: string
+          interest_amount?: number
           notes?: string | null
           paid_at?: string
           payment_method?: string
+          principal_amount?: number | null
+          settlement_id?: string | null
           user_id?: string
         }
         Relationships: [
@@ -1500,7 +1518,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      settle_account_installments: {
+        Args: {
+          p_account_ids: string[]
+          p_discount: number
+          p_interest: number
+          p_notes: string
+          p_paid_at: string
+          p_parts: Json
+          p_principal: number
+          p_settlement_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

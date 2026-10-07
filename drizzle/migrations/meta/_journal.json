@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1791377403259,
+      "tag": "0000_atomic_adjusted_installment_settlement",
+      "breakpoints": true
+    }
+  ]
+}
