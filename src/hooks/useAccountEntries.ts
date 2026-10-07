@@ -1,10 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Account, AccountCategory, Payment } from '@/types/financial';
+import { Account, AccountCategory } from '@/types/financial';
 import { normalizeStorageUrl } from '@/lib/storageUrl';
 import { addMonths } from 'date-fns';
-import { subMoney, toCents, fromCents } from '@/lib/money';
+import { toCents, fromCents, sumMoney } from '@/lib/money';
+import { SettlementPart, validateSettlement } from '@/lib/settlement';
 
 const parseDateOnly = (dateStr: string): Date => {
   const [year, month, day] = dateStr.split('-').map(Number);
@@ -172,107 +173,40 @@ export const useSaveAccountEntry = () => {
 export interface SettleInput {
   accounts: Account[];
   paidAt: Date;
-  paymentMethod: Payment['paymentMethod'];
-  bankAccountId: string;
   notes?: string;
-  /** Valor efetivamente quitado (pode ser parcial em relação ao total selecionado). */
   amount: number;
-  headId?: string;
+  interest: number;
+  discount: number;
+  parts: SettlementPart[];
+  settlementId: string;
 }
 
-/**
- * Quita uma ou mais parcelas de forma agrupada.
- * Em quitação parcial, gera automaticamente uma nova parcela com o saldo restante.
- */
+/** Atomic settlement: separate payment methods, residual principal and bank movements. */
 export const useSettleInstallments = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
-
   return useMutation({
     mutationFn: async (input: SettleInput) => {
       if (!user) throw new Error('Not authenticated');
-      const { accounts, paidAt, paymentMethod, bankAccountId, notes } = input;
-      if (accounts.length === 0) throw new Error('Nenhuma parcela selecionada');
-
-      let remaining = toCents(input.amount);
-
-      for (const acc of accounts) {
-        const accCents = toCents(acc.amount);
-        const payCents = Math.max(0, Math.min(accCents, remaining));
-        remaining -= payCents;
-
-        if (payCents === 0) continue;
-
-        const paidValue = fromCents(payCents);
-
-        const { error: paymentError } = await supabase.from('payments').insert({
-          user_id: user.id,
-          account_id: acc.id,
-          amount: paidValue,
-          paid_at: paidAt.toISOString(),
-          payment_method: paymentMethod,
-          bank_account_id: bankAccountId || null,
-          notes: notes || null,
-        });
-        if (paymentError) throw paymentError;
-
-        const { error: updateError } = await supabase
-          .from('accounts')
-          .update({
-            status: 'paid',
-            paid_at: paidAt.toISOString(),
-            bank_account_id: bankAccountId || null,
-            amount: paidValue,
-          })
-          .eq('id', acc.id);
-        if (updateError) throw updateError;
-
-        // Quitação parcial: gera a parcela com o saldo restante
-        if (payCents < accCents) {
-          const residual = subMoney(acc.amount, paidValue);
-          const { error: residualError } = await supabase.from('accounts').insert({
-            user_id: user.id,
-            type: acc.type,
-            description: `${acc.description} - saldo`,
-            document_number: acc.documentNumber || null,
-            payment_terms: acc.paymentTerms || null,
-            amount: residual,
-            due_date: toDateStr(acc.dueDate),
-            status: 'pending',
-            supplier_id: acc.supplierId || null,
-            supplier_name: acc.supplierName || null,
-            category: acc.category,
-            parent_id: input.headId || acc.parentId || acc.id,
-            notes: acc.notes || null,
-          });
-          if (residualError) throw residualError;
-        }
-      }
-
-      // Ajuste do saldo bancário (uma única movimentação pelo total quitado)
-      if (bankAccountId) {
-        const { data: bankData, error: bankFetchError } = await supabase
-          .from('bank_accounts')
-          .select('current_balance')
-          .eq('id', bankAccountId)
-          .single();
-        if (bankFetchError) throw bankFetchError;
-
-        const settled = fromCents(toCents(input.amount) - Math.max(0, remaining));
-        const delta = accounts[0].type === 'receivable' ? settled : -settled;
-
-        const { error: bankUpdateError } = await supabase
-          .from('bank_accounts')
-          .update({ current_balance: Number(bankData.current_balance) + delta })
-          .eq('id', bankAccountId);
-        if (bankUpdateError) throw bankUpdateError;
-      }
+      const errorMessage = validateSettlement(input.amount, input.interest, input.discount,
+        sumMoney(input.accounts, a => a.amount), input.parts);
+      if (errorMessage) throw new Error(errorMessage);
+      const { error } = await supabase.rpc('settle_account_installments', {
+        p_account_ids: input.accounts.map(a => a.id),
+        p_paid_at: input.paidAt.toISOString(),
+        p_principal: input.amount,
+        p_interest: input.interest,
+        p_discount: input.discount,
+        p_parts: input.parts.map(p => ({ amount: p.amount, paymentMethod: p.paymentMethod, bankAccountId: p.bankAccountId })),
+        p_notes: input.notes || '',
+        p_settlement_id: input.settlementId,
+      });
+      if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['accounts'] });
-      queryClient.invalidateQueries({ queryKey: ['account-entry'] });
-      queryClient.invalidateQueries({ queryKey: ['payments'] });
-      queryClient.invalidateQueries({ queryKey: ['bank_accounts'] });
+      for (const key of ['accounts', 'account-entry', 'payments', 'bank_accounts']) {
+        queryClient.invalidateQueries({ queryKey: [key] });
+      }
     },
   });
 };
