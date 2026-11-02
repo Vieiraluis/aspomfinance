@@ -246,7 +246,7 @@ const Cobranca = () => {
       <style>{`
         @media print {
           @page { size: A4 portrait; margin: 8mm; }
-          body { overflow: visible !important; height: auto !important; }
+          html, body { overflow: visible !important; height: auto !important; background: hsl(var(--boleto-paper)) !important; }
           body > #root, [data-radix-popper-content-wrapper], [data-state="open"][aria-hidden="true"] { display: none !important; }
           body * { visibility: hidden !important; }
           [role="dialog"] { position: static !important; transform: none !important; width: auto !important; max-width: none !important; max-height: none !important; height: auto !important; overflow: visible !important; padding: 0 !important; border: 0 !important; box-shadow: none !important; display: block !important; }
