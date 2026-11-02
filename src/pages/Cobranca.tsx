@@ -221,14 +221,14 @@ const Cobranca = () => {
         import('html2canvas'),
         import('jspdf'),
       ]);
-      const canvas = await html2canvas(docRef.current, { scale: 2, backgroundColor: '#ffffff' });
+      const canvas = await html2canvas(docRef.current, { scale: 2, backgroundColor: null });
       const img = canvas.toDataURL('image/png');
       const pdf = new jsPDF({ unit: 'mm', format: 'a4' });
       const pageW = 210;
       const margin = 8;
-      const w = pageW - margin * 2;
+      const w = Math.min(pageW - margin * 2, ((297 - margin * 2) * canvas.width) / canvas.height);
       const h = (canvas.height * w) / canvas.width;
-      pdf.addImage(img, 'PNG', margin, margin, w, h);
+      pdf.addImage(img, 'PNG', (pageW - w) / 2, margin, w, h);
       pdf.save(`boleto-aspom-${boleto?.numbers.nossoNumeroFormatado.replace(/\D/g, '')}.pdf`);
     } catch (e: any) {
       toast({ title: 'Erro ao gerar PDF', description: e.message, variant: 'destructive' });
@@ -245,9 +245,15 @@ const Cobranca = () => {
     <MainLayout>
       <style>{`
         @media print {
+          @page { size: A4 portrait; margin: 8mm; }
+          html, body { overflow: visible !important; height: auto !important; background: hsl(var(--boleto-paper)) !important; }
+          body > #root, [data-radix-popper-content-wrapper], [data-state="open"][aria-hidden="true"] { display: none !important; }
           body * { visibility: hidden !important; }
+          [role="dialog"] { position: static !important; transform: none !important; width: auto !important; max-width: none !important; max-height: none !important; height: auto !important; overflow: visible !important; padding: 0 !important; border: 0 !important; box-shadow: none !important; display: block !important; }
+          [role="dialog"] > *:not(:has(.boleto-sheet)) { display: none !important; }
+          [role="dialog"] > :has(.boleto-sheet) { padding: 0 !important; border: 0 !important; overflow: visible !important; }
           .boleto-sheet, .boleto-sheet * { visibility: visible !important; }
-          .boleto-sheet { position: absolute; left: 0; top: 0; width: 100%; max-width: none; }
+          .boleto-sheet { position: static; max-width: none; margin: 0; }
         }
       `}</style>
 

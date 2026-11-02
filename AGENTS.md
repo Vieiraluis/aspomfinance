@@ -1,4 +1,5 @@
 # Architecture rules
+- Keep boleto paper colors scoped to global document tokens and share `BoletoDocument` between preview, printing and PDF export so the app theme cannot alter payment document contrast.
 
 - Reuse `FinancialActionsMenu` for payable and receivable list commands so both financial workflows stay visually and behaviorally aligned.
 - Keep payable and receivable entry presentation in the shared `AccountEntryScreen`, with `EntryEntityCard` displaying registered entity details, so both workflows stay consistent without duplicating data.
