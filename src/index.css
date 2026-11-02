@@ -87,7 +87,7 @@
 .boleto-pix-copy { font-size: 8px; line-height: 1.4; overflow-wrap: anywhere; margin-top: 10px !important; }
 .boleto-footer { margin-top: auto; padding-top: 12px; border-top: 1px solid hsl(var(--boleto-gray)); font-size: 9px; text-transform: uppercase; text-align: center; color: hsl(var(--boleto-muted)); }
 @media print {
-  .boleto-sheet { width: 206.38mm; min-height: 298mm; padding: 6mm; zoom: .94; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .boleto-sheet { width: 215.55mm; min-height: 0; padding: 6mm; zoom: .9; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
   .boleto-row, .boleto-instructions-row, .boleto-barcode-area, .boleto-compensation-heading, .boleto-demonstrative tr { break-inside: avoid; }
 }
 
