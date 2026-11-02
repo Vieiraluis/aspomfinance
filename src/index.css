@@ -2,6 +2,95 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Fixed paper palette, independent of the application's dark theme. */
+:root {
+  --boleto-paper: 0 0% 100%;
+  --boleto-ink: 0 0% 0%;
+  --boleto-blue: 224 64% 33%;
+  --boleto-muted: 220 9% 46%;
+  --boleto-rule: 0 0% 0%;
+  --boleto-gray: 220 14% 96%;
+  --boleto-green-soft: 152 81% 96%;
+  --boleto-green: 149 80% 90%;
+  --boleto-green-medium: 152 76% 80%;
+  --boleto-green-bold: 156 72% 67%;
+}
+
+.boleto-sheet { box-sizing: border-box; width: 794px; min-height: 1123px; margin: 0 auto; padding: 36px; display: flex; flex-direction: column; gap: 24px; background: hsl(var(--boleto-paper)); color: hsl(var(--boleto-ink)); font-family: Arial, Helvetica, sans-serif; font-size: 12px; line-height: 1.3; letter-spacing: 0; }
+.boleto-sheet * { box-sizing: border-box; }
+.boleto-sheet p { margin: 0; }
+.boleto-payer-receipt { border: 2px solid hsl(var(--boleto-rule)); }
+.boleto-compensation { border: 3px solid hsl(var(--boleto-rule)); }
+.boleto-bank-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px; border-bottom: 2px solid hsl(var(--boleto-rule)); }
+.boleto-bank-brand { display: flex; align-items: center; gap: 12px; }
+.boleto-bank-brand img { width: 48px; height: 48px; object-fit: contain; }
+.boleto-bank-code { font-size: 26px; font-weight: 900; color: hsl(var(--boleto-blue)); }
+.boleto-bank-name { font-size: 13px; font-weight: 700; text-transform: uppercase; }
+.boleto-section-title { font-size: 12px; font-weight: 800; text-transform: uppercase; }
+.boleto-row { display: grid; border-bottom: 2px solid hsl(var(--boleto-rule)); }
+.boleto-row-main { grid-template-columns: minmax(0,3fr) minmax(0,1fr); }
+.boleto-row-four { grid-template-columns: repeat(4,minmax(0,1fr)); }
+.boleto-row-payer { grid-template-columns: minmax(0,5fr) minmax(0,1fr); }
+.boleto-row-bank-details { grid-template-columns: 2fr 2fr 1fr 1fr 3fr 3fr; }
+.boleto-row-amount-details { grid-template-columns: 2fr 1fr 1fr 2fr 3fr 3fr; }
+.boleto-field { min-width: 0; padding: 8px; border-right: 2px solid hsl(var(--boleto-rule)); }
+.boleto-field:last-child { border-right: 0; }
+.boleto-label { font-size: 9px; line-height: 1.25; font-weight: 700; text-transform: uppercase; color: hsl(var(--boleto-muted)); margin-bottom: 4px !important; }
+.boleto-value { font-size: 12px; font-weight: 700; overflow-wrap: anywhere; }
+.boleto-field-strong .boleto-value { font-size: 18px; font-weight: 900; font-variant-numeric: tabular-nums; }
+.boleto-align-right .boleto-value { text-align: right; }
+.boleto-highlight-soft { background: hsl(var(--boleto-green-soft)); }
+.boleto-highlight { background: hsl(var(--boleto-green)); }
+.boleto-highlight-medium { background: hsl(var(--boleto-green-medium)); }
+.boleto-highlight-bold { background: hsl(var(--boleto-green-bold)); }
+.boleto-demonstrative { padding: 12px; }
+.boleto-demonstrative > .boleto-label, .boleto-instructions > .boleto-label { color: hsl(var(--boleto-blue)); }
+.boleto-demonstrative table { width: 100%; border-collapse: collapse; font-size: 11px; table-layout: fixed; }
+.boleto-demonstrative th { font-size: 9px; text-transform: uppercase; text-align: left; color: hsl(var(--boleto-muted)); }
+.boleto-demonstrative th:nth-child(1) { width: 16%; }
+.boleto-demonstrative th:nth-child(2) { width: 22%; }
+.boleto-demonstrative th:nth-child(4) { width: 17%; }
+.boleto-demonstrative th, .boleto-demonstrative td { padding: 6px 4px; overflow-wrap: anywhere; }
+.boleto-demonstrative td:last-child, .boleto-demonstrative th:last-child { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+.boleto-demonstrative tbody tr { border-top: 1px solid hsl(var(--boleto-muted) / .3); }
+.boleto-demonstrative tfoot { border-top: 2px solid hsl(var(--boleto-rule)); font-size: 14px; font-weight: 900; text-align: right; }
+.boleto-cut { display: flex; align-items: center; gap: 16px; padding: 8px 0; font-size: 10px; font-weight: 700; text-transform: uppercase; color: hsl(var(--boleto-muted)); }
+.boleto-cut span { flex: 1; border-top: 2px dashed hsl(var(--boleto-muted)); }
+.boleto-compensation-heading { display: flex; align-items: stretch; border-bottom: 3px solid hsl(var(--boleto-rule)); }
+.boleto-bank-compensation { border-bottom: 0; border-right: 3px solid hsl(var(--boleto-rule)); padding: 8px; flex-shrink: 0; }
+.boleto-bank-compensation img { width: 40px; height: 40px; }
+.boleto-bank-compensation .boleto-bank-brand { gap: 8px; }
+.boleto-digitable { flex: 1; min-width: 0; padding: 10px 8px; text-align: center; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+.boleto-digitable p { font-size: 14px; font-weight: 900; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.boleto-digitable span { font-size: 9px; font-weight: 700; text-transform: uppercase; color: hsl(var(--boleto-blue)); }
+.boleto-row-bank-details .boleto-value, .boleto-row-amount-details .boleto-value { font-size: 11px; }
+.boleto-row-amount-details .boleto-field-strong .boleto-value { font-size: 18px; }
+.boleto-instructions-row { display: grid; grid-template-columns: minmax(0,7fr) minmax(0,2fr) minmax(0,3fr); border-bottom: 2px solid hsl(var(--boleto-rule)); min-height: 180px; }
+.boleto-instructions { padding: 12px; border-right: 2px solid hsl(var(--boleto-rule)); }
+.boleto-instructions ul { list-style: none; padding: 0; margin: 0; font-size: 11px; line-height: 1.5; }
+.boleto-instructions li { margin-bottom: 5px; overflow-wrap: anywhere; }
+.boleto-reference { font-weight: 700; }
+.boleto-pix { padding: 8px 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-right: 2px solid hsl(var(--boleto-rule)); background: hsl(var(--boleto-paper)); text-align: center; }
+.boleto-pix img, .boleto-qr-empty { width: 100px; height: 100px; flex-shrink: 0; }
+.boleto-pix p { font-size: 9px; font-weight: 800; text-transform: uppercase; margin-top: 5px; }
+.boleto-pix span { font-size: 8px; margin-top: 3px; }
+.boleto-adjustments { display: flex; flex-direction: column; }
+.boleto-adjustments .boleto-field { flex: 1; border-right: 0; border-bottom: 2px solid hsl(var(--boleto-rule)); background: hsl(var(--boleto-gray)); }
+.boleto-adjustments .boleto-field:last-child { border-bottom: 0; background: hsl(var(--boleto-green)); }
+.boleto-payer-block { border-right: 0; border-bottom: 2px solid hsl(var(--boleto-rule)); background: hsl(var(--boleto-gray)); padding: 12px; }
+.boleto-payer-name .boleto-value { font-size: 14px; font-weight: 800; }
+.boleto-payer-address { display: block; font-size: 11px; font-weight: 600; margin-top: 4px; }
+.boleto-barcode-area { padding: 20px 12px 12px; background: hsl(var(--boleto-paper)); }
+.boleto-barcode-line { display: flex; flex-direction: column; gap: 6px; }
+.boleto-barcode { width: 100%; padding: 0 10px; }
+.boleto-barcode-line > span { align-self: flex-end; font-size: 9px; text-transform: uppercase; font-weight: 700; color: hsl(var(--boleto-muted)); }
+.boleto-pix-copy { font-size: 8px; line-height: 1.4; overflow-wrap: anywhere; margin-top: 10px !important; }
+.boleto-footer { margin-top: auto; padding-top: 12px; border-top: 1px solid hsl(var(--boleto-gray)); font-size: 9px; text-transform: uppercase; text-align: center; color: hsl(var(--boleto-muted)); }
+@media print {
+  .boleto-sheet { width: 194mm; min-height: 281mm; padding: 6mm; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .boleto-row, .boleto-instructions-row, .boleto-barcode-area, .boleto-compensation-heading, .boleto-demonstrative tr { break-inside: avoid; }
+}
+
 /* Financial Management App - Dark Elegant Theme */
 @layer base {
   :root {
